@@ -1,0 +1,120 @@
+// Schéma de base de données - Site de guilde Camelote
+// Documentation : https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SiteRole {
+  RAIDEUR
+  OFFICIER
+  ADMINISTRATEUR
+}
+
+enum WowClass {
+  PRETRE
+  MAGE
+  DEMONISTE
+  DRUIDE
+  VOLEUR
+  CHASSEUR
+  CHAMAN
+  GUERRIER
+  PALADIN
+}
+
+enum SignupStatus {
+  INSCRIT
+  RESERVE   // bench
+  ABSENT
+  DESISTE   // s'est retiré
+}
+
+enum RaidStatus {
+  OUVERT      // inscriptions ouvertes
+  FERME       // inscriptions fermées, en attente
+  TERMINE     // raid passé, historique figé
+  ANNULE
+}
+
+model User {
+  id            String   @id @default(cuid())
+  discordId     String   @unique
+  discordTag    String   // pseudo Discord au moment de la connexion (cache d'affichage)
+  avatarUrl     String?
+  siteRole      SiteRole @default(RAIDEUR)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  characters    Character[]
+  raidsCreated  Raid[]        @relation("RaidCreatedBy")
+  roleGrantsGiven  RoleAudit[] @relation("GrantedBy")
+  roleGrantsReceived RoleAudit[] @relation("GrantedTo")
+}
+
+model Character {
+  id            String   @id @default(cuid())
+  name          String
+  class         WowClass
+  spec          String   // dépend de la classe, voir src/lib/classes.ts
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  signups       RaidSignup[]
+
+  @@unique([userId, name])
+}
+
+model Raid {
+  id            String     @id @default(cuid())
+  title         String
+  date          DateTime
+  size          Int        // 10, 20, 25, 40...
+  instance      String?    // nom de l'instance/donjon (optionnel, inconnu pour l'instant)
+  status        RaidStatus @default(OUVERT)
+  notes         String?
+  createdAt     DateTime   @default(now())
+
+  createdById   String
+  createdBy     User       @relation("RaidCreatedBy", fields: [createdById], references: [id])
+
+  signups       RaidSignup[]
+}
+
+model RaidSignup {
+  id            String       @id @default(cuid())
+  status        SignupStatus @default(INSCRIT)
+  comment       String?      // ex: "dispo après 21h"
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  raidId        String
+  raid          Raid         @relation(fields: [raidId], references: [id], onDelete: Cascade)
+
+  characterId   String
+  character     Character    @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([raidId, characterId])
+}
+
+// Historique des changements de rôle site (traçabilité pour les admins)
+model RoleAudit {
+  id            String   @id @default(cuid())
+  previousRole  SiteRole
+  newRole       SiteRole
+  createdAt     DateTime @default(now())
+
+  targetUserId  String
+  targetUser    User     @relation("GrantedTo", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  grantedById   String
+  grantedBy     User     @relation("GrantedBy", fields: [grantedById], references: [id])
+}

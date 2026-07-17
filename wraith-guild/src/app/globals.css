@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bone: #EDE7E0;
+  --void: #0D0B0A;
+  --char: #161210;
+  --blood: #A61B1B;
+  --amber: #C98A2C;
+  --moss: #7A9B5C;
+}
+
+body {
+  background-color: var(--void);
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(166,27,27,0.16), transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(166,27,27,0.10), transparent 40%);
+  color: var(--bone);
+}
+
+.font-display { font-family: var(--font-oswald), sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+.font-ui { font-family: var(--font-inter), sans-serif; }
+
+/* Bordure anguleuse utilisée sur les cartes (personnages, raids) */
+.war-border {
+  border: 1px solid rgba(166,27,27,0.4);
+  border-left: 3px solid var(--blood);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--blood);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
