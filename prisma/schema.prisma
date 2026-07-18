@@ -134,7 +134,10 @@ model RaidSignup {
   characterId   String?
   character     Character?   @relation(fields: [characterId], references: [id], onDelete: SetNull)
 
+  slot          Int?         // position dans la grille de composition (0 à size-1) ; null = pas encore placé
+
   @@unique([raidId, userId])
+  @@unique([raidId, slot])
 }
 
 // Historique des changements de rôle site (traçabilité pour les admins)
