@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CLASS_LABELS, CLASS_COLORS, guessRaidRole, type WowClass } from "@/lib/classes";
+import { CLASS_COLORS, guessRaidRole, type WowClass } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import CharacterBadges from "@/components/CharacterBadges";
 
@@ -187,9 +187,7 @@ export default function CompositionPage() {
                       className="ml-3 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                     >
                       <CharacterBadges character={c} />
-                      <span>
-                        {c.name} ({CLASS_LABELS[c.class]} · {c.spec})
-                      </span>
+                      <span>{c.name}</span>
                     </div>
                   );
                 })}
@@ -254,9 +252,7 @@ export default function CompositionPage() {
                                 ×
                               </button>
                             </>
-                          ) : (
-                            <span>— vide —</span>
-                          )}
+                          ) : null}
                         </div>
                       );
                     })}
@@ -282,9 +278,7 @@ export default function CompositionPage() {
                   className="mt-1.5 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                 >
                   <CharacterBadges character={s.character!} />
-                  <span>
-                    {s.character!.name} ({CLASS_LABELS[s.character!.class]} · {s.character!.spec})
-                  </span>
+                  <span>{s.character!.name}</span>
                 </div>
               </div>
             );
