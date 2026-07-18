@@ -10,6 +10,12 @@ personnages et compositions de raid.
 - NextAuth (Discord OAuth) avec vérification des rôles Discord via un bot
 - Tailwind CSS
 
+## Prérequis
+
+- Node.js 18+
+- PostgreSQL (local ou distant)
+- Une application Discord (pour l'OAuth et le bot de vérification des rôles)
+
 ## Installation locale
 
 ```bash
