@@ -58,6 +58,7 @@ model User {
   id            String   @id @default(cuid())
   discordId     String   @unique
   discordTag    String   // pseudo Discord au moment de la connexion (cache d'affichage)
+  displayName   String?  // surnom personnalisé sur le site ; prioritaire sur discordTag si défini
   avatarUrl     String?
   siteRole      SiteRole @default(RAIDEUR)
   createdAt     DateTime @default(now())

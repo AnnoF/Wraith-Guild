@@ -79,9 +79,15 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token.userId) {
         session.user.id = token.userId as string;
-        session.user.siteRole = token.siteRole as SiteRole;
+        // Relu à chaque fois (pas seulement au login) pour refléter sans délai
+        // un changement de rôle par un Administrateur ou de nom d'affichage.
+        const dbUser = await prisma.user.findUnique({ where: { id: token.userId as string } });
+        if (dbUser) {
+          session.user.siteRole = dbUser.siteRole;
+          session.user.name = dbUser.displayName || dbUser.discordTag;
+        }
       }
       return session;
     }

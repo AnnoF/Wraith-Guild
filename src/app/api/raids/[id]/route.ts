@@ -27,7 +27,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
   });
   if (!raid) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
-  return NextResponse.json({ ...raid, status: effectiveRaidStatus(raid) });
+  return NextResponse.json({
+    ...raid,
+    status: effectiveRaidStatus(raid),
+    signups: raid.signups.map((s) => ({
+      ...s,
+      user: { ...s.user, discordTag: s.user.displayName || s.user.discordTag }
+    }))
+  });
 }
 
 // PATCH : modifier statut/infos du raid (Officier/Admin)
