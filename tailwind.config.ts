@@ -6,7 +6,7 @@ const config: Config = {
     extend: {
       colors: {
         bone: "#EDE7E0",
-        void_: "#0D0B0A",
+        void: "#0D0B0A",
         char: "#161210",
         blood: "#A61B1B",
         amber: "#C98A2C",
