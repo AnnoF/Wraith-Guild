@@ -1,7 +1,8 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import type { SiteRole } from "@prisma/client";
 
 const ROLE_LABELS: Record<SiteRole, string> = {
@@ -25,6 +26,38 @@ export default function Navbar({
   discordTag: string;
 }) {
   const pathname = usePathname();
+  const { data: session, update: updateSession } = useSession();
+  const [editing, setEditing] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const displayName = session?.user.name ?? discordTag;
+
+  function startEditing() {
+    setNameInput(displayName);
+    setError(null);
+    setEditing(true);
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const res = await fetch("/api/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ displayName: nameInput })
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Erreur lors de la mise à jour.");
+      return;
+    }
+    await updateSession();
+    setEditing(false);
+  }
 
   return (
     <header className="border-b-2 border-blood bg-char">
@@ -79,7 +112,54 @@ export default function Navbar({
           >
             {ROLE_LABELS[role]}
           </span>
-          <span className="font-ui text-sm text-bone/70 hidden sm:inline">{discordTag}</span>
+
+          {editing ? (
+            <form onSubmit={handleSave} className="flex items-center gap-1">
+              <input
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                maxLength={32}
+                autoFocus
+                className="bg-void border border-bone/15 focus-ring px-2 py-1 font-ui text-xs text-bone w-28"
+              />
+              <button
+                type="submit"
+                disabled={saving}
+                title="Enregistrer"
+                className="text-moss hover:text-bone focus-ring disabled:opacity-50"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                title="Annuler"
+                className="text-bone/40 hover:text-blood focus-ring"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+              {error && <span className="font-ui text-[10px] text-blood">{error}</span>}
+            </form>
+          ) : (
+            <span className="flex items-center gap-1.5">
+              <span className="font-ui text-sm text-bone/70 hidden sm:inline">{displayName}</span>
+              <button
+                onClick={startEditing}
+                title="Modifier mon nom d'affichage"
+                className="text-bone/30 hover:text-bone focus-ring"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+            </span>
+          )}
+
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="font-ui text-sm text-bone/40 hover:text-bone focus-ring"
