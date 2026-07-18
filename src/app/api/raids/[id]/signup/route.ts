@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
+import { getWowWeekRange } from "@/lib/wowWeek";
 
 // POST : un Raideur s'inscrit lui-même (disponibilité), sans choisir de
 // personnage — c'est un Officier qui assignera un personnage ensuite
@@ -68,6 +69,35 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         { error: "Ce personnage n'appartient pas à ce joueur ou est archivé" },
         { status: 400 }
       );
+    }
+
+    // Un personnage ne peut pas être placé deux fois sur le même raid
+    // (même titre) au sein de la même semaine WoW (mercredi -> mardi).
+    if (typeof slot === "number") {
+      const raid = await prisma.raid.findUnique({ where: { id: params.id } });
+      if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
+
+      const { start, end } = getWowWeekRange(raid.date);
+      const conflict = await prisma.raidSignup.findFirst({
+        where: {
+          characterId,
+          status: "INSCRIT",
+          slot: { not: null },
+          raidId: { not: params.id },
+          raid: { title: raid.title, date: { gte: start, lte: end } }
+        },
+        include: { raid: true }
+      });
+      if (conflict) {
+        return NextResponse.json(
+          {
+            error: `Ce personnage est déjà engagé sur ${raid.title} cette semaine (${new Date(
+              conflict.raid.date
+            ).toLocaleDateString("fr-FR")})`
+          },
+          { status: 409 }
+        );
+      }
     }
   }
 

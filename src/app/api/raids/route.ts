@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
+import { RAID_INSTANCES } from "@/lib/raidInstances";
 
 // GET : liste des raids.
 // ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel, filtre sur le statut brut)
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { title, date, size, signupDeadline, notes } = body;
 
-  if (!title || !date || ![10, 20, 25, 40].includes(Number(size))) {
+  if (!RAID_INSTANCES.includes(title) || !date || ![10, 20, 25, 40].includes(Number(size))) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
 

@@ -55,6 +55,7 @@ export default function CompositionPage() {
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RaidRole | "ALL">("ALL");
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch(`/api/raids/${id}`);
@@ -66,11 +67,17 @@ export default function CompositionPage() {
   }, [id]);
 
   async function updateSignup(userId: string, data: { characterId?: string | null; slot?: number | null }) {
-    await fetch(`/api/raids/${id}/signup`, {
+    const res = await fetch(`/api/raids/${id}/signup`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, ...data })
     });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error || "Impossible d'assigner ce personnage.");
+    } else {
+      setError(null);
+    }
     load();
   }
 
@@ -169,6 +176,10 @@ export default function CompositionPage() {
         <span>Inscrits : {players.length}</span>
         <span>Placés : {placed.length} / {raid.size}</span>
       </div>
+
+      {error && (
+        <p className="font-ui text-xs text-blood war-border bg-char px-4 py-2.5">{error}</p>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <input

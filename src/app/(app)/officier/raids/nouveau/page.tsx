@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { RAID_INSTANCES } from "@/lib/raidInstances";
 
 const SIZES = [10, 20, 25, 40];
 
 export default function NouveauRaidPage() {
   const router = useRouter();
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState<string>(RAID_INSTANCES[0]);
   const [date, setDate] = useState("");
   const [size, setSize] = useState(40);
   const [signupDeadline, setSignupDeadline] = useState("");
@@ -17,8 +18,8 @@ export default function NouveauRaidPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!title.trim() || !date) {
-      setError("Le titre et la date sont obligatoires.");
+    if (!date) {
+      setError("La date est obligatoire.");
       return;
     }
     setLoading(true);
@@ -44,13 +45,18 @@ export default function NouveauRaidPage() {
         {error && <p className="font-ui text-xs text-blood">{error}</p>}
 
         <div>
-          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">Titre</label>
-          <input
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">Raid</label>
+          <select
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
-            placeholder="Ex. Cœur du Magma"
-          />
+          >
+            {RAID_INSTANCES.map((r) => (
+              <option key={r} value={r} className="bg-void text-bone">
+                {r}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
