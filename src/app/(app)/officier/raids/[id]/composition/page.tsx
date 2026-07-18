@@ -7,6 +7,14 @@ import CharacterBadges from "@/components/CharacterBadges";
 
 const GROUP_SIZE = 5;
 
+// Classes Tailwind statiques (nécessaire : Tailwind ne génère que les
+// classes qu'il trouve littéralement dans le code source).
+const GRID_COLS: Record<number, string> = {
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4"
+};
+
 // Regroupe les groupes de 5 par ligne : 4 par ligne par défaut, sauf pour
 // un raid de 25 (5 groupes) qu'on affiche en 2 puis 3.
 function groupRows(size: number, numGroups: number): number[][] {
@@ -193,9 +201,9 @@ export default function CompositionPage() {
 
         <div className="lg:w-2/3 space-y-3">
           {groupRows(raid.size, numGroups).map((row, rowIdx) => (
-            <div key={rowIdx} className="flex flex-wrap gap-3">
+            <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
               {row.map((groupIndex) => (
-                <div key={groupIndex} className="war-border bg-char p-3 flex-1 min-w-[180px]">
+                <div key={groupIndex} className="war-border bg-char p-3 min-w-0">
                   <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
                   <div className="space-y-1">
                     {Array.from({ length: GROUP_SIZE }, (_, i) => {
