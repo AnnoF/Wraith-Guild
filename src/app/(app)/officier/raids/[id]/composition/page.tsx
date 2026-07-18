@@ -111,6 +111,7 @@ export default function CompositionPage() {
 
   const players = raid.signups.filter((s) => s.status === "INSCRIT");
   const placed = players.filter((s) => s.slot !== null && s.character);
+  const unplaced = players.filter((s) => s.slot === null);
   const roleGroups = { TANK: 0, SOIGNEUR: 0, DPS: 0 };
   placed.forEach((s) => {
     const role = guessRaidRole(s.character!.class, s.character!.spec);
@@ -157,49 +158,47 @@ export default function CompositionPage() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="lg:w-1/3 space-y-2">
+        <div className="lg:w-1/4 space-y-2">
+          <p className="font-display text-xs text-bone/50">À placer</p>
           {players.length === 0 && <p className="font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>}
-          {players.map((s) => {
-            const isPlaced = s.slot !== null;
-            return (
-              <div key={s.id} className="war-border bg-char px-4 py-2.5">
-                <p className={`font-ui text-sm ${isPlaced ? "text-bone/30" : "text-bone"}`}>{s.user.discordTag}</p>
-                {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
-                <div className="mt-1.5 space-y-1">
-                  {s.user.characters.length === 0 && (
-                    <p className="font-ui text-xs text-bone/30 ml-3">Aucun personnage actif</p>
-                  )}
-                  {s.user.characters.map((c) => {
-                    const isSelected = s.characterId === c.id;
-                    const dimmed = isPlaced && !isSelected;
-                    const color = CLASS_COLORS[c.class];
-                    return (
-                      <div
-                        key={c.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
-                        style={{
-                          backgroundColor: `${color}${dimmed ? "0D" : "66"}`,
-                          borderColor: dimmed ? `${color}26` : isSelected ? "var(--amber)" : `${color}B3`
-                        }}
-                        className={`ml-3 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border cursor-grab active:cursor-grabbing ${
-                          dimmed ? "text-bone/25" : "text-bone"
-                        }`}
-                      >
-                        <CharacterBadges character={c} />
-                        <span>
-                          {c.name} ({CLASS_LABELS[c.class]} · {c.spec})
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+          {players.length > 0 && unplaced.length === 0 && (
+            <p className="font-ui text-sm text-bone/50">Tous les inscrits sont placés.</p>
+          )}
+          {unplaced.map((s) => (
+            <div key={s.id} className="war-border bg-char px-4 py-2.5">
+              <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+              {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
+              <div className="mt-1.5 space-y-1">
+                {s.user.characters.length === 0 && (
+                  <p className="font-ui text-xs text-bone/30 ml-3">Aucun personnage actif</p>
+                )}
+                {s.user.characters.map((c) => {
+                  const isSelected = s.characterId === c.id;
+                  const color = CLASS_COLORS[c.class];
+                  return (
+                    <div
+                      key={c.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                      style={{
+                        backgroundColor: `${color}66`,
+                        borderColor: isSelected ? "var(--amber)" : `${color}B3`
+                      }}
+                      className="ml-3 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
+                    >
+                      <CharacterBadges character={c} />
+                      <span>
+                        {c.name} ({CLASS_LABELS[c.class]} · {c.spec})
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
-        <div className="lg:w-2/3 space-y-3">
+        <div className="lg:w-1/2 space-y-3">
           {groupRows(raid.size, numGroups).map((row, rowIdx) => (
             <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
               {row.map((groupIndex) => (
@@ -266,6 +265,30 @@ export default function CompositionPage() {
               ))}
             </div>
           ))}
+        </div>
+
+        <div className="lg:w-1/4 space-y-2">
+          <p className="font-display text-xs text-bone/50">Placés</p>
+          {placed.length === 0 && <p className="font-ui text-sm text-bone/50">Personne de placé pour l'instant.</p>}
+          {placed.map((s) => {
+            const color = CLASS_COLORS[s.character!.class];
+            return (
+              <div key={s.id} className="war-border bg-char px-4 py-2.5">
+                <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                <div
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: s.character!.id })}
+                  style={{ backgroundColor: `${color}66`, borderColor: `${color}B3` }}
+                  className="mt-1.5 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
+                >
+                  <CharacterBadges character={s.character!} />
+                  <span>
+                    {s.character!.name} ({CLASS_LABELS[s.character!.class]} · {s.character!.spec})
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
