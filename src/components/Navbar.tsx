@@ -61,9 +61,12 @@ export default function Navbar({
 
   return (
     <header className="border-b-2 border-blood bg-char">
-      <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-        <Link href="/dashboard" className="font-display text-xl text-bone">
-          Wraith-Guild
+      <div className="max-w-5xl mx-auto px-6 py-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo_net.png" alt="" className="h-9 w-9 shrink-0" />
+          <span className="font-display text-xl text-bone">Wraith-Guild</span>
         </Link>
 
         <nav className="flex gap-1 font-ui text-xs uppercase tracking-wide">
@@ -105,14 +108,6 @@ export default function Navbar({
         </nav>
 
         <div className="flex items-center gap-3">
-          <span
-            title={ROLE_LABELS[role]}
-            className="font-display text-[10px] text-void bg-blood px-3 py-1"
-            style={{ clipPath: "polygon(6% 0,100% 0,94% 100%,0 100%)" }}
-          >
-            {ROLE_LABELS[role]}
-          </span>
-
           {editing ? (
             <form onSubmit={handleSave} className="flex items-center gap-1">
               <input
@@ -167,6 +162,17 @@ export default function Navbar({
             Déconnexion
           </button>
         </div>
+      </div>
+
+      <div className="flex justify-end mt-1">
+        <span
+          title={ROLE_LABELS[role]}
+          className="font-display text-[10px] text-void bg-blood px-3 py-1"
+          style={{ clipPath: "polygon(6% 0,100% 0,94% 100%,0 100%)" }}
+        >
+          {ROLE_LABELS[role]}
+        </span>
+      </div>
       </div>
     </header>
   );
