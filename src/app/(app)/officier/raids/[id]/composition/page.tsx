@@ -1,11 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CLASS_LABELS, guessRaidRole, type WowClass } from "@/lib/classes";
+import { CLASS_LABELS, CLASS_COLORS, guessRaidRole, type WowClass } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import CharacterBadges from "@/components/CharacterBadges";
 
-const GROUP_SIZE = 5; // 4 groupes par ligne au-delà de lg, voir grid-cols-4 plus bas
+const GROUP_SIZE = 5;
+
+// Regroupe les groupes de 5 par ligne : 4 par ligne par défaut, sauf pour
+// un raid de 25 (5 groupes) qu'on affiche en 2 puis 3.
+function groupRows(size: number, numGroups: number): number[][] {
+  if (size === 25) return [[0, 1], [2, 3, 4]];
+  const rows: number[][] = [];
+  for (let i = 0; i < numGroups; i += 4) {
+    rows.push(Array.from({ length: Math.min(4, numGroups - i) }, (_, j) => i + j));
+  }
+  return rows;
+}
 
 interface CharacterOption {
   id: string;
@@ -179,65 +190,73 @@ export default function CompositionPage() {
           })}
         </div>
 
-        <div className="lg:w-2/3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {Array.from({ length: numGroups }, (_, groupIndex) => (
-              <div key={groupIndex} className="war-border bg-char p-3">
-                <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
-                <div className="space-y-1">
-                  {Array.from({ length: GROUP_SIZE }, (_, i) => {
-                    const slot = groupIndex * GROUP_SIZE + i;
-                    const occupant = slotMap.get(slot);
-                    return (
-                      <div
-                        key={slot}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setDragOverSlot(slot);
-                        }}
-                        onDragLeave={() => setDragOverSlot((cur) => (cur === slot ? null : cur))}
-                        onDrop={(e) => handleDrop(e, slot)}
-                        className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
-                          dragOverSlot === slot
-                            ? "border-blood bg-blood/10"
-                            : occupant
-                            ? "border-bone/15 bg-void"
-                            : "border-dashed border-bone/10 text-bone/20"
-                        }`}
-                      >
-                        {occupant && occupant.character ? (
-                          <>
-                            <span
-                              draggable
-                              onDragStart={(e) =>
-                                handleDragStart(e, {
-                                  userId: occupant.user.id,
-                                  characterId: occupant.character!.id
-                                })
-                              }
-                              className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
-                            >
-                              <CharacterBadges character={occupant.character} />
-                              {occupant.character.name}
-                            </span>
-                            <button
-                              onClick={() => updateSignup(occupant.user.id, { slot: null })}
-                              className="text-bone/30 hover:text-blood focus-ring shrink-0"
-                              title="Retirer du groupe"
-                            >
-                              ×
-                            </button>
-                          </>
-                        ) : (
-                          <span>— vide —</span>
-                        )}
-                      </div>
-                    );
-                  })}
+        <div className="lg:w-2/3 space-y-3">
+          {groupRows(raid.size, numGroups).map((row, rowIdx) => (
+            <div key={rowIdx} className="flex flex-wrap gap-3">
+              {row.map((groupIndex) => (
+                <div key={groupIndex} className="war-border bg-char p-3 flex-1 min-w-[180px]">
+                  <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
+                  <div className="space-y-1">
+                    {Array.from({ length: GROUP_SIZE }, (_, i) => {
+                      const slot = groupIndex * GROUP_SIZE + i;
+                      const occupant = slotMap.get(slot);
+                      const classColor = occupant?.character ? CLASS_COLORS[occupant.character.class] : null;
+                      return (
+                        <div
+                          key={slot}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragOverSlot(slot);
+                          }}
+                          onDragLeave={() => setDragOverSlot((cur) => (cur === slot ? null : cur))}
+                          onDrop={(e) => handleDrop(e, slot)}
+                          style={
+                            classColor && dragOverSlot !== slot
+                              ? { backgroundColor: `${classColor}26`, borderColor: `${classColor}80` }
+                              : undefined
+                          }
+                          className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
+                            dragOverSlot === slot
+                              ? "border-blood bg-blood/10"
+                              : occupant
+                              ? ""
+                              : "border-dashed border-bone/10 text-bone/20"
+                          }`}
+                        >
+                          {occupant && occupant.character ? (
+                            <>
+                              <span
+                                draggable
+                                onDragStart={(e) =>
+                                  handleDragStart(e, {
+                                    userId: occupant.user.id,
+                                    characterId: occupant.character!.id
+                                  })
+                                }
+                                className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
+                              >
+                                <CharacterBadges character={occupant.character} />
+                                {occupant.character.name}
+                              </span>
+                              <button
+                                onClick={() => updateSignup(occupant.user.id, { slot: null })}
+                                className="text-bone/30 hover:text-blood focus-ring shrink-0"
+                                title="Retirer du groupe"
+                              >
+                                ×
+                              </button>
+                            </>
+                          ) : (
+                            <span>— vide —</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </div>
