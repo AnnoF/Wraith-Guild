@@ -164,17 +164,18 @@ export default function CompositionPage() {
                   {s.user.characters.map((c) => {
                     const isSelected = s.characterId === c.id;
                     const dimmed = isPlaced && !isSelected;
+                    const color = CLASS_COLORS[c.class];
                     return (
                       <div
                         key={c.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                        style={{
+                          backgroundColor: `${color}${dimmed ? "0D" : "66"}`,
+                          borderColor: dimmed ? `${color}26` : isSelected ? "var(--amber)" : `${color}B3`
+                        }}
                         className={`ml-3 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border cursor-grab active:cursor-grabbing ${
-                          dimmed
-                            ? "border-bone/5 text-bone/25"
-                            : isSelected
-                            ? "border-amber/50 text-bone"
-                            : "border-bone/10 text-bone/70 hover:border-bone/30"
+                          dimmed ? "text-bone/25" : "text-bone"
                         }`}
                       >
                         <CharacterBadges character={c} />
@@ -212,7 +213,7 @@ export default function CompositionPage() {
                           onDrop={(e) => handleDrop(e, slot)}
                           style={
                             classColor && dragOverSlot !== slot
-                              ? { backgroundColor: `${classColor}26`, borderColor: `${classColor}80` }
+                              ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` }
                               : undefined
                           }
                           className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
