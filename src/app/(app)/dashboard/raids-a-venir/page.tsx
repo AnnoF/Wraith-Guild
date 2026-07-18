@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import RaidCard, { type RaidData } from "@/components/RaidCard";
 
 export default function RaidsAVenirPage() {
+  const { data: session } = useSession();
+  const isOfficer = session?.user.siteRole === "OFFICIER" || session?.user.siteRole === "ADMINISTRATEUR";
   const [raids, setRaids] = useState<RaidData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +29,11 @@ export default function RaidsAVenirPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {raids.map((r) => (
-            <RaidCard key={r.id} raid={r} />
+            <RaidCard
+              key={r.id}
+              raid={r}
+              href={isOfficer ? `/officier/raids/${r.id}/composition` : undefined}
+            />
           ))}
         </div>
       )}
