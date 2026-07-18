@@ -4,17 +4,25 @@ import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 
-// GET : liste des raids. ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel)
+// GET : liste des raids.
+// ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel, filtre sur le statut brut)
+// ?when=upcoming|past (optionnel, filtre sur la date/heure du raid — un
+//   raid reste "à venir" tant que sa date n'est pas passée, même si les
+//   inscriptions sont fermées entre-temps)
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const statut = searchParams.get("statut");
+  const when = searchParams.get("when");
 
   const raids = await prisma.raid.findMany({
-    where: statut ? { status: statut as any } : undefined,
-    orderBy: { date: "asc" },
+    where: {
+      status: statut ? (statut as any) : undefined,
+      date: when === "upcoming" ? { gte: new Date() } : when === "past" ? { lt: new Date() } : undefined
+    },
+    orderBy: { date: when === "past" ? "desc" : "asc" },
     include: {
       _count: { select: { signups: { where: { status: "INSCRIT" } } } }
     }

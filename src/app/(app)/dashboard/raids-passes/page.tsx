@@ -7,7 +7,7 @@ export default function RaidsPassesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/raids?statut=TERMINE")
+    fetch("/api/raids?when=past")
       .then((res) => res.json())
       .then((data) => {
         setRaids(data);
