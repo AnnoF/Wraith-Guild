@@ -4,7 +4,8 @@ import { useParams } from "next/navigation";
 import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
-import CharacterBadges from "@/components/CharacterBadges";
+import ClassSpecIcon from "@/components/ClassSpecIcon";
+import EnchantBadge from "@/components/EnchantBadge";
 
 const ROLE_FILTERS: { value: RaidRole | "ALL"; label: string }[] = [
   { value: "ALL", label: "Tous" },
@@ -230,8 +231,9 @@ export default function CompositionPage() {
                         }}
                         className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                       >
-                        <CharacterBadges character={c} />
+                        <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                         <span>{c.name}</span>
+                        <EnchantBadge character={c} />
                       </div>
                     );
                   })}
@@ -286,8 +288,9 @@ export default function CompositionPage() {
                                 }
                                 className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
                               >
-                                <CharacterBadges character={occupant.character} />
-                                {occupant.character.name}
+                                <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
+                                <span className="truncate">{occupant.character.name}</span>
+                                <EnchantBadge character={occupant.character} />
                               </span>
                               <button
                                 onClick={() => updateSignup(occupant.user.id, { slot: null })}
@@ -332,8 +335,9 @@ export default function CompositionPage() {
                       }}
                       className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                     >
-                      <CharacterBadges character={s.character!} />
+                      <ClassSpecIcon wowClass={s.character!.class} spec={s.character!.spec} />
                       <span>{s.character!.name}</span>
+                      <EnchantBadge character={s.character!} />
                     </div>
                     {otherCharacters.map((c) => {
                       const color = CLASS_COLORS[c.class];
@@ -347,8 +351,9 @@ export default function CompositionPage() {
                           style={{ backgroundColor: `${color}33`, borderColor: `${color}66` }}
                           className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone/70 cursor-grab active:cursor-grabbing"
                         >
-                          <CharacterBadges character={c} />
+                          <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                           <span>{c.name}</span>
+                          <EnchantBadge character={c} />
                         </div>
                       );
                     })}

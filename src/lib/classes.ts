@@ -54,6 +54,12 @@ export const CLASS_COLORS: Record<WowClass, string> = {
   PALADIN: "#F58CBA"
 };
 
+// Icône classe/spé (public/icons/classes/Class_Specialisation.png).
+export function classSpecIconPath(wowClass: WowClass, spec: string): string {
+  const fileName = `${CLASS_LABELS[wowClass]}_${spec}`.replace(/ /g, "_");
+  return `/icons/classes/${fileName}.png`;
+}
+
 // Rôle de raid déduit de la spé (utile pour les compos : tanks / heals / dps)
 export type RaidRole = "TANK" | "SOIGNEUR" | "DPS";
 

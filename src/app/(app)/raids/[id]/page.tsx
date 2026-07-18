@@ -6,7 +6,8 @@ import Link from "next/link";
 import { CLASS_LABELS, CLASS_COLORS, type WowClass } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
-import CharacterBadges from "@/components/CharacterBadges";
+import ClassSpecIcon from "@/components/ClassSpecIcon";
+import EnchantBadge from "@/components/EnchantBadge";
 
 interface AssignedCharacter {
   id: string;
@@ -198,8 +199,9 @@ export default function RaidDetailPage() {
                           >
                             {occupant && occupant.character && (
                               <>
-                                <CharacterBadges character={occupant.character} />
+                                <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
                                 <span className="truncate">{occupant.character.name}</span>
+                                <EnchantBadge character={occupant.character} />
                               </>
                             )}
                           </div>
