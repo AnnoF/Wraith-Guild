@@ -9,6 +9,7 @@ export interface CharacterData {
   class: WowClass;
   spec: string;
   isActive: boolean;
+  canRaidLead: boolean;
   professions: { profession: Profession; isMaxed: boolean }[];
 }
 
@@ -29,6 +30,7 @@ export default function CharacterCard({
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(character.name);
   const [spec, setSpec] = useState(character.spec);
+  const [canRaidLead, setCanRaidLead] = useState(character.canRaidLead);
   const [professions, setProfessions] = useState<ProfessionSelection[]>(
     character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed }))
   );
@@ -40,6 +42,7 @@ export default function CharacterCard({
   function startEditing() {
     setName(character.name);
     setSpec(character.spec);
+    setCanRaidLead(character.canRaidLead);
     setProfessions(character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed })));
     setError(null);
     setEditing(true);
@@ -71,7 +74,7 @@ export default function CharacterCard({
     const res = await fetch(`/api/characters/${character.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), spec, professions })
+      body: JSON.stringify({ name: name.trim(), spec, professions, canRaidLead })
     });
     setSaving(false);
     if (!res.ok) {
@@ -158,6 +161,18 @@ export default function CharacterCard({
           </div>
         </div>
 
+        <div>
+          <label className="flex items-center gap-2 font-ui text-sm text-bone/80">
+            <input
+              type="checkbox"
+              checked={canRaidLead}
+              onChange={(e) => setCanRaidLead(e.target.checked)}
+              className="accent-blood"
+            />
+            Capable de raid lead (RL)
+          </label>
+        </div>
+
         <div className="flex gap-3">
           <button
             onClick={handleSave}
@@ -183,6 +198,7 @@ export default function CharacterCard({
         <p className="font-display text-sm text-bone">{character.name}</p>
         <p className="font-ui text-xs text-bone/60 mt-0.5">
           {CLASS_LABELS[character.class]} · {character.spec}
+          {character.canRaidLead && " · RL"}
         </p>
         {character.professions.length > 0 && (
           <p className="font-ui text-xs text-bone/40 mt-0.5">
