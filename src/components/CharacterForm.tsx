@@ -74,9 +74,11 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
           }}
           className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
         >
-          <option value="">— Choisir —</option>
+          <option value="" className="bg-void text-bone">
+            — Choisir —
+          </option>
           {WOW_CLASSES.map((c) => (
-            <option key={c} value={c}>
+            <option key={c} value={c} className="bg-void text-bone">
               {CLASS_LABELS[c]}
             </option>
           ))}
@@ -93,9 +95,11 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
           disabled={!wowClass}
           className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone disabled:opacity-40"
         >
-          <option value="">— Choisir —</option>
+          <option value="" className="bg-void text-bone">
+            — Choisir —
+          </option>
           {availableSpecs.map((s) => (
-            <option key={s} value={s}>
+            <option key={s} value={s} className="bg-void text-bone">
               {s}
             </option>
           ))}
