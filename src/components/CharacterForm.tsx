@@ -1,15 +1,38 @@
 "use client";
 import { useState } from "react";
 import { WOW_CLASSES, CLASS_LABELS, CLASS_SPECS, type WowClass } from "@/lib/classes";
+import { PROFESSIONS, PROFESSION_LABELS, MAX_PROFESSIONS_PER_CHARACTER, type Profession } from "@/lib/professions";
+
+interface ProfessionSelection {
+  profession: Profession;
+  isMaxed: boolean;
+}
 
 export default function CharacterForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState("");
   const [wowClass, setWowClass] = useState<WowClass | "">("");
   const [spec, setSpec] = useState("");
+  const [professions, setProfessions] = useState<ProfessionSelection[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const availableSpecs = wowClass ? CLASS_SPECS[wowClass] : [];
+
+  function toggleProfession(profession: Profession) {
+    setProfessions((prev) => {
+      if (prev.some((p) => p.profession === profession)) {
+        return prev.filter((p) => p.profession !== profession);
+      }
+      if (prev.length >= MAX_PROFESSIONS_PER_CHARACTER) return prev;
+      return [...prev, { profession, isMaxed: false }];
+    });
+  }
+
+  function toggleMaxed(profession: Profession) {
+    setProfessions((prev) =>
+      prev.map((p) => (p.profession === profession ? { ...p, isMaxed: !p.isMaxed } : p))
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,7 +48,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, wowClass, spec })
+        body: JSON.stringify({ name, wowClass, spec, professions })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -35,6 +58,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       setName("");
       setWowClass("");
       setSpec("");
+      setProfessions([]);
       onCreated();
     } catch {
       setError("Impossible de contacter le serveur.");
@@ -104,6 +128,47 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+          Métiers ({professions.length}/{MAX_PROFESSIONS_PER_CHARACTER})
+        </label>
+        <div className="space-y-1">
+          {PROFESSIONS.map((p) => {
+            const selection = professions.find((x) => x.profession === p);
+            const disabled = !selection && professions.length >= MAX_PROFESSIONS_PER_CHARACTER;
+            return (
+              <div key={p} className="flex items-center gap-2">
+                <label
+                  className={`flex items-center gap-2 font-ui text-sm ${
+                    disabled ? "text-bone/30" : "text-bone/80"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!selection}
+                    disabled={disabled}
+                    onChange={() => toggleProfession(p)}
+                    className="accent-blood"
+                  />
+                  {PROFESSION_LABELS[p]}
+                </label>
+                {selection && (
+                  <label className="flex items-center gap-1 font-ui text-xs text-bone/50 ml-auto">
+                    <input
+                      type="checkbox"
+                      checked={selection.isMaxed}
+                      onChange={() => toggleMaxed(p)}
+                      className="accent-blood"
+                    />
+                    Maxed
+                  </label>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <button

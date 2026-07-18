@@ -1,5 +1,6 @@
 "use client";
 import { CLASS_LABELS, type WowClass } from "@/lib/classes";
+import { PROFESSION_LABELS, type Profession } from "@/lib/professions";
 
 export interface CharacterData {
   id: string;
@@ -7,6 +8,7 @@ export interface CharacterData {
   class: WowClass;
   spec: string;
   isActive: boolean;
+  professions: { profession: Profession; isMaxed: boolean }[];
 }
 
 export default function CharacterCard({
@@ -23,6 +25,13 @@ export default function CharacterCard({
         <p className="font-ui text-xs text-bone/60 mt-0.5">
           {CLASS_LABELS[character.class]} · {character.spec}
         </p>
+        {character.professions.length > 0 && (
+          <p className="font-ui text-xs text-bone/40 mt-0.5">
+            {character.professions
+              .map((p) => `${PROFESSION_LABELS[p.profession]}${p.isMaxed ? " (max)" : ""}`)
+              .join(" · ")}
+          </p>
+        )}
       </div>
       <button
         onClick={() => onToggleActive(character.id, !character.isActive)}

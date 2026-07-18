@@ -28,6 +28,18 @@ enum WowClass {
   PALADIN
 }
 
+enum Profession {
+  HERBALISM
+  MINING
+  SKINNING
+  ALCHEMY
+  BLACKSMITHING
+  ENCHANTING
+  ENGINEERING
+  LEATHERWORKING
+  TAILORING
+}
+
 enum SignupStatus {
   INSCRIT
   RESERVE   // bench
@@ -69,8 +81,21 @@ model Character {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   signups       RaidSignup[]
+  professions   CharacterProfession[]
 
   @@unique([userId, name])
+}
+
+// Max 2 métiers par personnage, appliqué côté application (voir POST /api/characters)
+model CharacterProfession {
+  id            String     @id @default(cuid())
+  profession    Profession
+  isMaxed       Boolean    @default(false)
+
+  characterId   String
+  character     Character  @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([characterId, profession])
 }
 
 model Raid {
