@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { CLASS_LABELS, type WowClass } from "@/lib/classes";
+import { CLASS_LABELS, CLASS_COLORS, type WowClass } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
+import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import CharacterBadges from "@/components/CharacterBadges";
 
 interface AssignedCharacter {
@@ -19,6 +20,7 @@ interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
+  slot: number | null;
   user: { id: string; discordTag: string };
   character: AssignedCharacter | null;
 }
@@ -84,6 +86,12 @@ export default function RaidDetailPage() {
   const canSignup = !mySignup || mySignup.status === "DESISTE" || mySignup.status === "ABSENT";
 
   const canConfigure = session?.user.siteRole === "OFFICIER" || session?.user.siteRole === "ADMINISTRATEUR";
+
+  const placed = activeSignups.filter((s) => s.slot !== null && s.character);
+  const unplacedCount = activeSignups.filter((s) => s.slot === null).length;
+  const slotMap = new Map<number, Signup>();
+  placed.forEach((s) => slotMap.set(s.slot!, s));
+  const numGroups = Math.ceil(raid.size / GROUP_SIZE);
 
   return (
     <div className="space-y-6">
@@ -158,32 +166,52 @@ export default function RaidDetailPage() {
       {error && <p className="font-ui text-xs text-blood">{error}</p>}
 
       <div>
-        <p className="font-display text-sm text-bone mb-3">
-          Inscrits ({activeSignups.filter((s) => s.status === "INSCRIT").length}/{raid.size})
-        </p>
-        <div className="space-y-2">
-          {activeSignups.length === 0 && (
-            <p className="font-ui text-sm text-bone/50">Personne d'inscrit pour l'instant.</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-display text-sm text-bone">
+            Groupes ({placed.length}/{raid.size})
+          </p>
+          {unplacedCount > 0 && (
+            <p className="font-ui text-xs text-bone/40">{unplacedCount} joueur(s) pas encore placé(s)</p>
           )}
-          {activeSignups.map((s) => (
-            <div key={s.id} className="war-border bg-char px-4 py-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-ui text-sm text-bone">{s.user.discordTag}</span>
-                {s.character ? (
-                  <span className="font-ui text-xs text-bone/50">
-                    {s.character.name} · {CLASS_LABELS[s.character.class]} · {s.character.spec}
-                  </span>
-                ) : (
-                  <span className="font-ui text-xs text-bone/30">Personnage non assigné</span>
-                )}
-                {s.character && <CharacterBadges character={s.character} />}
-              </div>
-              {s.status === "RESERVE" && (
-                <span className="font-ui text-[10px] uppercase text-amber">Réserve</span>
-              )}
-            </div>
-          ))}
         </div>
+        {activeSignups.length === 0 ? (
+          <p className="font-ui text-sm text-bone/50">Personne d'inscrit pour l'instant.</p>
+        ) : (
+          <div className="space-y-3">
+            {groupRows(raid.size, numGroups).map((row, rowIdx) => (
+              <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
+                {row.map((groupIndex) => (
+                  <div key={groupIndex} className="war-border bg-char p-3 min-w-0">
+                    <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
+                    <div className="space-y-1">
+                      {Array.from({ length: GROUP_SIZE }, (_, i) => {
+                        const slot = groupIndex * GROUP_SIZE + i;
+                        const occupant = slotMap.get(slot);
+                        const classColor = occupant?.character ? CLASS_COLORS[occupant.character.class] : null;
+                        return (
+                          <div
+                            key={slot}
+                            style={classColor ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` } : undefined}
+                            className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center gap-1.5 ${
+                              occupant ? "text-bone" : "border-dashed border-bone/10"
+                            }`}
+                          >
+                            {occupant && occupant.character && (
+                              <>
+                                <CharacterBadges character={occupant.character} />
+                                <span className="truncate">{occupant.character.name}</span>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
