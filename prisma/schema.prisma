@@ -100,14 +100,14 @@ model CharacterProfession {
 }
 
 model Raid {
-  id            String     @id @default(cuid())
-  title         String
-  date          DateTime
-  size          Int        // 10, 20, 25, 40...
-  instance      String?    // nom de l'instance/donjon (optionnel, inconnu pour l'instant)
-  status        RaidStatus @default(OUVERT)
-  notes         String?
-  createdAt     DateTime   @default(now())
+  id             String     @id @default(cuid())
+  title          String
+  date           DateTime
+  size           Int        // 10, 20, 25, 40...
+  status         RaidStatus @default(OUVERT)
+  notes          String?
+  signupDeadline DateTime?  // au-delà, les inscriptions sont closes même si status reste OUVERT
+  createdAt      DateTime   @default(now())
 
   createdById   String
   createdBy     User       @relation("RaidCreatedBy", fields: [createdById], references: [id])

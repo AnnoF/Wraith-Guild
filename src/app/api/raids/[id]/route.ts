@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { effectiveRaidStatus } from "@/lib/raidStatus";
 
 // GET : détail d'un raid + inscriptions (avec personnage et propriétaire)
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
@@ -26,7 +27,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
   });
   if (!raid) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
-  return NextResponse.json(raid);
+  return NextResponse.json({ ...raid, status: effectiveRaidStatus(raid) });
 }
 
 // PATCH : modifier statut/infos du raid (Officier/Admin)
@@ -44,7 +45,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       title: body.title ?? undefined,
       date: body.date ? new Date(body.date) : undefined,
       size: body.size ?? undefined,
-      instance: body.instance ?? undefined,
+      signupDeadline: body.signupDeadline !== undefined ? (body.signupDeadline ? new Date(body.signupDeadline) : null) : undefined,
       notes: body.notes ?? undefined,
       status: body.status ?? undefined
     }
