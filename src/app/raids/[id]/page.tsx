@@ -1,14 +1,26 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { CLASS_LABELS } from "@/lib/classes";
-import type { CharacterData } from "@/components/CharacterCard";
+import { CLASS_LABELS, type WowClass } from "@/lib/classes";
+import type { Profession } from "@/lib/professions";
+import CharacterBadges from "@/components/CharacterBadges";
+
+interface AssignedCharacter {
+  id: string;
+  name: string;
+  class: WowClass;
+  spec: string;
+  professions: { profession: Profession; isMaxed: boolean }[];
+}
 
 interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
-  character: { id: string; name: string; class: keyof typeof CLASS_LABELS; spec: string };
+  comment: string | null;
+  user: { id: string; discordTag: string };
+  character: AssignedCharacter | null;
 }
 
 interface RaidDetail {
@@ -22,27 +34,16 @@ interface RaidDetail {
   signups: Signup[];
 }
 
-const STATUS_LABEL: Record<Signup["status"], string> = {
-  INSCRIT: "Inscrit",
-  RESERVE: "Réserve",
-  ABSENT: "Absent",
-  DESISTE: "Désisté"
-};
-
 export default function RaidDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { data: session } = useSession();
   const [raid, setRaid] = useState<RaidDetail | null>(null);
-  const [myCharacters, setMyCharacters] = useState<CharacterData[]>([]);
-  const [selectedCharacter, setSelectedCharacter] = useState("");
+  const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
-    const [raidRes, charsRes] = await Promise.all([
-      fetch(`/api/raids/${id}`),
-      fetch("/api/characters")
-    ]);
-    if (raidRes.ok) setRaid(await raidRes.json());
-    if (charsRes.ok) setMyCharacters((await charsRes.json()).filter((c: CharacterData) => c.isActive));
+    const res = await fetch(`/api/raids/${id}`);
+    if (res.ok) setRaid(await res.json());
   }
 
   useEffect(() => {
@@ -52,27 +53,26 @@ export default function RaidDetailPage() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!selectedCharacter) return;
 
     const res = await fetch(`/api/raids/${id}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterId: selectedCharacter })
+      body: JSON.stringify({ comment: comment || undefined })
     });
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || "Impossible de s'inscrire.");
       return;
     }
-    setSelectedCharacter("");
+    setComment("");
     load();
   }
 
-  async function handleWithdraw(characterId: string) {
+  async function handleWithdraw() {
     await fetch(`/api/raids/${id}/signup`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterId })
+      body: JSON.stringify({})
     });
     load();
   }
@@ -80,11 +80,8 @@ export default function RaidDetailPage() {
   if (!raid) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
   const activeSignups = raid.signups.filter((s) => s.status === "INSCRIT" || s.status === "RESERVE");
-  const myCharacterIds = new Set(myCharacters.map((c) => c.id));
-  const myActiveSignupCharIds = new Set(
-    raid.signups.filter((s) => myCharacterIds.has(s.character.id) && (s.status === "INSCRIT" || s.status === "RESERVE")).map((s) => s.character.id)
-  );
-  const eligibleCharacters = myCharacters.filter((c) => !myActiveSignupCharIds.has(c.id));
+  const mySignup = raid.signups.find((s) => s.user.id === session?.user.id);
+  const canSignup = !mySignup || mySignup.status === "DESISTE" || mySignup.status === "ABSENT";
 
   return (
     <div className="space-y-6">
@@ -105,29 +102,44 @@ export default function RaidDetailPage() {
         {raid.notes && <p className="font-ui text-sm text-bone/70 mt-3">{raid.notes}</p>}
       </div>
 
-      {raid.status === "OUVERT" && eligibleCharacters.length > 0 && (
+      {raid.status === "OUVERT" && canSignup && (
         <form onSubmit={handleSignup} className="war-border bg-char p-5 flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
-              S'inscrire avec
+              Commentaire (optionnel)
             </label>
-            <select
-              value={selectedCharacter}
-              onChange={(e) => setSelectedCharacter(e.target.value)}
+            <input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Ex. dispo après 21h"
               className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
-            >
-              <option value="">— Choisir un personnage —</option>
-              {eligibleCharacters.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({CLASS_LABELS[c.class]})
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <button type="submit" className="font-display text-xs bg-blood text-void font-medium px-5 py-2.5 focus-ring">
             S'inscrire
           </button>
         </form>
+      )}
+
+      {mySignup && !canSignup && (
+        <div className="war-border bg-char p-5 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p className="font-ui text-sm text-bone">
+              Vous êtes inscrit {mySignup.status === "RESERVE" ? "(réserve)" : ""}
+            </p>
+            <p className="font-ui text-xs text-bone/50 mt-1">
+              {mySignup.character
+                ? `Personnage assigné : ${mySignup.character.name} (${CLASS_LABELS[mySignup.character.class]} · ${mySignup.character.spec})`
+                : "En attente d'assignation d'un personnage par un Officier."}
+            </p>
+          </div>
+          <button
+            onClick={handleWithdraw}
+            className="font-ui text-xs text-bone/40 hover:text-blood focus-ring underline"
+          >
+            Se désinscrire
+          </button>
+        </div>
       )}
       {error && <p className="font-ui text-xs text-blood">{error}</p>}
 
@@ -141,25 +153,20 @@ export default function RaidDetailPage() {
           )}
           {activeSignups.map((s) => (
             <div key={s.id} className="war-border bg-char px-4 py-2.5 flex items-center justify-between">
-              <div>
-                <span className="font-ui text-sm text-bone">{s.character.name}</span>
-                <span className="font-ui text-xs text-bone/50 ml-2">
-                  {CLASS_LABELS[s.character.class]} · {s.character.spec}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                {s.status === "RESERVE" && (
-                  <span className="font-ui text-[10px] uppercase text-amber">Réserve</span>
+              <div className="flex items-center gap-2">
+                <span className="font-ui text-sm text-bone">{s.user.discordTag}</span>
+                {s.character ? (
+                  <span className="font-ui text-xs text-bone/50">
+                    {s.character.name} · {CLASS_LABELS[s.character.class]} · {s.character.spec}
+                  </span>
+                ) : (
+                  <span className="font-ui text-xs text-bone/30">Personnage non assigné</span>
                 )}
-                {myCharacterIds.has(s.character.id) && (
-                  <button
-                    onClick={() => handleWithdraw(s.character.id)}
-                    className="font-ui text-xs text-bone/40 hover:text-blood focus-ring underline"
-                  >
-                    Se désinscrire
-                  </button>
-                )}
+                {s.character && <CharacterBadges character={s.character} />}
               </div>
+              {s.status === "RESERVE" && (
+                <span className="font-ui text-[10px] uppercase text-amber">Réserve</span>
+              )}
             </div>
           ))}
         </div>

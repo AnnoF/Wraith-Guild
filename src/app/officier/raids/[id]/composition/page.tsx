@@ -1,12 +1,25 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CLASS_LABELS, guessRaidRole } from "@/lib/classes";
+import { CLASS_LABELS, guessRaidRole, type WowClass } from "@/lib/classes";
+import type { Profession } from "@/lib/professions";
+import CharacterBadges from "@/components/CharacterBadges";
+
+interface CharacterOption {
+  id: string;
+  name: string;
+  class: WowClass;
+  spec: string;
+  professions: { profession: Profession; isMaxed: boolean }[];
+}
 
 interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
-  character: { id: string; name: string; class: keyof typeof CLASS_LABELS; spec: string };
+  comment: string | null;
+  characterId: string | null;
+  user: { id: string; discordTag: string; characters: CharacterOption[] };
+  character: CharacterOption | null;
 }
 
 interface RaidDetail {
@@ -17,7 +30,9 @@ interface RaidDetail {
   signups: Signup[];
 }
 
-// Constructeur de composition : l'Officier bascule chaque inscrit entre
+// Constructeur de composition : le joueur s'est inscrit sans choisir de
+// personnage, l'Officier assigne ici lequel de ses personnages actifs
+// représente ce joueur dans le raid, puis bascule chaque inscrit entre
 // Inscrit / Réserve, et peut clôturer ou terminer le raid.
 export default function CompositionPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,11 +47,20 @@ export default function CompositionPage() {
     load();
   }, [id]);
 
-  async function setSignupStatus(characterId: string, status: Signup["status"]) {
+  async function updateSignup(userId: string, data: { status?: Signup["status"]; characterId?: string | null }) {
     await fetch(`/api/raids/${id}/signup`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterId, status })
+      body: JSON.stringify({ userId, ...data })
+    });
+    load();
+  }
+
+  async function removeSignup(userId: string) {
+    await fetch(`/api/raids/${id}/signup`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
     });
     load();
   }
@@ -53,13 +77,12 @@ export default function CompositionPage() {
   if (!raid) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
   const relevant = raid.signups.filter((s) => s.status === "INSCRIT" || s.status === "RESERVE");
+  const assigned = relevant.filter((s) => s.status === "INSCRIT" && s.character);
   const roleGroups = { TANK: 0, SOIGNEUR: 0, DPS: 0 };
-  relevant
-    .filter((s) => s.status === "INSCRIT")
-    .forEach((s) => {
-      const role = guessRaidRole(s.character.class, s.character.spec);
-      roleGroups[role]++;
-    });
+  assigned.forEach((s) => {
+    const role = guessRaidRole(s.character!.class, s.character!.spec);
+    roleGroups[role]++;
+  });
 
   return (
     <div className="space-y-6">
@@ -92,28 +115,47 @@ export default function CompositionPage() {
         <span>Soigneurs : {roleGroups.SOIGNEUR}</span>
         <span>DPS : {roleGroups.DPS}</span>
         <span>Total inscrits : {relevant.filter((s) => s.status === "INSCRIT").length} / {raid.size}</span>
+        <span>Sans personnage assigné : {relevant.filter((s) => s.status === "INSCRIT" && !s.character).length}</span>
       </div>
 
       <div className="space-y-2">
         {relevant.length === 0 && <p className="font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>}
         {relevant.map((s) => (
-          <div key={s.id} className="war-border bg-char px-4 py-2.5 flex items-center justify-between">
+          <div key={s.id} className="war-border bg-char px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
             <div>
-              <span className="font-ui text-sm text-bone">{s.character.name}</span>
-              <span className="font-ui text-xs text-bone/50 ml-2">
-                {CLASS_LABELS[s.character.class]} · {s.character.spec} ·{" "}
-                {guessRaidRole(s.character.class, s.character.spec)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-ui text-sm text-bone">{s.user.discordTag}</span>
+                {s.status === "RESERVE" && (
+                  <span className="font-ui text-[10px] uppercase text-amber">Réserve</span>
+                )}
+                {s.character && <CharacterBadges character={s.character} />}
+              </div>
+              {s.comment && <p className="font-ui text-xs text-bone/40 mt-0.5">{s.comment}</p>}
             </div>
+
             <div className="flex items-center gap-2">
+              <select
+                value={s.characterId ?? ""}
+                onChange={(e) => updateSignup(s.user.id, { characterId: e.target.value || null })}
+                className="bg-void border border-bone/15 focus-ring px-2 py-1.5 font-ui text-xs text-bone"
+              >
+                <option value="" className="bg-void text-bone">
+                  — Non assigné —
+                </option>
+                {s.user.characters.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-void text-bone">
+                    {c.name} ({CLASS_LABELS[c.class]} · {c.spec})
+                  </option>
+                ))}
+              </select>
               <button
-                onClick={() => setSignupStatus(s.character.id, s.status === "INSCRIT" ? "RESERVE" : "INSCRIT")}
+                onClick={() => updateSignup(s.user.id, { status: s.status === "INSCRIT" ? "RESERVE" : "INSCRIT" })}
                 className="font-ui text-xs px-2.5 py-1 border border-bone/20 text-bone/70 hover:text-bone focus-ring"
               >
                 {s.status === "INSCRIT" ? "Passer en réserve" : "Passer en inscrit"}
               </button>
               <button
-                onClick={() => setSignupStatus(s.character.id, "ABSENT")}
+                onClick={() => removeSignup(s.user.id)}
                 className="font-ui text-xs px-2.5 py-1 border border-blood/40 text-blood/80 hover:text-blood focus-ring"
               >
                 Retirer
