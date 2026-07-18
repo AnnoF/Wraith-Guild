@@ -124,7 +124,8 @@ export default function CompositionPage() {
   const numGroups = Math.ceil(raid.size / GROUP_SIZE);
 
   return (
-    <div className="space-y-6">
+    <div className="relative left-1/2 w-screen -translate-x-1/2 px-6">
+    <div className="max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <p className="font-display text-lg text-bone">Composition — {raid.title}</p>
         <div className="flex gap-2">
@@ -285,6 +286,7 @@ export default function CompositionPage() {
           })}
         </div>
       </div>
+    </div>
     </div>
   );
 }
