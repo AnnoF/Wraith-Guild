@@ -11,6 +11,7 @@ const ROLE_LABELS: Record<SiteRole, string> = {
 };
 
 const TABS = [
+  { href: "/dashboard", label: "Accueil" },
   { href: "/dashboard/personnages", label: "Mes personnages" },
   { href: "/dashboard/raids-a-venir", label: "Raids à venir" },
   { href: "/dashboard/raids-passes", label: "Raids passés" }
@@ -28,7 +29,7 @@ export default function Navbar({
   return (
     <header className="border-b-2 border-blood bg-char">
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-        <Link href="/dashboard/personnages" className="font-display text-xl text-bone">
+        <Link href="/dashboard" className="font-display text-xl text-bone">
           Wraith-Guild
         </Link>
 

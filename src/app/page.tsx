@@ -9,7 +9,7 @@ export default async function HomePage({
   searchParams: { error?: string };
 }) {
   const session = await getServerSession(authOptions);
-  if (session) redirect("/dashboard/personnages");
+  if (session) redirect("/dashboard");
 
   return (
     <main className="min-h-screen flex items-center justify-center px-6">
