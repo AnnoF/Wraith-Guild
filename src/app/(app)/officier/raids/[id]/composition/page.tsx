@@ -168,6 +168,14 @@ export default function CompositionPage() {
           >
             Marquer comme terminé
           </button>
+          <button
+            onClick={() => {
+              if (confirm("Annuler ce raid ? Les inscriptions seront fermées.")) setRaidStatus("ANNULE");
+            }}
+            className="font-ui text-xs px-3 py-1.5 border border-blood text-blood focus-ring"
+          >
+            Annuler le raid
+          </button>
         </div>
       </div>
 
