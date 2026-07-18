@@ -1,15 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RAID_INSTANCES } from "@/lib/raidInstances";
-
-const SIZES = [10, 20, 25, 40];
+import { RAID_INSTANCES, RAID_INSTANCE_SIZES } from "@/lib/raidInstances";
 
 export default function NouveauRaidPage() {
   const router = useRouter();
   const [title, setTitle] = useState<string>(RAID_INSTANCES[0]);
   const [date, setDate] = useState("");
-  const [size, setSize] = useState(40);
   const [signupDeadline, setSignupDeadline] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +23,7 @@ export default function NouveauRaidPage() {
     const res = await fetch("/api/raids", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, size, signupDeadline: signupDeadline || null, notes })
+      body: JSON.stringify({ title, date, signupDeadline: signupDeadline || null, notes })
     });
     const data = await res.json();
     setLoading(false);
@@ -57,6 +54,9 @@ export default function NouveauRaidPage() {
               </option>
             ))}
           </select>
+          <p className="font-ui text-xs text-bone/40 mt-1">
+            Taille : {RAID_INSTANCE_SIZES[title]} joueurs
+          </p>
         </div>
 
         <div>
@@ -67,19 +67,6 @@ export default function NouveauRaidPage() {
             onChange={(e) => setDate(e.target.value)}
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
-        </div>
-
-        <div>
-          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">Taille du raid</label>
-          <select
-            value={size}
-            onChange={(e) => setSize(Number(e.target.value))}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
-          >
-            {SIZES.map((s) => (
-              <option key={s} value={s} className="bg-void text-bone">{s} joueurs</option>
-            ))}
-          </select>
         </div>
 
         <div>

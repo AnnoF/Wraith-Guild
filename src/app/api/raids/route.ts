@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
-import { RAID_INSTANCES } from "@/lib/raidInstances";
+import { RAID_INSTANCES, RAID_INSTANCE_SIZES } from "@/lib/raidInstances";
 
 // GET : liste des raids.
 // ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel, filtre sur le statut brut)
@@ -40,17 +40,19 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { title, date, size, signupDeadline, notes } = body;
+  const { title, date, signupDeadline, notes } = body;
 
-  if (!RAID_INSTANCES.includes(title) || !date || ![10, 20, 25, 40].includes(Number(size))) {
+  if (!RAID_INSTANCES.includes(title) || !date) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
 
+  // La taille est fixée par l'instance, jamais par le client, pour éviter
+  // toute incohérence (voir RAID_INSTANCE_SIZES).
   const raid = await prisma.raid.create({
     data: {
       title,
       date: new Date(date),
-      size: Number(size),
+      size: RAID_INSTANCE_SIZES[title],
       signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
       notes: notes || null,
       createdById: session.user.id
