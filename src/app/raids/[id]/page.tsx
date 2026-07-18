@@ -83,12 +83,22 @@ export default function RaidDetailPage() {
   const mySignup = raid.signups.find((s) => s.user.id === session?.user.id);
   const canSignup = !mySignup || mySignup.status === "DESISTE" || mySignup.status === "ABSENT";
 
+  const canConfigure = session?.user.siteRole === "OFFICIER" || session?.user.siteRole === "ADMINISTRATEUR";
+
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <Link href="/dashboard/raids-a-venir" className="font-ui text-xs text-bone/50 hover:text-bone">
           ← Retour aux raids à venir
         </Link>
+        {canConfigure && (
+          <Link
+            href={`/officier/raids/${id}/composition`}
+            className="font-ui text-xs text-amber hover:text-bone focus-ring underline"
+          >
+            Gérer la composition
+          </Link>
+        )}
       </div>
 
       <div className="war-border bg-char p-5">
