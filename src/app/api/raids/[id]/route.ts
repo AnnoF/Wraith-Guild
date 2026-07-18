@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
+import { getWowWeekRange } from "@/lib/wowWeek";
 
 // GET : détail d'un raid + inscriptions (avec personnage et propriétaire)
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
@@ -27,12 +28,34 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
   });
   if (!raid) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+
+  // Personnages déjà engagés sur un raid de même titre cette semaine WoW
+  // (mercredi -> mardi) — affiché en puce "interdit" côté composition
+  // pour éviter un aller-retour inutile en glisser-déposer.
+  const { start, end } = getWowWeekRange(raid.date);
+  const conflictingSignups = await prisma.raidSignup.findMany({
+    where: {
+      status: "INSCRIT",
+      slot: { not: null },
+      raidId: { not: params.id },
+      raid: { title: raid.title, date: { gte: start, lte: end } }
+    },
+    select: { characterId: true }
+  });
+  const lockedCharacterIds = new Set(
+    conflictingSignups.map((s) => s.characterId).filter((cid): cid is string => !!cid)
+  );
+
   return NextResponse.json({
     ...raid,
     status: effectiveRaidStatus(raid),
     signups: raid.signups.map((s) => ({
       ...s,
-      user: { ...s.user, discordTag: s.user.displayName || s.user.discordTag }
+      user: {
+        ...s.user,
+        discordTag: s.user.displayName || s.user.discordTag,
+        characters: s.user.characters.map((c) => ({ ...c, weekLocked: lockedCharacterIds.has(c.id) }))
+      }
     }))
   });
 }

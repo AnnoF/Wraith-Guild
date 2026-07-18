@@ -6,6 +6,7 @@ import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
+import WeekLockBadge from "@/components/WeekLockBadge";
 
 const ROLE_FILTERS: { value: RaidRole | "ALL"; label: string }[] = [
   { value: "ALL", label: "Tous" },
@@ -20,6 +21,7 @@ interface CharacterOption {
   class: WowClass;
   spec: string;
   professions: { profession: Profession; isMaxed: boolean }[];
+  weekLocked?: boolean;
 }
 
 interface Signup {
@@ -245,6 +247,7 @@ export default function CompositionPage() {
                         <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                         <span>{c.name}</span>
                         <EnchantBadge character={c} />
+                        {c.weekLocked && <WeekLockBadge />}
                       </div>
                     );
                   })}
@@ -365,6 +368,7 @@ export default function CompositionPage() {
                           <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                           <span>{c.name}</span>
                           <EnchantBadge character={c} />
+                          {c.weekLocked && <WeekLockBadge />}
                         </div>
                       );
                     })}
