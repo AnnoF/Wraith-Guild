@@ -73,9 +73,23 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const signup = await prisma.$transaction(async (tx) => {
     if (typeof slot === "number") {
+      const mover = await tx.raidSignup.findUnique({
+        where: { raidId_userId: { raidId: params.id, userId } },
+        select: { slot: true }
+      });
+      const originSlot = mover?.slot ?? null;
+
+      // Vide d'abord le slot d'origine du joueur déplacé pour éviter un
+      // conflit avec la contrainte d'unicité (raidId, slot) pendant l'échange.
+      await tx.raidSignup.updateMany({
+        where: { raidId: params.id, userId },
+        data: { slot: null }
+      });
+      // Celui qui occupait déjà le slot cible récupère l'ancien slot du
+      // joueur déplacé (échange), ou redevient non placé s'il n'y en avait pas.
       await tx.raidSignup.updateMany({
         where: { raidId: params.id, slot, userId: { not: userId } },
-        data: { slot: null }
+        data: { slot: originSlot }
       });
     }
     return tx.raidSignup.update({
