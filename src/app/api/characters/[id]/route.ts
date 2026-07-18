@@ -33,6 +33,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     data.name = name;
   }
 
+  if (body.canRaidLead !== undefined) {
+    data.canRaidLead = Boolean(body.canRaidLead);
+  }
+
   if (body.spec !== undefined) {
     if (!CLASS_SPECS[character.class as WowClass].includes(body.spec)) {
       return NextResponse.json({ error: "Spécialisation invalide pour cette classe" }, { status: 400 });
