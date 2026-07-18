@@ -5,6 +5,8 @@ import { CLASS_LABELS, guessRaidRole, type WowClass } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import CharacterBadges from "@/components/CharacterBadges";
 
+const GROUP_SIZE = 5; // 4 groupes par ligne au-delà de lg, voir grid-cols-4 plus bas
+
 interface CharacterOption {
   id: string;
   name: string;
@@ -18,6 +20,7 @@ interface Signup {
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
   characterId: string | null;
+  slot: number | null;
   user: { id: string; discordTag: string; characters: CharacterOption[] };
   character: CharacterOption | null;
 }
@@ -30,13 +33,19 @@ interface RaidDetail {
   signups: Signup[];
 }
 
+interface DragPayload {
+  userId: string;
+  characterId: string;
+}
+
 // Constructeur de composition : le joueur s'est inscrit sans choisir de
-// personnage, l'Officier assigne ici lequel de ses personnages actifs
-// représente ce joueur dans le raid, puis bascule chaque inscrit entre
-// Inscrit / Réserve, et peut clôturer ou terminer le raid.
+// personnage. À gauche, la liste des inscrits avec leurs personnages
+// (glissables) ; à droite, la grille de groupes de 5 où l'Officier
+// dépose le personnage retenu pour chaque joueur.
 export default function CompositionPage() {
   const { id } = useParams<{ id: string }>();
   const [raid, setRaid] = useState<RaidDetail | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
 
   async function load() {
     const res = await fetch(`/api/raids/${id}`);
@@ -47,20 +56,11 @@ export default function CompositionPage() {
     load();
   }, [id]);
 
-  async function updateSignup(userId: string, data: { status?: Signup["status"]; characterId?: string | null }) {
+  async function updateSignup(userId: string, data: { characterId?: string | null; slot?: number | null }) {
     await fetch(`/api/raids/${id}/signup`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, ...data })
-    });
-    load();
-  }
-
-  async function removeSignup(userId: string) {
-    await fetch(`/api/raids/${id}/signup`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId })
     });
     load();
   }
@@ -74,15 +74,34 @@ export default function CompositionPage() {
     load();
   }
 
+  function handleDragStart(e: React.DragEvent, payload: DragPayload) {
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDrop(e: React.DragEvent, slot: number) {
+    e.preventDefault();
+    setDragOverSlot(null);
+    const raw = e.dataTransfer.getData("application/json");
+    if (!raw) return;
+    const payload: DragPayload = JSON.parse(raw);
+    updateSignup(payload.userId, { characterId: payload.characterId, slot });
+  }
+
   if (!raid) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
-  const relevant = raid.signups.filter((s) => s.status === "INSCRIT" || s.status === "RESERVE");
-  const assigned = relevant.filter((s) => s.status === "INSCRIT" && s.character);
+  const players = raid.signups.filter((s) => s.status === "INSCRIT");
+  const placed = players.filter((s) => s.slot !== null && s.character);
   const roleGroups = { TANK: 0, SOIGNEUR: 0, DPS: 0 };
-  assigned.forEach((s) => {
+  placed.forEach((s) => {
     const role = guessRaidRole(s.character!.class, s.character!.spec);
     roleGroups[role]++;
   });
+
+  const slotMap = new Map<number, Signup>();
+  placed.forEach((s) => slotMap.set(s.slot!, s));
+
+  const numGroups = Math.ceil(raid.size / GROUP_SIZE);
 
   return (
     <div className="space-y-6">
@@ -114,55 +133,112 @@ export default function CompositionPage() {
         <span>Tanks : {roleGroups.TANK}</span>
         <span>Soigneurs : {roleGroups.SOIGNEUR}</span>
         <span>DPS : {roleGroups.DPS}</span>
-        <span>Total inscrits : {relevant.filter((s) => s.status === "INSCRIT").length} / {raid.size}</span>
-        <span>Sans personnage assigné : {relevant.filter((s) => s.status === "INSCRIT" && !s.character).length}</span>
+        <span>Inscrits : {players.length}</span>
+        <span>Placés : {placed.length} / {raid.size}</span>
       </div>
 
-      <div className="space-y-2">
-        {relevant.length === 0 && <p className="font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>}
-        {relevant.map((s) => (
-          <div key={s.id} className="war-border bg-char px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-ui text-sm text-bone">{s.user.discordTag}</span>
-                {s.status === "RESERVE" && (
-                  <span className="font-ui text-[10px] uppercase text-amber">Réserve</span>
-                )}
-                {s.character && <CharacterBadges character={s.character} />}
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="lg:w-1/3 space-y-2">
+          {players.length === 0 && <p className="font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>}
+          {players.map((s) => {
+            const isPlaced = s.slot !== null;
+            return (
+              <div key={s.id} className="war-border bg-char px-4 py-2.5">
+                <p className={`font-ui text-sm ${isPlaced ? "text-bone/30" : "text-bone"}`}>{s.user.discordTag}</p>
+                {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
+                <div className="mt-1.5 space-y-1">
+                  {s.user.characters.length === 0 && (
+                    <p className="font-ui text-xs text-bone/30 ml-3">Aucun personnage actif</p>
+                  )}
+                  {s.user.characters.map((c) => {
+                    const isSelected = s.characterId === c.id;
+                    const dimmed = isPlaced && !isSelected;
+                    return (
+                      <div
+                        key={c.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                        className={`ml-3 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border cursor-grab active:cursor-grabbing ${
+                          dimmed
+                            ? "border-bone/5 text-bone/25"
+                            : isSelected
+                            ? "border-amber/50 text-bone"
+                            : "border-bone/10 text-bone/70 hover:border-bone/30"
+                        }`}
+                      >
+                        <CharacterBadges character={c} />
+                        <span>
+                          {c.name} ({CLASS_LABELS[c.class]} · {c.spec})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              {s.comment && <p className="font-ui text-xs text-bone/40 mt-0.5">{s.comment}</p>}
-            </div>
+            );
+          })}
+        </div>
 
-            <div className="flex items-center gap-2">
-              <select
-                value={s.characterId ?? ""}
-                onChange={(e) => updateSignup(s.user.id, { characterId: e.target.value || null })}
-                className="bg-void border border-bone/15 focus-ring px-2 py-1.5 font-ui text-xs text-bone"
-              >
-                <option value="" className="bg-void text-bone">
-                  — Non assigné —
-                </option>
-                {s.user.characters.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-void text-bone">
-                    {c.name} ({CLASS_LABELS[c.class]} · {c.spec})
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => updateSignup(s.user.id, { status: s.status === "INSCRIT" ? "RESERVE" : "INSCRIT" })}
-                className="font-ui text-xs px-2.5 py-1 border border-bone/20 text-bone/70 hover:text-bone focus-ring"
-              >
-                {s.status === "INSCRIT" ? "Passer en réserve" : "Passer en inscrit"}
-              </button>
-              <button
-                onClick={() => removeSignup(s.user.id)}
-                className="font-ui text-xs px-2.5 py-1 border border-blood/40 text-blood/80 hover:text-blood focus-ring"
-              >
-                Retirer
-              </button>
-            </div>
+        <div className="lg:w-2/3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: numGroups }, (_, groupIndex) => (
+              <div key={groupIndex} className="war-border bg-char p-3">
+                <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
+                <div className="space-y-1">
+                  {Array.from({ length: GROUP_SIZE }, (_, i) => {
+                    const slot = groupIndex * GROUP_SIZE + i;
+                    const occupant = slotMap.get(slot);
+                    return (
+                      <div
+                        key={slot}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragOverSlot(slot);
+                        }}
+                        onDragLeave={() => setDragOverSlot((cur) => (cur === slot ? null : cur))}
+                        onDrop={(e) => handleDrop(e, slot)}
+                        className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
+                          dragOverSlot === slot
+                            ? "border-blood bg-blood/10"
+                            : occupant
+                            ? "border-bone/15 bg-void"
+                            : "border-dashed border-bone/10 text-bone/20"
+                        }`}
+                      >
+                        {occupant && occupant.character ? (
+                          <>
+                            <span
+                              draggable
+                              onDragStart={(e) =>
+                                handleDragStart(e, {
+                                  userId: occupant.user.id,
+                                  characterId: occupant.character!.id
+                                })
+                              }
+                              className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
+                            >
+                              <CharacterBadges character={occupant.character} />
+                              {occupant.character.name}
+                            </span>
+                            <button
+                              onClick={() => updateSignup(occupant.user.id, { slot: null })}
+                              className="text-bone/30 hover:text-blood focus-ring shrink-0"
+                              title="Retirer du groupe"
+                            >
+                              ×
+                            </button>
+                          </>
+                        ) : (
+                          <span>— vide —</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

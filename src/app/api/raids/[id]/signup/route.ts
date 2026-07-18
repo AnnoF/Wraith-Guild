@@ -48,8 +48,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   return NextResponse.json({ ok: true });
 }
 
-// PATCH : un Officier/Admin change le statut d'un inscrit (réserve/inscrit)
-// et/ou lui assigne un des personnages du joueur pour la composition.
+// PATCH : un Officier/Admin assigne un personnage et/ou une position dans
+// la grille de composition (drag & drop). Déplacer un personnage sur un
+// slot déjà occupé libère l'ancien occupant de ce slot.
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -57,7 +58,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
   }
 
-  const { userId, status, characterId } = await req.json();
+  const { userId, status, characterId, slot } = await req.json();
   if (!userId) return NextResponse.json({ error: "userId manquant" }, { status: 400 });
 
   if (characterId) {
@@ -70,12 +71,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
   }
 
-  const signup = await prisma.raidSignup.update({
-    where: { raidId_userId: { raidId: params.id, userId } },
-    data: {
-      status: status ?? undefined,
-      characterId: characterId === undefined ? undefined : characterId || null
+  const signup = await prisma.$transaction(async (tx) => {
+    if (typeof slot === "number") {
+      await tx.raidSignup.updateMany({
+        where: { raidId: params.id, slot, userId: { not: userId } },
+        data: { slot: null }
+      });
     }
+    return tx.raidSignup.update({
+      where: { raidId_userId: { raidId: params.id, userId } },
+      data: {
+        status: status ?? undefined,
+        characterId: characterId === undefined ? undefined : characterId || null,
+        slot: slot === undefined ? undefined : slot
+      }
+    });
   });
   return NextResponse.json(signup);
 }
