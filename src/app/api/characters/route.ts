@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
 
   const body = await req.json();
-  const { name, wowClass, spec, professions } = body;
+  const { name, wowClass, spec, professions, canRaidLead } = body;
 
   if (!name || typeof name !== "string" || name.trim().length < 2) {
     return NextResponse.json({ error: "Nom de personnage invalide" }, { status: 400 });
@@ -60,6 +60,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         class: wowClass,
         spec,
+        canRaidLead: Boolean(canRaidLead),
         userId: session.user.id,
         professions: {
           create: professionsInput.map((p: { profession: string; isMaxed?: boolean }) => ({

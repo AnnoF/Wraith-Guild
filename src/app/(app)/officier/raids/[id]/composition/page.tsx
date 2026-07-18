@@ -6,6 +6,7 @@ import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
+import RaidLeadBadge from "@/components/RaidLeadBadge";
 import WeekLockBadge from "@/components/WeekLockBadge";
 
 const ROLE_FILTERS: { value: RaidRole | "ALL"; label: string }[] = [
@@ -21,6 +22,7 @@ interface CharacterOption {
   class: WowClass;
   spec: string;
   professions: { profession: Profession; isMaxed: boolean }[];
+  canRaidLead: boolean;
   weekLocked?: boolean;
 }
 
@@ -254,6 +256,7 @@ export default function CompositionPage() {
                       >
                         <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                         <span>{c.name}</span>
+                        {c.canRaidLead && <RaidLeadBadge />}
                         <EnchantBadge character={c} />
                         {c.weekLocked && <WeekLockBadge />}
                       </div>
@@ -312,6 +315,7 @@ export default function CompositionPage() {
                               >
                                 <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
                                 <span className="truncate">{occupant.character.name}</span>
+                                {occupant.character.canRaidLead && <RaidLeadBadge />}
                                 <EnchantBadge character={occupant.character} />
                               </span>
                               <button
@@ -359,6 +363,7 @@ export default function CompositionPage() {
                     >
                       <ClassSpecIcon wowClass={s.character!.class} spec={s.character!.spec} />
                       <span>{s.character!.name}</span>
+                      {s.character!.canRaidLead && <RaidLeadBadge />}
                       <EnchantBadge character={s.character!} />
                     </div>
                     {otherCharacters.map((c) => {
@@ -375,6 +380,7 @@ export default function CompositionPage() {
                         >
                           <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                           <span>{c.name}</span>
+                          {c.canRaidLead && <RaidLeadBadge />}
                           <EnchantBadge character={c} />
                           {c.weekLocked && <WeekLockBadge />}
                         </div>
