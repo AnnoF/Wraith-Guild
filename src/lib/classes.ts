@@ -40,6 +40,20 @@ export const CLASS_SPECS: Record<WowClass, string[]> = {
   PALADIN: ["Holy", "Protection", "Retribution"]
 };
 
+// Couleurs de classe classiques WoW, utilisées pour colorer les slots de
+// composition en fonction du personnage assigné.
+export const CLASS_COLORS: Record<WowClass, string> = {
+  PRETRE: "#FFFFFF",
+  MAGE: "#40C7EB",
+  DEMONISTE: "#8787ED",
+  VOLEUR: "#FFF569",
+  DRUIDE: "#FF7D0A",
+  CHASSEUR: "#A9D271",
+  CHAMAN: "#0070DE",
+  GUERRIER: "#C79C6E",
+  PALADIN: "#F58CBA"
+};
+
 // Rôle de raid déduit de la spé (utile pour les compos : tanks / heals / dps)
 export type RaidRole = "TANK" | "SOIGNEUR" | "DPS";
 
