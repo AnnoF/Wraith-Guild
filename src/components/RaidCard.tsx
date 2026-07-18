@@ -5,7 +5,6 @@ export interface RaidData {
   title: string;
   date: string;
   size: number;
-  instance: string | null;
   status: "OUVERT" | "FERME" | "TERMINE" | "ANNULE";
   _count?: { signups: number };
 }
@@ -38,7 +37,6 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
       <p className="font-ui text-xs text-bone/55 mb-1">{dateLabel}, {timeLabel}</p>
       <p className="font-ui text-xs text-bone/55">
         {raid._count?.signups ?? 0} / {raid.size} inscrits
-        {raid.instance ? ` · ${raid.instance}` : ""}
       </p>
     </Link>
   );

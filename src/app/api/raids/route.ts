@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { effectiveRaidStatus } from "@/lib/raidStatus";
 
 // GET : liste des raids. ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel)
 export async function GET(req: Request) {
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
       _count: { select: { signups: { where: { status: "INSCRIT" } } } }
     }
   });
-  return NextResponse.json(raids);
+  return NextResponse.json(raids.map((r) => ({ ...r, status: effectiveRaidStatus(r) })));
 }
 
 // POST : création d'un raid (Officier / Administrateur uniquement)
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { title, date, size, instance, notes } = body;
+  const { title, date, size, signupDeadline, notes } = body;
 
   if (!title || !date || ![10, 20, 25, 40].includes(Number(size))) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       title,
       date: new Date(date),
       size: Number(size),
-      instance: instance || null,
+      signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
       notes: notes || null,
       createdById: session.user.id
     }

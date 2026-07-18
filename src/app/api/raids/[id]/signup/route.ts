@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { effectiveRaidStatus } from "@/lib/raidStatus";
 
 // POST : un Raideur s'inscrit lui-même (disponibilité), sans choisir de
 // personnage — c'est un Officier qui assignera un personnage ensuite
@@ -15,7 +16,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const raid = await prisma.raid.findUnique({ where: { id: params.id } });
   if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
-  if (raid.status !== "OUVERT") {
+  if (effectiveRaidStatus(raid) !== "OUVERT") {
     return NextResponse.json({ error: "Les inscriptions ne sont pas ouvertes pour ce raid" }, { status: 409 });
   }
 

@@ -28,9 +28,9 @@ interface RaidDetail {
   title: string;
   date: string;
   size: number;
-  instance: string | null;
   status: string;
   notes: string | null;
+  signupDeadline: string | null;
   signups: Signup[];
 }
 
@@ -106,9 +106,13 @@ export default function RaidDetailPage() {
         <p className="font-ui text-sm text-bone/60">
           {new Date(raid.date).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}
         </p>
-        <p className="font-ui text-sm text-bone/60 mt-1">
-          Taille : {raid.size} joueurs {raid.instance ? `· ${raid.instance}` : ""}
-        </p>
+        <p className="font-ui text-sm text-bone/60 mt-1">Taille : {raid.size} joueurs</p>
+        {raid.signupDeadline && (
+          <p className="font-ui text-xs text-bone/40 mt-1">
+            Inscriptions jusqu'au{" "}
+            {new Date(raid.signupDeadline).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })}
+          </p>
+        )}
         {raid.notes && <p className="font-ui text-sm text-bone/70 mt-3">{raid.notes}</p>}
       </div>
 

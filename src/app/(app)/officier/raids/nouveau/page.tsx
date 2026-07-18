@@ -9,7 +9,7 @@ export default function NouveauRaidPage() {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [size, setSize] = useState(40);
-  const [instance, setInstance] = useState("");
+  const [signupDeadline, setSignupDeadline] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function NouveauRaidPage() {
     const res = await fetch("/api/raids", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, size, instance, notes })
+      body: JSON.stringify({ title, date, size, signupDeadline: signupDeadline || null, notes })
     });
     const data = await res.json();
     setLoading(false);
@@ -71,20 +71,24 @@ export default function NouveauRaidPage() {
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
           >
             {SIZES.map((s) => (
-              <option key={s} value={s}>{s} joueurs</option>
+              <option key={s} value={s} className="bg-void text-bone">{s} joueurs</option>
             ))}
           </select>
         </div>
 
         <div>
           <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
-            Instance (optionnel)
+            Date limite d'inscription (optionnel)
           </label>
           <input
-            value={instance}
-            onChange={(e) => setInstance(e.target.value)}
+            type="datetime-local"
+            value={signupDeadline}
+            onChange={(e) => setSignupDeadline(e.target.value)}
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
+          <p className="font-ui text-xs text-bone/40 mt-1">
+            Passé cette date, les inscriptions se ferment automatiquement.
+          </p>
         </div>
 
         <div>
