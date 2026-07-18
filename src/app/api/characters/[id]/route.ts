@@ -5,9 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { CLASS_SPECS, type WowClass } from "@/lib/classes";
 import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
 
-// PATCH : archiver/réactiver un personnage, et/ou éditer sa spécialisation
-// et ses métiers (pas de suppression dure, pour ne pas casser l'historique
-// des raids passés — voir schema.prisma). Le nom et la classe restent fixes.
+// PATCH : archiver/réactiver un personnage, et/ou éditer son nom, sa
+// spécialisation et ses métiers (pas de suppression dure, pour ne pas
+// casser l'historique des raids passés — voir schema.prisma). La classe
+// reste fixe.
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -22,6 +23,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   if (body.isActive !== undefined) {
     data.isActive = Boolean(body.isActive);
+  }
+
+  if (body.name !== undefined) {
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    if (name.length < 2) {
+      return NextResponse.json({ error: "Nom de personnage invalide" }, { status: 400 });
+    }
+    data.name = name;
   }
 
   if (body.spec !== undefined) {
@@ -58,10 +67,20 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     };
   }
 
-  const updated = await prisma.character.update({
-    where: { id: params.id },
-    data,
-    include: { professions: true }
-  });
-  return NextResponse.json(updated);
+  try {
+    const updated = await prisma.character.update({
+      where: { id: params.id },
+      data,
+      include: { professions: true }
+    });
+    return NextResponse.json(updated);
+  } catch (err: any) {
+    if (err.code === "P2002") {
+      return NextResponse.json(
+        { error: "Vous avez déjà un personnage avec ce nom" },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 }
