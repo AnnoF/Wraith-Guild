@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { CLASS_SPECS, type WowClass } from "@/lib/classes";
+import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
 
-// PATCH : archiver / réactiver un personnage (pas de suppression dure,
-// pour ne pas casser l'historique des raids passés — voir schema.prisma)
+// PATCH : archiver/réactiver un personnage, et/ou éditer sa spécialisation
+// et ses métiers (pas de suppression dure, pour ne pas casser l'historique
+// des raids passés — voir schema.prisma). Le nom et la classe restent fixes.
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -15,9 +18,50 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const body = await req.json();
+  const data: Record<string, unknown> = {};
+
+  if (body.isActive !== undefined) {
+    data.isActive = Boolean(body.isActive);
+  }
+
+  if (body.spec !== undefined) {
+    if (!CLASS_SPECS[character.class as WowClass].includes(body.spec)) {
+      return NextResponse.json({ error: "Spécialisation invalide pour cette classe" }, { status: 400 });
+    }
+    data.spec = body.spec;
+  }
+
+  if (body.professions !== undefined) {
+    const professionsInput = Array.isArray(body.professions) ? body.professions : [];
+    if (professionsInput.length > MAX_PROFESSIONS_PER_CHARACTER) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_PROFESSIONS_PER_CHARACTER} métiers par personnage` },
+        { status: 400 }
+      );
+    }
+    const professionNames = new Set<string>();
+    for (const p of professionsInput) {
+      if (!PROFESSIONS.includes(p?.profession)) {
+        return NextResponse.json({ error: "Métier invalide" }, { status: 400 });
+      }
+      professionNames.add(p.profession);
+    }
+    if (professionNames.size !== professionsInput.length) {
+      return NextResponse.json({ error: "Métier en double" }, { status: 400 });
+    }
+    data.professions = {
+      deleteMany: {},
+      create: professionsInput.map((p: { profession: string; isMaxed?: boolean }) => ({
+        profession: p.profession as (typeof PROFESSIONS)[number],
+        isMaxed: Boolean(p.isMaxed)
+      }))
+    };
+  }
+
   const updated = await prisma.character.update({
     where: { id: params.id },
-    data: { isActive: Boolean(body.isActive) }
+    data,
+    include: { professions: true }
   });
   return NextResponse.json(updated);
 }
