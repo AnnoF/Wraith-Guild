@@ -139,7 +139,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
             const selection = professions.find((x) => x.profession === p);
             const disabled = !selection && professions.length >= MAX_PROFESSIONS_PER_CHARACTER;
             return (
-              <div key={p} className="flex items-center gap-2">
+              <div key={p}>
                 <label
                   className={`flex items-center gap-2 font-ui text-sm ${
                     disabled ? "text-bone/30" : "text-bone/80"
@@ -155,7 +155,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
                   {PROFESSION_LABELS[p]}
                 </label>
                 {selection && (
-                  <label className="flex items-center gap-1 font-ui text-xs text-bone/50 ml-auto">
+                  <label className="flex items-center gap-1 font-ui text-xs text-bone/50 ml-6 mt-1">
                     <input
                       type="checkbox"
                       checked={selection.isMaxed}
