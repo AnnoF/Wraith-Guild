@@ -159,42 +159,46 @@ export default function CompositionPage() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="lg:w-1/4 space-y-2">
-          <p className="font-display text-xs text-bone/50">À placer</p>
-          {players.length === 0 && <p className="font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>}
-          {players.length > 0 && unplaced.length === 0 && (
-            <p className="font-ui text-sm text-bone/50">Tous les inscrits sont placés.</p>
-          )}
-          {unplaced.map((s) => (
-            <div key={s.id} className="war-border bg-char px-4 py-2.5">
-              <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
-              {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
-              <div className="mt-1.5 space-y-1">
-                {s.user.characters.length === 0 && (
-                  <p className="font-ui text-xs text-bone/30 ml-3">Aucun personnage actif</p>
-                )}
-                {s.user.characters.map((c) => {
-                  const isSelected = s.characterId === c.id;
-                  const color = CLASS_COLORS[c.class];
-                  return (
-                    <div
-                      key={c.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
-                      style={{
-                        backgroundColor: `${color}66`,
-                        borderColor: isSelected ? "var(--amber)" : `${color}B3`
-                      }}
-                      className="ml-3 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
-                    >
-                      <CharacterBadges character={c} />
-                      <span>{c.name}</span>
-                    </div>
-                  );
-                })}
+        <div className="lg:w-1/4">
+          <p className="font-display text-xs text-bone/50 mb-2">À placer</p>
+          <div className="grid grid-cols-2 gap-2">
+            {players.length === 0 && (
+              <p className="col-span-2 font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>
+            )}
+            {players.length > 0 && unplaced.length === 0 && (
+              <p className="col-span-2 font-ui text-sm text-bone/50">Tous les inscrits sont placés.</p>
+            )}
+            {unplaced.map((s) => (
+              <div key={s.id} className="war-border bg-char px-3 py-2.5">
+                <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
+                <div className="mt-1.5 space-y-1">
+                  {s.user.characters.length === 0 && (
+                    <p className="font-ui text-xs text-bone/30">Aucun personnage actif</p>
+                  )}
+                  {s.user.characters.map((c) => {
+                    const isSelected = s.characterId === c.id;
+                    const color = CLASS_COLORS[c.class];
+                    return (
+                      <div
+                        key={c.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                        style={{
+                          backgroundColor: `${color}66`,
+                          borderColor: isSelected ? "var(--amber)" : `${color}B3`
+                        }}
+                        className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
+                      >
+                        <CharacterBadges character={c} />
+                        <span>{c.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="lg:w-1/2 space-y-3">
@@ -264,26 +268,50 @@ export default function CompositionPage() {
           ))}
         </div>
 
-        <div className="lg:w-1/4 space-y-2">
-          <p className="font-display text-xs text-bone/50">Placés</p>
-          {placed.length === 0 && <p className="font-ui text-sm text-bone/50">Personne de placé pour l'instant.</p>}
-          {placed.map((s) => {
-            const color = CLASS_COLORS[s.character!.class];
-            return (
-              <div key={s.id} className="war-border bg-char px-4 py-2.5">
-                <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
-                <div
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: s.character!.id })}
-                  style={{ backgroundColor: `${color}66`, borderColor: `${color}B3` }}
-                  className="mt-1.5 flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
-                >
-                  <CharacterBadges character={s.character!} />
-                  <span>{s.character!.name}</span>
+        <div className="lg:w-1/4">
+          <p className="font-display text-xs text-bone/50 mb-2">Placés</p>
+          <div className="grid grid-cols-2 gap-2">
+            {placed.length === 0 && (
+              <p className="col-span-2 font-ui text-sm text-bone/50">Personne de placé pour l'instant.</p>
+            )}
+            {placed.map((s) => {
+              const otherCharacters = s.user.characters.filter((c) => c.id !== s.characterId);
+              return (
+                <div key={s.id} className="war-border bg-char px-3 py-2.5">
+                  <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                  <div className="mt-1.5 space-y-1">
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: s.character!.id })}
+                      style={{
+                        backgroundColor: `${CLASS_COLORS[s.character!.class]}66`,
+                        borderColor: "var(--amber)"
+                      }}
+                      className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
+                    >
+                      <CharacterBadges character={s.character!} />
+                      <span>{s.character!.name}</span>
+                    </div>
+                    {otherCharacters.map((c) => {
+                      const color = CLASS_COLORS[c.class];
+                      return (
+                        <div
+                          key={c.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                          style={{ backgroundColor: `${color}33`, borderColor: `${color}66` }}
+                          className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone/70 cursor-grab active:cursor-grabbing"
+                        >
+                          <CharacterBadges character={c} />
+                          <span>{c.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
