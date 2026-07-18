@@ -1,11 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CLASS_COLORS, guessRaidRole, type WowClass } from "@/lib/classes";
+import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import CharacterBadges from "@/components/CharacterBadges";
 
 const GROUP_SIZE = 5;
+
+const ROLE_FILTERS: { value: RaidRole | "ALL"; label: string }[] = [
+  { value: "ALL", label: "Tous" },
+  { value: "TANK", label: "Tank" },
+  { value: "SOIGNEUR", label: "Soigneur" },
+  { value: "DPS", label: "DPS" }
+];
 
 // Classes Tailwind statiques (nécessaire : Tailwind ne génère que les
 // classes qu'il trouve littéralement dans le code source).
@@ -65,6 +72,8 @@ export default function CompositionPage() {
   const { id } = useParams<{ id: string }>();
   const [raid, setRaid] = useState<RaidDetail | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<RaidRole | "ALL">("ALL");
 
   async function load() {
     const res = await fetch(`/api/raids/${id}`);
@@ -132,6 +141,19 @@ export default function CompositionPage() {
     }
   }
 
+  function matchesFilters(s: Signup) {
+    const chars = s.user.characters;
+    if (roleFilter !== "ALL" && !chars.some((c) => guessRaidRole(c.class, c.spec) === roleFilter)) {
+      return false;
+    }
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return s.user.discordTag.toLowerCase().includes(q) || chars.some((c) => c.name.toLowerCase().includes(q));
+  }
+
+  const filteredUnplaced = unplaced.filter(matchesFilters);
+  const filteredPlaced = placed.filter(matchesFilters);
+
   return (
     <div className="relative left-1/2 w-screen -translate-x-1/2 px-6">
     <div className="max-w-[1600px] mx-auto space-y-6">
@@ -167,6 +189,30 @@ export default function CompositionPage() {
         <span>Placés : {placed.length} / {raid.size}</span>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Rechercher un joueur ou un personnage..."
+          className="bg-void border border-bone/15 focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
+        />
+        <div className="flex gap-1">
+          {ROLE_FILTERS.map((r) => (
+            <button
+              key={r.value}
+              onClick={() => setRoleFilter(r.value)}
+              className={`font-ui text-xs px-2.5 py-1.5 border focus-ring ${
+                roleFilter === r.value
+                  ? "bg-blood text-void border-blood"
+                  : "border-bone/20 text-bone/60 hover:text-bone"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="lg:w-1/4">
           <p className="font-display text-xs text-bone/50 mb-2">À placer</p>
@@ -177,7 +223,10 @@ export default function CompositionPage() {
             {players.length > 0 && unplaced.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Tous les inscrits sont placés.</p>
             )}
-            {unplaced.map((s) => (
+            {unplaced.length > 0 && filteredUnplaced.length === 0 && (
+              <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
+            )}
+            {filteredUnplaced.map((s) => (
               <div key={s.id} className="war-border bg-char px-3 py-2.5">
                 <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                 {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
@@ -285,7 +334,10 @@ export default function CompositionPage() {
             {placed.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Personne de placé pour l'instant.</p>
             )}
-            {placed.map((s) => {
+            {placed.length > 0 && filteredPlaced.length === 0 && (
+              <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
+            )}
+            {filteredPlaced.map((s) => {
               const otherCharacters = s.user.characters.filter((c) => c.id !== s.characterId);
               return (
                 <div key={s.id} className="war-border bg-char px-3 py-2.5">
