@@ -27,6 +27,7 @@ export default function CharacterCard({
   onUpdated: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(character.name);
   const [spec, setSpec] = useState(character.spec);
   const [professions, setProfessions] = useState<ProfessionSelection[]>(
     character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed }))
@@ -37,6 +38,7 @@ export default function CharacterCard({
   const availableSpecs = CLASS_SPECS[character.class];
 
   function startEditing() {
+    setName(character.name);
     setSpec(character.spec);
     setProfessions(character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed })));
     setError(null);
@@ -60,12 +62,16 @@ export default function CharacterCard({
   }
 
   async function handleSave() {
+    if (!name.trim()) {
+      setError("Le nom du personnage est obligatoire.");
+      return;
+    }
     setSaving(true);
     setError(null);
     const res = await fetch(`/api/characters/${character.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec, professions })
+      body: JSON.stringify({ name: name.trim(), spec, professions })
     });
     setSaving(false);
     if (!res.ok) {
@@ -80,8 +86,19 @@ export default function CharacterCard({
   if (editing) {
     return (
       <div className="war-border bg-char p-4 space-y-3">
-        <p className="font-display text-sm text-bone">{character.name}</p>
         {error && <p className="font-ui text-xs text-blood">{error}</p>}
+
+        <div>
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+            Nom du personnage
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={24}
+            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+          />
+        </div>
 
         <div>
           <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
