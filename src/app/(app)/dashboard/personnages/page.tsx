@@ -58,7 +58,12 @@ export default function PersonnagesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {characters.map((c) => (
-            <CharacterCard key={c.id} character={c} onToggleActive={handleToggleActive} />
+            <CharacterCard
+              key={c.id}
+              character={c}
+              onToggleActive={handleToggleActive}
+              onUpdated={loadCharacters}
+            />
           ))}
         </div>
       )}
