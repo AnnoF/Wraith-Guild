@@ -65,6 +65,7 @@ model User {
 
   characters    Character[]
   raidsCreated  Raid[]        @relation("RaidCreatedBy")
+  raidSignups   RaidSignup[]
   roleGrantsGiven  RoleAudit[] @relation("GrantedBy")
   roleGrantsReceived RoleAudit[] @relation("GrantedTo")
 }
@@ -114,6 +115,9 @@ model Raid {
   signups       RaidSignup[]
 }
 
+// Un joueur s'inscrit lui-même (disponibilité) ; le personnage n'est
+// assigné qu'ensuite par un Officier lors de la construction de la
+// composition (voir /officier/raids/[id]/composition).
 model RaidSignup {
   id            String       @id @default(cuid())
   status        SignupStatus @default(INSCRIT)
@@ -124,10 +128,13 @@ model RaidSignup {
   raidId        String
   raid          Raid         @relation(fields: [raidId], references: [id], onDelete: Cascade)
 
-  characterId   String
-  character     Character    @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([raidId, characterId])
+  characterId   String?
+  character     Character?   @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@unique([raidId, userId])
 }
 
 // Historique des changements de rôle site (traçabilité pour les admins)

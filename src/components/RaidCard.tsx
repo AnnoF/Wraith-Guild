@@ -17,7 +17,7 @@ const STATUS_STYLE: Record<RaidData["status"], { label: string; bg: string; text
   ANNULE: { label: "Annulé", bg: "bg-blood/30", text: "text-bone/70" }
 };
 
-export default function RaidCard({ raid }: { raid: RaidData }) {
+export default function RaidCard({ raid, href }: { raid: RaidData; href?: string }) {
   const status = STATUS_STYLE[raid.status];
   const date = new Date(raid.date);
   const dateLabel = date.toLocaleDateString("fr-FR", {
@@ -28,7 +28,7 @@ export default function RaidCard({ raid }: { raid: RaidData }) {
   const timeLabel = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <Link href={`/raids/${raid.id}`} className="war-border bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
+    <Link href={href ?? `/raids/${raid.id}`} className="war-border bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
       <div className="flex justify-between items-start mb-2">
         <span className="font-display text-sm text-bone">{raid.title}</span>
         <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>

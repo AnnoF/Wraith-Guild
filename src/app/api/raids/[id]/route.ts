@@ -12,7 +12,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     where: { id: params.id },
     include: {
       signups: {
-        include: { character: { include: { user: true } } },
+        include: {
+          user: {
+            include: {
+              characters: { where: { isActive: true }, include: { professions: true } }
+            }
+          },
+          character: { include: { professions: true } }
+        },
         orderBy: { createdAt: "asc" }
       },
       createdBy: true
