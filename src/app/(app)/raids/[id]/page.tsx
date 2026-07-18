@@ -8,6 +8,7 @@ import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
+import RaidLeadBadge from "@/components/RaidLeadBadge";
 
 interface AssignedCharacter {
   id: string;
@@ -15,6 +16,7 @@ interface AssignedCharacter {
   class: WowClass;
   spec: string;
   professions: { profession: Profession; isMaxed: boolean }[];
+  canRaidLead: boolean;
 }
 
 interface Signup {
@@ -201,6 +203,7 @@ export default function RaidDetailPage() {
                               <>
                                 <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
                                 <span className="truncate">{occupant.character.name}</span>
+                                {occupant.character.canRaidLead && <RaidLeadBadge />}
                                 <EnchantBadge character={occupant.character} />
                               </>
                             )}

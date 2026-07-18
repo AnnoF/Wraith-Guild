@@ -13,6 +13,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
   const [wowClass, setWowClass] = useState<WowClass | "">("");
   const [spec, setSpec] = useState("");
   const [professions, setProfessions] = useState<ProfessionSelection[]>([]);
+  const [canRaidLead, setCanRaidLead] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +49,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, wowClass, spec, professions })
+        body: JSON.stringify({ name, wowClass, spec, professions, canRaidLead })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -59,6 +60,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       setWowClass("");
       setSpec("");
       setProfessions([]);
+      setCanRaidLead(false);
       onCreated();
     } catch {
       setError("Impossible de contacter le serveur.");
@@ -169,6 +171,18 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
             );
           })}
         </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2 font-ui text-sm text-bone/80">
+          <input
+            type="checkbox"
+            checked={canRaidLead}
+            onChange={(e) => setCanRaidLead(e.target.checked)}
+            className="accent-blood"
+          />
+          Capable de raid lead (RL)
+        </label>
       </div>
 
       <button
