@@ -74,6 +74,16 @@ export default function CompositionPage() {
   const [error, setError] = useState<string | null>(null);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [dragOverBossRole, setDragOverBossRole] = useState<string | null>(null);
+  const [collapsedBosses, setCollapsedBosses] = useState<Set<string>>(new Set());
+
+  function toggleBossCollapsed(boss: string) {
+    setCollapsedBosses((prev) => {
+      const next = new Set(prev);
+      if (next.has(boss)) next.delete(boss);
+      else next.add(boss);
+      return next;
+    });
+  }
 
   async function load() {
     const res = await fetch(`/api/raids/${id}`);
@@ -456,77 +466,92 @@ export default function CompositionPage() {
       </div>
 
       {advancedMode && (
-        <div className="space-y-4">
+        <div className="lg:w-1/2 mx-auto space-y-3">
           {bossTemplate.length === 0 ? (
             <p className="font-ui text-sm text-bone/50 text-center">
               Pas encore de rôles définis pour {raid.title}.
             </p>
           ) : (
-            bossTemplate.map(({ boss, roles }) => (
-              <div key={boss} className="war-border bg-char p-4">
-                <p className="font-display text-sm text-bone mb-3">{boss}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {roles.map((role) => {
-                    const key = `${boss}|${role}`;
-                    const assignedChar = bossAssignmentMap.get(key)?.character ?? null;
-                    const classColor = assignedChar ? CLASS_COLORS[assignedChar.class] : null;
-                    return (
-                      <div
-                        key={role}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setDragOverBossRole(key);
-                        }}
-                        onDragLeave={() => setDragOverBossRole((cur) => (cur === key ? null : cur))}
-                        onDrop={(e) => handleBossDrop(e, boss, role)}
-                        style={
-                          classColor && dragOverBossRole !== key
-                            ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` }
-                            : undefined
-                        }
-                        className={`min-h-[44px] px-2 py-1.5 border font-ui text-xs flex flex-col justify-center gap-0.5 ${
-                          dragOverBossRole === key
-                            ? "border-blood bg-blood/10"
-                            : assignedChar
-                            ? ""
-                            : "border-dashed border-bone/10"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1">
-                          <span className={assignedChar ? "text-bone/50" : "text-bone/30"}>{role}</span>
-                          {assignedChar && (
-                            <button
-                              onClick={() => assignBossRole(boss, role, null)}
-                              className="text-bone/30 hover:text-blood focus-ring shrink-0"
-                              title="Retirer"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                        {assignedChar && (
-                          <span
-                            draggable
-                            onDragStart={(e) =>
-                              handleDragStart(e, {
-                                userId: characterOwnerMap.get(assignedChar.id) ?? "",
-                                characterId: assignedChar.id
-                              })
-                            }
-                            className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
+            bossTemplate.map(({ boss, cols, roles }) => {
+              const isCollapsed = collapsedBosses.has(boss);
+              return (
+                <div key={boss} className="war-border bg-char p-4">
+                  <button
+                    onClick={() => toggleBossCollapsed(boss)}
+                    className="flex items-center justify-between w-full font-display text-sm text-bone focus-ring"
+                  >
+                    <span>{boss}</span>
+                    <span className="font-ui text-[10px] uppercase tracking-wide text-bone/40">
+                      {isCollapsed ? "Afficher ▸" : "Réduire ▾"}
+                    </span>
+                  </button>
+                  {!isCollapsed && (
+                    <div className={`grid ${GRID_COLS[cols] ?? "grid-cols-4"} gap-2 mt-3`}>
+                      {roles.map((role) => {
+                        const key = `${boss}|${role.label}`;
+                        const assignedChar = bossAssignmentMap.get(key)?.character ?? null;
+                        const classColor = assignedChar ? CLASS_COLORS[assignedChar.class] : null;
+                        return (
+                          <div
+                            key={role.label}
+                            style={{
+                              gridColumn: role.col,
+                              gridRow: role.row,
+                              ...(classColor && dragOverBossRole !== key
+                                ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` }
+                                : undefined)
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              setDragOverBossRole(key);
+                            }}
+                            onDragLeave={() => setDragOverBossRole((cur) => (cur === key ? null : cur))}
+                            onDrop={(e) => handleBossDrop(e, boss, role.label)}
+                            className={`min-h-[44px] px-2 py-1.5 border font-ui text-xs flex flex-col justify-center gap-0.5 ${
+                              dragOverBossRole === key
+                                ? "border-blood bg-blood/10"
+                                : assignedChar
+                                ? ""
+                                : "border-dashed border-bone/10"
+                            }`}
                           >
-                            <ClassSpecIcon wowClass={assignedChar.class} spec={assignedChar.spec} />
-                            <span className="truncate">{assignedChar.name}</span>
-                            {assignedChar.canRaidLead && <RaidLeadBadge />}
-                            <EnchantBadge character={assignedChar} />
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                            <div className="flex items-center justify-between gap-1">
+                              <span className={assignedChar ? "text-bone/50" : "text-bone/30"}>{role.label}</span>
+                              {assignedChar && (
+                                <button
+                                  onClick={() => assignBossRole(boss, role.label, null)}
+                                  className="text-bone/30 hover:text-blood focus-ring shrink-0"
+                                  title="Retirer"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                            {assignedChar && (
+                              <span
+                                draggable
+                                onDragStart={(e) =>
+                                  handleDragStart(e, {
+                                    userId: characterOwnerMap.get(assignedChar.id) ?? "",
+                                    characterId: assignedChar.id
+                                  })
+                                }
+                                className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
+                              >
+                                <ClassSpecIcon wowClass={assignedChar.class} spec={assignedChar.spec} />
+                                <span className="truncate">{assignedChar.name}</span>
+                                {assignedChar.canRaidLead && <RaidLeadBadge />}
+                                <EnchantBadge character={assignedChar} />
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

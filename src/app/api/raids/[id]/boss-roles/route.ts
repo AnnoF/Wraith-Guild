@@ -24,7 +24,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const template = RAID_BOSS_ROLES[raid.title];
   const bossEntry = template?.find((b) => b.boss === boss);
-  if (!bossEntry || !bossEntry.roles.includes(role)) {
+  if (!bossEntry || !bossEntry.roles.some((r) => r.label === role)) {
     return NextResponse.json({ error: "Rôle inconnu pour ce raid" }, { status: 400 });
   }
 

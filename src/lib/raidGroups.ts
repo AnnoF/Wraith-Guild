@@ -3,6 +3,7 @@ export const GROUP_SIZE = 5;
 // Classes Tailwind statiques (nécessaire : Tailwind ne génère que les
 // classes qu'il trouve littéralement dans le code source).
 export const GRID_COLS: Record<number, string> = {
+  1: "grid-cols-1",
   2: "grid-cols-2",
   3: "grid-cols-3",
   4: "grid-cols-4"
