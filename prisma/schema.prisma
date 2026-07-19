@@ -85,6 +85,7 @@ model Character {
 
   signups       RaidSignup[]
   professions   CharacterProfession[]
+  bossRoles     BossRoleAssignment[]
 
   @@unique([userId, name])
 }
@@ -115,6 +116,7 @@ model Raid {
   createdBy     User       @relation("RaidCreatedBy", fields: [createdById], references: [id])
 
   signups       RaidSignup[]
+  bossRoles     BossRoleAssignment[]
 }
 
 // Un joueur s'inscrit lui-même (disponibilité) ; le personnage n'est
@@ -140,6 +142,24 @@ model RaidSignup {
 
   @@unique([raidId, userId])
   @@unique([raidId, slot])
+}
+
+// "Mode avancé" de la composition : assignation d'un personnage déjà
+// placé dans le raid (voir RaidSignup.slot) à un rôle spécifique à un
+// boss (ex: Off Tank 2 sur Garr). Rôles définis dans lib/bossRoles.ts,
+// par titre de raid.
+model BossRoleAssignment {
+  id            String     @id @default(cuid())
+  boss          String
+  role          String
+
+  raidId        String
+  raid          Raid       @relation(fields: [raidId], references: [id], onDelete: Cascade)
+
+  characterId   String?
+  character     Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@unique([raidId, boss, role])
 }
 
 // Historique des changements de rôle site (traçabilité pour les admins)

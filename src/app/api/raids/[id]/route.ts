@@ -24,6 +24,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         },
         orderBy: { createdAt: "asc" }
       },
+      bossRoleAssignments: {
+        include: { character: { include: { professions: true } } }
+      },
       createdBy: true
     }
   });

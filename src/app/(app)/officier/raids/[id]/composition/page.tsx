@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
+import { RAID_BOSS_ROLES } from "@/lib/bossRoles";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
@@ -37,6 +38,14 @@ interface Signup {
   character: CharacterOption | null;
 }
 
+interface BossRoleAssignmentData {
+  id: string;
+  boss: string;
+  role: string;
+  characterId: string | null;
+  character: CharacterOption | null;
+}
+
 interface RaidDetail {
   id: string;
   title: string;
@@ -44,6 +53,7 @@ interface RaidDetail {
   status: string;
   notes: string | null;
   signups: Signup[];
+  bossRoleAssignments: BossRoleAssignmentData[];
 }
 
 interface DragPayload {
@@ -62,6 +72,8 @@ export default function CompositionPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<RaidRole | "ALL">("ALL");
   const [error, setError] = useState<string | null>(null);
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [dragOverBossRole, setDragOverBossRole] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch(`/api/raids/${id}`);
@@ -110,6 +122,30 @@ export default function CompositionPage() {
     updateSignup(payload.userId, { characterId: payload.characterId, slot });
   }
 
+  async function assignBossRole(boss: string, role: string, characterId: string | null) {
+    const res = await fetch(`/api/raids/${id}/boss-roles`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ boss, role, characterId })
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error || "Impossible d'assigner ce rôle.");
+    } else {
+      setError(null);
+    }
+    load();
+  }
+
+  function handleBossDrop(e: React.DragEvent, boss: string, role: string) {
+    e.preventDefault();
+    setDragOverBossRole(null);
+    const raw = e.dataTransfer.getData("application/json");
+    if (!raw) return;
+    const payload: DragPayload = JSON.parse(raw);
+    assignBossRole(boss, role, payload.characterId);
+  }
+
   if (!raid) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
   const players = raid.signups.filter((s) => s.status === "INSCRIT");
@@ -147,6 +183,14 @@ export default function CompositionPage() {
 
   const filteredUnplaced = unplaced.filter(matchesFilters);
   const filteredPlaced = placed.filter(matchesFilters);
+
+  const bossTemplate = RAID_BOSS_ROLES[raid.title] ?? [];
+  const bossAssignmentMap = new Map<string, BossRoleAssignmentData>();
+  raid.bossRoleAssignments.forEach((a) => bossAssignmentMap.set(`${a.boss}|${a.role}`, a));
+  const characterOwnerMap = new Map<string, string>();
+  placed.forEach((s) => {
+    if (s.character) characterOwnerMap.set(s.character.id, s.user.id);
+  });
 
   return (
     <div className="relative left-1/2 w-screen -translate-x-1/2 px-6">
@@ -401,6 +445,91 @@ export default function CompositionPage() {
           </div>
         </div>
       </div>
+
+      <div className="flex justify-center">
+        <button
+          onClick={() => setAdvancedMode((v) => !v)}
+          className="font-ui text-xs px-4 py-2 border border-bone/30 text-bone/60 hover:text-bone focus-ring"
+        >
+          {advancedMode ? "Masquer le mode avancé" : "Mode avancé — rôles par boss"}
+        </button>
+      </div>
+
+      {advancedMode && (
+        <div className="space-y-4">
+          {bossTemplate.length === 0 ? (
+            <p className="font-ui text-sm text-bone/50 text-center">
+              Pas encore de rôles définis pour {raid.title}.
+            </p>
+          ) : (
+            bossTemplate.map(({ boss, roles }) => (
+              <div key={boss} className="war-border bg-char p-4">
+                <p className="font-display text-sm text-bone mb-3">{boss}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {roles.map((role) => {
+                    const key = `${boss}|${role}`;
+                    const assignedChar = bossAssignmentMap.get(key)?.character ?? null;
+                    const classColor = assignedChar ? CLASS_COLORS[assignedChar.class] : null;
+                    return (
+                      <div
+                        key={role}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragOverBossRole(key);
+                        }}
+                        onDragLeave={() => setDragOverBossRole((cur) => (cur === key ? null : cur))}
+                        onDrop={(e) => handleBossDrop(e, boss, role)}
+                        style={
+                          classColor && dragOverBossRole !== key
+                            ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` }
+                            : undefined
+                        }
+                        className={`min-h-[44px] px-2 py-1.5 border font-ui text-xs flex flex-col justify-center gap-0.5 ${
+                          dragOverBossRole === key
+                            ? "border-blood bg-blood/10"
+                            : assignedChar
+                            ? ""
+                            : "border-dashed border-bone/10"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={assignedChar ? "text-bone/50" : "text-bone/30"}>{role}</span>
+                          {assignedChar && (
+                            <button
+                              onClick={() => assignBossRole(boss, role, null)}
+                              className="text-bone/30 hover:text-blood focus-ring shrink-0"
+                              title="Retirer"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                        {assignedChar && (
+                          <span
+                            draggable
+                            onDragStart={(e) =>
+                              handleDragStart(e, {
+                                userId: characterOwnerMap.get(assignedChar.id) ?? "",
+                                characterId: assignedChar.id
+                              })
+                            }
+                            className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
+                          >
+                            <ClassSpecIcon wowClass={assignedChar.class} spec={assignedChar.spec} />
+                            <span className="truncate">{assignedChar.name}</span>
+                            {assignedChar.canRaidLead && <RaidLeadBadge />}
+                            <EnchantBadge character={assignedChar} />
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
     </div>
   );
