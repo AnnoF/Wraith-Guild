@@ -85,7 +85,7 @@ model Character {
 
   signups       RaidSignup[]
   professions   CharacterProfession[]
-  bossRoles     BossRoleAssignment[]
+  bossRoleAssignments BossRoleAssignment[]
 
   @@unique([userId, name])
 }
@@ -116,7 +116,7 @@ model Raid {
   createdBy     User       @relation("RaidCreatedBy", fields: [createdById], references: [id])
 
   signups       RaidSignup[]
-  bossRoles     BossRoleAssignment[]
+  bossRoleAssignments BossRoleAssignment[]
 }
 
 // Un joueur s'inscrit lui-même (disponibilité) ; le personnage n'est
