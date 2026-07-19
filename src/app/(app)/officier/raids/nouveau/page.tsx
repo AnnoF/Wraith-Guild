@@ -1,14 +1,28 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { RAID_INSTANCES, RAID_INSTANCE_SIZES } from "@/lib/raidInstances";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { RAID_INSTANCES, RAID_INSTANCE_SIZES, type RaidInstance } from "@/lib/raidInstances";
+
+function isRaidInstance(value: string | null): value is RaidInstance {
+  return !!value && (RAID_INSTANCES as string[]).includes(value);
+}
 
 export default function NouveauRaidPage() {
+  return (
+    <Suspense fallback={<p className="font-ui text-sm text-bone/50">Chargement...</p>}>
+      <NouveauRaidForm />
+    </Suspense>
+  );
+}
+
+function NouveauRaidForm() {
   const router = useRouter();
-  const [title, setTitle] = useState<string>(RAID_INSTANCES[0]);
+  const searchParams = useSearchParams();
+  const prefillTitle = searchParams.get("title");
+  const [title, setTitle] = useState<string>(isRaidInstance(prefillTitle) ? prefillTitle : RAID_INSTANCES[0]);
   const [date, setDate] = useState("");
   const [signupDeadline, setSignupDeadline] = useState("");
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

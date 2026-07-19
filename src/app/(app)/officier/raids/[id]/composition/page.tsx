@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
@@ -41,6 +42,7 @@ interface RaidDetail {
   title: string;
   size: number;
   status: string;
+  notes: string | null;
   signups: Signup[];
 }
 
@@ -178,6 +180,12 @@ export default function CompositionPage() {
           >
             Annuler le raid
           </button>
+          <Link
+            href={`/officier/raids/nouveau?title=${encodeURIComponent(raid.title)}&notes=${encodeURIComponent(raid.notes ?? "")}`}
+            className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 hover:text-bone focus-ring"
+          >
+            Dupliquer ce raid
+          </Link>
         </div>
       </div>
 
