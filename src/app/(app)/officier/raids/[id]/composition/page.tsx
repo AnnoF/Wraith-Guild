@@ -518,7 +518,7 @@ export default function CompositionPage() {
                 );
               }
 
-              const { boss, cols, roles } = group[0];
+              const { boss, roles } = group[0];
               const isCollapsed = collapsedBosses.has(boss);
               return (
                 <div key={boss} className="war-border bg-char p-4">
@@ -532,7 +532,7 @@ export default function CompositionPage() {
                     </span>
                   </button>
                   {!isCollapsed && (
-                    <div className={`grid ${GRID_COLS[cols] ?? "grid-cols-4"} gap-2 mt-3`}>
+                    <div className="grid grid-cols-4 gap-2 mt-3">
                       {roles.map((role) => {
                         const key = `${boss}|${role.label}`;
                         const assignedChar = bossAssignmentMap.get(key)?.character ?? null;
