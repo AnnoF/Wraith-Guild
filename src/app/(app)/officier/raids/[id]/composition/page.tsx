@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
-import { RAID_BOSS_ROLES } from "@/lib/bossRoles";
+import { RAID_BOSS_ROLES, type BossRoles } from "@/lib/bossRoles";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
@@ -83,6 +83,35 @@ export default function CompositionPage() {
       else next.add(boss);
       return next;
     });
+  }
+
+  function expandBosses(bosses: string[]) {
+    setCollapsedBosses((prev) => {
+      const next = new Set(prev);
+      bosses.forEach((b) => next.delete(b));
+      return next;
+    });
+  }
+
+  // Regroupe les boss réduits consécutifs en une seule bande compacte, pour
+  // éviter d'avoir à faire défiler beaucoup de lignes "Réduire" avant
+  // d'atteindre le boss sur lequel on veut glisser un personnage.
+  function groupCollapsedRuns(template: BossRoles[], collapsed: Set<string>): BossRoles[][] {
+    const groups: BossRoles[][] = [];
+    let run: BossRoles[] = [];
+    for (const entry of template) {
+      if (collapsed.has(entry.boss)) {
+        run.push(entry);
+      } else {
+        if (run.length) {
+          groups.push(run);
+          run = [];
+        }
+        groups.push([entry]);
+      }
+    }
+    if (run.length) groups.push(run);
+    return groups;
   }
 
   async function load() {
@@ -472,7 +501,24 @@ export default function CompositionPage() {
               Pas encore de rôles définis pour {raid.title}.
             </p>
           ) : (
-            bossTemplate.map(({ boss, cols, roles }) => {
+            groupCollapsedRuns(bossTemplate, collapsedBosses).map((group, groupIdx) => {
+              if (group.length > 1) {
+                const names = group.map((b) => b.boss);
+                return (
+                  <button
+                    key={`group-${groupIdx}`}
+                    onClick={() => expandBosses(names)}
+                    className="w-full war-border bg-char px-4 py-2.5 flex items-center justify-between gap-3 text-left focus-ring"
+                  >
+                    <span className="font-ui text-xs text-bone/50 truncate">{names.join(", ")}</span>
+                    <span className="font-ui text-[10px] uppercase tracking-wide text-bone/40 shrink-0">
+                      {names.length} boss — Afficher ▸
+                    </span>
+                  </button>
+                );
+              }
+
+              const { boss, cols, roles } = group[0];
               const isCollapsed = collapsedBosses.has(boss);
               return (
                 <div key={boss} className="war-border bg-char p-4">
