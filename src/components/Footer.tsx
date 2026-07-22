@@ -14,8 +14,8 @@ export default function Footer() {
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col items-center gap-6 text-center">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-8 w-8" />
-          <span className="font-display text-lg text-bone">Wraith-Guild</span>
+          <img src="/logo_net.png" alt="" className="h-8 w-8 rounded-full" />
+          <span className="font-display text-lg text-bone">Wraith</span>
         </div>
 
         <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 font-ui text-xs uppercase tracking-wide text-bone/50">

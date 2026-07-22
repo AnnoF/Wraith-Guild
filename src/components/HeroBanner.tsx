@@ -21,15 +21,12 @@ export default function HeroBanner() {
       />
 
       <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
-        {/* mix-blend-mode: multiply fait disparaître le fond blanc du logo sans retoucher le fichier */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo_net.png"
-          alt=""
-          className="h-16 w-16 mb-4"
-          style={{ mixBlendMode: "multiply" }}
-        />
-        <h1 className="font-display text-5xl md:text-7xl text-bone">WRAITH</h1>
+        <div className="flex items-center gap-4">
+          {/* rounded-full recadre l'image en cercle : ne garde que le rond noir du logo, sans le carré blanc autour */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo_net.png" alt="" className="h-16 w-16 rounded-full" />
+          <h1 className="font-display text-5xl md:text-7xl text-bone">WRAITH</h1>
+        </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
           <a
