@@ -57,3 +57,35 @@ export async function memberHasRole(member: DiscordMember, roleName: string): Pr
   if (!roleId) return false;
   return member.roles.includes(roleId);
 }
+
+// Nombre approximatif de membres du serveur Discord, pour le bandeau de
+// stats de la page vitrine. Mis en cache (même durée que roleCache) et ne
+// throw jamais : une panne de l'API Discord ne doit pas casser la page
+// publique, la tuile correspondante est simplement masquée (voir
+// GuildShowcase).
+let memberCountCache: { count: number; fetchedAt: number } | null = null;
+
+export async function fetchApproxMemberCount(): Promise<number | null> {
+  const guildId = process.env.DISCORD_GUILD_ID;
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+  if (!guildId || !botToken) return null;
+
+  if (memberCountCache && Date.now() - memberCountCache.fetchedAt < CACHE_TTL_MS) {
+    return memberCountCache.count;
+  }
+
+  try {
+    const res = await fetch(`${DISCORD_API}/guilds/${guildId}?with_counts=true`, {
+      headers: { Authorization: `Bot ${botToken}` },
+      cache: "no-store"
+    });
+    if (!res.ok) return memberCountCache?.count ?? null;
+    const data = await res.json();
+    const count = data.approximate_member_count;
+    if (typeof count !== "number") return memberCountCache?.count ?? null;
+    memberCountCache = { count, fetchedAt: Date.now() };
+    return count;
+  } catch {
+    return memberCountCache?.count ?? null;
+  }
+}
