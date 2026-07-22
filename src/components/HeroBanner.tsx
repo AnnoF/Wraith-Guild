@@ -1,4 +1,4 @@
-import { DISCORD_INVITE_URL, GUILD_TAGLINE, GUILD_SUBTITLE } from "@/lib/guildInfo";
+import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 
 // Bannière plein écran en tête de la vitrine. Casse le conteneur
 // `max-w-5xl` du parent avec la technique full-bleed déjà utilisée dans
@@ -21,11 +21,15 @@ export default function HeroBanner() {
       />
 
       <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
+        {/* mix-blend-mode: multiply fait disparaître le fond blanc du logo sans retoucher le fichier */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo_net.png" alt="" className="h-16 w-16 mb-4" />
-        <h1 className="font-display text-5xl md:text-7xl text-bone">Wraith-Guild</h1>
-        <p className="font-display text-lg md:text-xl text-blood mt-2">{GUILD_TAGLINE}</p>
-        <p className="font-ui text-sm text-bone/60 mt-3 uppercase tracking-wide">{GUILD_SUBTITLE}</p>
+        <img
+          src="/logo_net.png"
+          alt=""
+          className="h-16 w-16 mb-4"
+          style={{ mixBlendMode: "multiply" }}
+        />
+        <h1 className="font-display text-5xl md:text-7xl text-bone">WRAITH</h1>
 
         <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
           <a

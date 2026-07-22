@@ -1,11 +1,11 @@
-import { TWITCH_CLIPS, TWITCH_EMBED_PARENTS } from "@/lib/twitchClips";
+import { TWITCH_EMBED_PARENTS, type TwitchClip } from "@/lib/twitchClips";
 
 const PARENT_QUERY = TWITCH_EMBED_PARENTS.map((p) => `parent=${p}`).join("&");
 
-export default function TwitchClips() {
+export default function TwitchClips({ clips }: { clips: TwitchClip[] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {TWITCH_CLIPS.map((clip) => (
+    <>
+      {clips.map((clip) => (
         <div key={clip.slug} className="war-border bg-char p-2">
           <div className="aspect-video">
             <iframe
@@ -17,6 +17,6 @@ export default function TwitchClips() {
           <p className="font-ui text-xs text-bone/50 mt-2 px-1">{clip.streamer}</p>
         </div>
       ))}
-    </div>
+    </>
   );
 }
