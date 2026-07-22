@@ -19,16 +19,26 @@ function NouveauRaidForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prefillTitle = searchParams.get("title");
-  const [title, setTitle] = useState<string>(isRaidInstance(prefillTitle) ? prefillTitle : RAID_INSTANCES[0]);
+  const [titles, setTitles] = useState<string[]>(isRaidInstance(prefillTitle) ? [prefillTitle] : []);
   const [date, setDate] = useState("");
   const [signupDeadline, setSignupDeadline] = useState("");
   const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function toggleTitle(title: string) {
+    setTitles((current) =>
+      current.includes(title) ? current.filter((t) => t !== title) : [...current, title]
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (titles.length === 0) {
+      setError("Sélectionnez au moins un raid.");
+      return;
+    }
     if (!date) {
       setError("La date est obligatoire.");
       return;
@@ -37,7 +47,7 @@ function NouveauRaidForm() {
     const res = await fetch("/api/raids", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, signupDeadline: signupDeadline || null, notes })
+      body: JSON.stringify({ titles, date, signupDeadline: signupDeadline || null, notes })
     });
     const data = await res.json();
     setLoading(false);
@@ -45,7 +55,11 @@ function NouveauRaidForm() {
       setError(data.error || "Erreur lors de la création.");
       return;
     }
-    router.push(`/officier/raids/${data.id}/composition`);
+    if (data.length === 1) {
+      router.push(`/officier/raids/${data[0].id}/composition`);
+    } else {
+      router.push("/officier/raids");
+    }
   }
 
   return (
@@ -56,21 +70,29 @@ function NouveauRaidForm() {
         {error && <p className="font-ui text-xs text-blood">{error}</p>}
 
         <div>
-          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">Raid</label>
-          <select
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
-          >
-            {RAID_INSTANCES.map((r) => (
-              <option key={r} value={r} className="bg-void text-bone">
-                {r}
-              </option>
-            ))}
-          </select>
-          <p className="font-ui text-xs text-bone/40 mt-1">
-            Taille : {RAID_INSTANCE_SIZES[title]} joueurs
-          </p>
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-2">
+            Raid(s) — plusieurs choix possibles
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {RAID_INSTANCES.map((r) => {
+              const selected = titles.includes(r);
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => toggleTitle(r)}
+                  className={`font-ui text-xs px-3 py-2 text-left border transition-colors focus-ring ${
+                    selected
+                      ? "bg-blood border-blood text-void font-medium"
+                      : "border-bone/15 text-bone/70 hover:border-bone/40"
+                  }`}
+                >
+                  {r}
+                  <span className="block text-[10px] opacity-70">{RAID_INSTANCE_SIZES[r]} joueurs</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>
@@ -81,6 +103,11 @@ function NouveauRaidForm() {
             onChange={(e) => setDate(e.target.value)}
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
+          {titles.length > 1 && (
+            <p className="font-ui text-xs text-bone/40 mt-1">
+              Cette date s'appliquera aux {titles.length} raids sélectionnés.
+            </p>
+          )}
         </div>
 
         <div>
@@ -115,7 +142,7 @@ function NouveauRaidForm() {
           disabled={loading}
           className="font-display text-sm bg-blood text-void font-medium px-5 py-2.5 disabled:opacity-50 focus-ring"
         >
-          {loading ? "Création..." : "Créer le raid"}
+          {loading ? "Création..." : titles.length > 1 ? `Créer les ${titles.length} raids` : "Créer le raid"}
         </button>
       </form>
     </div>

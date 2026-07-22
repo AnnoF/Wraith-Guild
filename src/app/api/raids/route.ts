@@ -31,7 +31,10 @@ export async function GET(req: Request) {
   return NextResponse.json(raids.map((r) => ({ ...r, status: effectiveRaidStatus(r) })));
 }
 
-// POST : création d'un raid (Officier / Administrateur uniquement)
+// POST : création d'un ou plusieurs raids (Officier / Administrateur
+// uniquement). Plusieurs instances peuvent être sélectionnées en une
+// seule fois (même date/date limite/notes), pratique pour planifier
+// plusieurs raids d'un coup.
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -40,23 +43,30 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { title, date, signupDeadline, notes } = body;
+  const { titles, date, signupDeadline, notes } = body;
 
-  if (!RAID_INSTANCES.includes(title) || !date) {
+  if (!Array.isArray(titles) || titles.length === 0 || !date) {
+    return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
+  }
+  if (titles.some((title: string) => !RAID_INSTANCES.includes(title))) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
 
   // La taille est fixée par l'instance, jamais par le client, pour éviter
   // toute incohérence (voir RAID_INSTANCE_SIZES).
-  const raid = await prisma.raid.create({
-    data: {
-      title,
-      date: new Date(date),
-      size: RAID_INSTANCE_SIZES[title],
-      signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
-      notes: notes || null,
-      createdById: session.user.id
-    }
-  });
-  return NextResponse.json(raid, { status: 201 });
+  const raids = await prisma.$transaction(
+    titles.map((title: string) =>
+      prisma.raid.create({
+        data: {
+          title,
+          date: new Date(date),
+          size: RAID_INSTANCE_SIZES[title],
+          signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
+          notes: notes || null,
+          createdById: session.user.id
+        }
+      })
+    )
+  );
+  return NextResponse.json(raids, { status: 201 });
 }
