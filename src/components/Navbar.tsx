@@ -65,8 +65,8 @@ export default function Navbar({
       <div className="flex items-center justify-between flex-wrap gap-3">
         <Link href="/dashboard" className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-9 w-9 shrink-0" />
-          <span className="font-display text-xl text-bone">Wraith-Guild</span>
+          <img src="/logo_net.png" alt="" className="h-9 w-9 shrink-0 rounded-full" />
+          <span className="font-display text-xl text-bone">Wraith</span>
         </Link>
 
         <nav className="flex gap-1 font-ui text-xs uppercase tracking-wide">
