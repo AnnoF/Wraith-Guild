@@ -2,7 +2,7 @@
 // jour facilement sans toucher aux composants (progression de guilde,
 // lien Discord...).
 
-export const DISCORD_INVITE_URL = "https://discord.gg/REMPLACER-MOI";
+export const DISCORD_INVITE_URL = "https://discord.gg/JhMqNwm";
 
 export interface GuildProgressEntry {
   instance: string;
