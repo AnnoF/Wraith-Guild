@@ -1,7 +1,8 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import SignInButton from "@/components/SignInButton";
+import PublicNavbar from "@/components/PublicNavbar";
+import HeroBanner from "@/components/HeroBanner";
 import GuildShowcase from "@/components/GuildShowcase";
 
 export default async function HomePage({
@@ -13,29 +14,20 @@ export default async function HomePage({
   if (session) redirect("/dashboard");
 
   return (
-    <main className="min-h-screen px-6 py-12">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <p className="font-ui text-xs tracking-[0.3em] uppercase text-blood/90 mb-3">
-            Registre de guilde
-          </p>
-          <h1 className="font-display text-5xl text-bone mb-4">Wraith-Guild</h1>
-          <p className="font-ui text-bone/60 mb-8 leading-relaxed">
-            L'accès à l'espace membres est réservé aux membres du Discord de
-            guilde possédant le statut Raideur ou Officier.
-          </p>
+    <main className="min-h-screen">
+      <PublicNavbar />
 
-          {searchParams.error && (
-            <p className="font-ui text-sm text-blood mb-6 war-border px-4 py-3 bg-char max-w-md mx-auto">
-              Connexion refusée : votre compte Discord ne dispose pas d'un rôle
-              reconnu sur le serveur de la guilde. Contactez un Officier si
-              c'est une erreur.
-            </p>
-          )}
+      {searchParams.error && (
+        <p className="font-ui text-sm text-blood text-center war-border px-4 py-3 bg-char max-w-md mx-auto mt-6">
+          Connexion refusée : votre compte Discord ne dispose pas d'un rôle
+          reconnu sur le serveur de la guilde. Contactez un Officier si c'est
+          une erreur.
+        </p>
+      )}
 
-          <SignInButton />
-        </div>
+      <HeroBanner />
 
+      <div className="max-w-5xl mx-auto px-6 py-16">
         <GuildShowcase />
       </div>
     </main>
