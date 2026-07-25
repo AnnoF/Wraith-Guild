@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions, canConfigureRaids } from "@/lib/auth";
+import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
@@ -9,6 +9,9 @@ import { getWowWeekRange } from "@/lib/wowWeek";
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (!isMember(session.user.siteRole)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
 
   const raid = await prisma.raid.findUnique({
     where: { id: params.id },

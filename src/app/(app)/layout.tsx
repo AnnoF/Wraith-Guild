@@ -6,6 +6,9 @@ import Navbar from "@/components/Navbar";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/");
+  // Un compte CANDIDAT (connecté mais sans rôle Member/Officers sur le
+  // Discord de guilde) reste cantonné à son espace de candidature.
+  if (session.user.siteRole === "CANDIDAT") redirect("/candidature");
 
   return (
     <div className="min-h-screen">

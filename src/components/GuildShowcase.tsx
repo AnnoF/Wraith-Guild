@@ -122,9 +122,16 @@ export default async function GuildShowcase() {
 
         <section id="candidature" className="scroll-mt-20">
           <SectionTitle>Candidature</SectionTitle>
-          <p className="font-ui text-sm text-bone/50">
-            Le formulaire de candidature est en préparation — revenez bientôt.
+          <p className="font-ui text-sm text-bone/60 mb-4 max-w-3xl">
+            Intéressé·e pour rejoindre Wraith ? Découvrez nos objectifs, le
+            profil recherché et déposez votre candidature.
           </p>
+          <Link
+            href="/candidature"
+            className="inline-block font-display text-sm bg-blood text-void font-medium px-5 py-2.5 hover:bg-blood/85 transition-colors focus-ring"
+          >
+            Déposer une candidature →
+          </Link>
         </section>
 
         <section id="mediatheque" className="scroll-mt-20">

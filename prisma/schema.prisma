@@ -11,9 +11,21 @@ datasource db {
 }
 
 enum SiteRole {
+  CANDIDAT       // compte créé via connexion Discord sans rôle Member/Officers ; cantonné à /candidature
   RAIDEUR
   OFFICIER
   ADMINISTRATEUR
+}
+
+enum ApplicationStatus {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+}
+
+enum CommentVisibility {
+  INTERNE   // membres + officiers, jamais visible du candidat
+  PARTAGE   // officiers + le candidat concerné (lecture + réponse)
 }
 
 enum WowClass {
@@ -60,7 +72,7 @@ model User {
   discordTag    String   // pseudo Discord au moment de la connexion (cache d'affichage)
   displayName   String?  // surnom personnalisé sur le site ; prioritaire sur discordTag si défini
   avatarUrl     String?
-  siteRole      SiteRole @default(RAIDEUR)
+  siteRole      SiteRole @default(CANDIDAT)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -69,6 +81,8 @@ model User {
   raidSignups   RaidSignup[]
   roleGrantsGiven  RoleAudit[] @relation("GrantedBy")
   roleGrantsReceived RoleAudit[] @relation("GrantedTo")
+  application   Application?
+  applicationComments ApplicationComment[]
 }
 
 model Character {
@@ -160,6 +174,54 @@ model BossRoleAssignment {
   character     Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
 
   @@unique([raidId, boss, role])
+}
+
+// Candidature de recrutement, déposée depuis /candidature par un compte
+// CANDIDAT (ou tout autre rôle, mais dans les faits surtout des CANDIDAT).
+// Une seule candidature active par compte (userId unique).
+model Application {
+  id              String            @id @default(cuid())
+  status          ApplicationStatus @default(EN_ATTENTE)
+  createdAt       DateTime          @default(now())
+
+  userId          String            @unique
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  discordTag      String
+  characterName   String
+  wowClass        WowClass
+  spec            String
+  race            String
+  level           String
+  professions     Profession[]
+  addons          String
+  uiScreenshotUrl String
+  experience      String
+  goals           String
+  pvpGoals        String
+  nightsPerWeek   Int
+  availableNights String[]
+  discoverySource String
+  knownMembers    String
+  extra           String?
+
+  comments        ApplicationComment[]
+}
+
+// Commentaires sur une candidature : INTERNE (membres/officiers, caché du
+// candidat) ou PARTAGE (visible et répondu par le candidat concerné, voir
+// permissions dans POST /api/applications/[id]/comments).
+model ApplicationComment {
+  id            String            @id @default(cuid())
+  visibility    CommentVisibility
+  body          String
+  createdAt     DateTime          @default(now())
+
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  authorId      String
+  author        User              @relation(fields: [authorId], references: [id])
 }
 
 // Historique des changements de rôle site (traçabilité pour les admins)

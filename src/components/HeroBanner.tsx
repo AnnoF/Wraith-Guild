@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 
 // Bannière plein écran en tête de la vitrine. Casse le conteneur
@@ -37,12 +38,12 @@ export default function HeroBanner() {
           >
             Rejoindre le Discord
           </a>
-          <a
-            href="#candidature"
+          <Link
+            href="/candidature"
             className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 border border-bone/30 hover:border-bone text-bone transition-colors focus-ring"
           >
             Déposer une candidature
-          </a>
+          </Link>
         </div>
       </div>
 

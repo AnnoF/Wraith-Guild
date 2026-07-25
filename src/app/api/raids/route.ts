@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions, canConfigureRaids } from "@/lib/auth";
+import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { RAID_INSTANCES, RAID_INSTANCE_SIZES } from "@/lib/raidInstances";
@@ -13,6 +13,9 @@ import { RAID_INSTANCES, RAID_INSTANCE_SIZES } from "@/lib/raidInstances";
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (!isMember(session.user.siteRole)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
 
   const { searchParams } = new URL(req.url);
   const statut = searchParams.get("statut");

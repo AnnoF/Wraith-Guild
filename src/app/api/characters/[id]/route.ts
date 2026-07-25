@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CLASS_SPECS, type WowClass } from "@/lib/classes";
 import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
@@ -12,6 +12,9 @@ import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (!isMember(session.user.siteRole)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
 
   const character = await prisma.character.findUnique({ where: { id: params.id } });
   if (!character || character.userId !== session.user.id) {
