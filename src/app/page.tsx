@@ -11,11 +11,15 @@ export default async function HomePage({
   searchParams: { error?: string };
 }) {
   const session = await getServerSession(authOptions);
-  if (session) redirect("/dashboard");
+  // Un compte CANDIDAT reste sur la vitrine publique : /dashboard le
+  // renverrait de toute façon vers /candidature (voir (app)/layout.tsx),
+  // donc le rediriger ici créerait une boucle et l'empêcherait de revenir
+  // sur la page d'accueil.
+  if (session && session.user.siteRole !== "CANDIDAT") redirect("/dashboard");
 
   return (
     <main className="min-h-screen">
-      <PublicNavbar />
+      <PublicNavbar isCandidateLoggedIn={session?.user.siteRole === "CANDIDAT"} />
 
       {searchParams.error && (
         <p className="font-ui text-sm text-blood text-center war-border px-4 py-3 bg-char max-w-md mx-auto mt-6">
