@@ -15,7 +15,7 @@ export default function PublicNavbar() {
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
         <Link href="/" className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-9 w-9 shrink-0 rounded-full" />
+          <img src="/logo_net.png" alt="" className="h-9 w-9 shrink-0" style={{ clipPath: "circle(47%)" }} />
           <span className="font-display text-xl text-bone">Wraith</span>
         </Link>
 
