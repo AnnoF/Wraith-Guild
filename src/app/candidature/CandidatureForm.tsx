@@ -5,6 +5,7 @@ import ClassSpecIcon from "@/components/ClassSpecIcon";
 import { WOW_CLASSES, CLASS_LABELS, CLASS_SPECS, type WowClass } from "@/lib/classes";
 import { PROFESSIONS, PROFESSION_LABELS, type Profession } from "@/lib/professions";
 import { APPLICATION_WEEKDAYS } from "@/lib/applicationInfo";
+import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
@@ -52,15 +53,23 @@ export default function CandidatureForm({
 }) {
   const [loading, setLoading] = useState(loggedIn);
   const [application, setApplication] = useState<ApplicationData | null>(null);
+  const [isGuildMember, setIsGuildMember] = useState(false);
 
-  useEffect(() => {
-    if (!loggedIn) return;
+  function loadStatus() {
+    setLoading(true);
     fetch("/api/applications/me")
       .then((res) => res.json())
       .then((data) => {
-        setApplication(data);
+        setApplication(data.application);
+        setIsGuildMember(data.isGuildMember);
         setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    if (!loggedIn) return;
+    loadStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loggedIn]);
 
   if (!loggedIn) {
@@ -78,6 +87,34 @@ export default function CandidatureForm({
 
   if (application) {
     return <ApplicationStatus application={application} setApplication={setApplication} />;
+  }
+
+  if (!isGuildMember) {
+    return (
+      <div className="war-border bg-char p-6 text-center">
+        <p className="font-ui text-sm text-bone/70 mb-4">
+          Il faut d'abord rejoindre notre Discord pour pouvoir postuler (c'est
+          par là que les officiers vous répondront).
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href={DISCORD_INVITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 bg-[#5865F2] hover:bg-[#4752c4] transition-colors text-white font-medium focus-ring"
+          >
+            Rejoindre le Discord
+          </a>
+          <button
+            type="button"
+            onClick={loadStatus}
+            className="font-ui text-xs text-bone/50 hover:text-bone focus-ring"
+          >
+            J'ai rejoint, réessayer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

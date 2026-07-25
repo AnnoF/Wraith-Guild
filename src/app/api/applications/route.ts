@@ -6,6 +6,7 @@ import { WOW_CLASSES, CLASS_LABELS, CLASS_SPECS } from "@/lib/classes";
 import { PROFESSIONS } from "@/lib/professions";
 import { APPLICATION_WEEKDAYS } from "@/lib/applicationInfo";
 import { notifyNewApplication } from "@/lib/discordWebhook";
+import { fetchGuildMember } from "@/lib/discord";
 
 // GET : liste des candidatures (tout connecté sauf CANDIDAT).
 export async function GET() {
@@ -26,6 +27,29 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+
+  // Il faut avoir rejoint le Discord de guilde pour pouvoir postuler, sinon
+  // le bot ne pourrait pas transmettre les réponses des officiers en DM
+  // (voir POST /api/applications/[id]/comments). Vérifié aussi côté
+  // formulaire (GET /api/applications/me), mais on ne fait jamais confiance
+  // au seul client.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { discordId: true }
+  });
+  let isGuildMember = false;
+  try {
+    const member = dbUser ? await fetchGuildMember(dbUser.discordId) : null;
+    isGuildMember = !!member;
+  } catch (err) {
+    console.error("Erreur de vérification Discord (candidature) :", err);
+  }
+  if (!isGuildMember) {
+    return NextResponse.json(
+      { error: "Vous devez d'abord rejoindre notre Discord avant de pouvoir postuler." },
+      { status: 403 }
+    );
+  }
 
   const body = await req.json();
   const {
