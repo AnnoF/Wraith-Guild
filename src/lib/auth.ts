@@ -17,7 +17,11 @@ export const authOptions: NextAuthOptions = {
     error: "/" // les erreurs (ex: pas le bon rôle Discord) renvoient vers l'accueil avec ?error=
   },
   callbacks: {
-    // Bloque la connexion si la personne n'est pas Raideur ou Officier sur le Discord de guilde
+    // Autorise la connexion de tout compte Discord : les membres de guilde
+    // (rôle Discord Member/Officers) obtiennent le rôle site correspondant,
+    // tous les autres deviennent CANDIDAT (cantonné à /candidature par le
+    // garde-fou de src/app/(app)/layout.tsx). Seule une vraie erreur d'appel
+    // à l'API Discord bloque encore la connexion.
     async signIn({ user, account }) {
       if (!account?.providerAccountId) return false;
 
@@ -28,25 +32,26 @@ export const authOptions: NextAuthOptions = {
         console.error("Erreur de vérification Discord :", err);
         return false;
       }
-      if (!member) return false; // pas sur le serveur Discord de la guilde
 
-      const [isRaideur, isOfficier] = await Promise.all([
-        memberHasRole(member, process.env.DISCORD_ROLE_RAIDEUR || "Raideur"),
-        memberHasRole(member, process.env.DISCORD_ROLE_OFFICIER || "Officier")
-      ]);
-
-      if (!isRaideur && !isOfficier) return false; // pas le bon rôle Discord
+      let defaultRole: SiteRole = "CANDIDAT";
+      if (member) {
+        const [isRaideur, isOfficier] = await Promise.all([
+          memberHasRole(member, process.env.DISCORD_ROLE_RAIDEUR || "Raideur"),
+          memberHasRole(member, process.env.DISCORD_ROLE_OFFICIER || "Officier")
+        ]);
+        if (isOfficier) defaultRole = "OFFICIER";
+        else if (isRaideur) defaultRole = "RAIDEUR";
+      }
 
       // Crée ou met à jour l'utilisateur en base.
       // Le rôle "site" par défaut suit le rôle Discord le plus élevé détecté,
       // mais reste ensuite géré manuellement par un Administrateur (cf. /admin) :
       // un Officier rétrogradé sur Discord ne perd pas automatiquement ses droits
-      // au moindre décalage de synchronisation.
+      // au moindre décalage de synchronisation, et un CANDIDAT accepté n'est
+      // promu Raideur que manuellement une fois invité sur le Discord.
       const existing = await prisma.user.findUnique({
         where: { discordId: account.providerAccountId }
       });
-
-      const defaultRole: SiteRole = isOfficier ? "OFFICIER" : "RAIDEUR";
 
       await prisma.user.upsert({
         where: { discordId: account.providerAccountId },
@@ -100,4 +105,11 @@ export function canConfigureRaids(role?: SiteRole) {
 }
 export function canManageRoles(role?: SiteRole) {
   return role === "ADMINISTRATEUR";
+}
+// Un compte CANDIDAT est connecté mais n'est pas (encore) membre de la
+// guilde : à vérifier explicitement sur toute route qui n'était protégée
+// que par "avoir une session", puisque n'importe quel compte Discord peut
+// désormais se connecter (voir /candidature).
+export function isMember(role?: SiteRole) {
+  return role !== undefined && role !== "CANDIDAT";
 }

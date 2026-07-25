@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WOW_CLASSES, CLASS_SPECS } from "@/lib/classes";
 import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
@@ -9,6 +9,9 @@ import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (!isMember(session.user.siteRole)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
 
   const characters = await prisma.character.findMany({
     where: { userId: session.user.id },
@@ -22,6 +25,9 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (!isMember(session.user.siteRole)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
 
   const body = await req.json();
   const { name, wowClass, spec, professions, canRaidLead } = body;

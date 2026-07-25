@@ -5,7 +5,8 @@ const FOOTER_LINKS = [
   { href: "#raids", label: "Raids" },
   { href: "#progression", label: "Progression" },
   { href: "#mediatheque", label: "Médiathèque" },
-  { href: "#recrutement", label: "Recrutement" }
+  { href: "#recrutement", label: "Recrutement" },
+  { href: "/candidature", label: "Candidature" }
 ];
 
 export default function Footer() {

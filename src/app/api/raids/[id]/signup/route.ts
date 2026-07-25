@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions, canConfigureRaids } from "@/lib/auth";
+import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
@@ -11,6 +11,9 @@ import { getWowWeekRange } from "@/lib/wowWeek";
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (!isMember(session.user.siteRole)) {
+    return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
+  }
 
   const body = await req.json().catch(() => ({}));
   const comment = typeof body.comment === "string" ? body.comment.trim() || null : null;
@@ -38,7 +41,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   const targetUserId = body.userId || session.user.id;
 
   const isOwner = targetUserId === session.user.id;
-  if (!isOwner && !canConfigureRaids(session.user.siteRole)) {
+  if (!isMember(session.user.siteRole) || (!isOwner && !canConfigureRaids(session.user.siteRole))) {
     return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
   }
 

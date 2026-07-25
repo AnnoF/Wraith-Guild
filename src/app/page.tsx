@@ -19,9 +19,8 @@ export default async function HomePage({
 
       {searchParams.error && (
         <p className="font-ui text-sm text-blood text-center war-border px-4 py-3 bg-char max-w-md mx-auto mt-6">
-          Connexion refusée : votre compte Discord ne dispose pas d'un rôle
-          reconnu sur le serveur de la guilde. Contactez un Officier si c'est
-          une erreur.
+          Connexion refusée : une erreur est survenue lors de la vérification
+          de votre compte Discord. Réessayez dans un instant.
         </p>
       )}
 

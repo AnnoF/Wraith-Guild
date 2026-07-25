@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import type { SiteRole } from "@prisma/client";
 
 const ROLE_LABELS: Record<SiteRole, string> = {
+  CANDIDAT: "Candidat",
   RAIDEUR: "Raideur",
   OFFICIER: "Officier",
   ADMINISTRATEUR: "Administrateur"
@@ -15,7 +16,8 @@ const TABS = [
   { href: "/dashboard", label: "Accueil" },
   { href: "/dashboard/personnages", label: "Mes personnages" },
   { href: "/dashboard/raids-a-venir", label: "Raids à venir" },
-  { href: "/dashboard/raids-passes", label: "Raids passés" }
+  { href: "/dashboard/raids-passes", label: "Raids passés" },
+  { href: "/candidatures", label: "Candidatures" }
 ];
 
 export default function Navbar({
