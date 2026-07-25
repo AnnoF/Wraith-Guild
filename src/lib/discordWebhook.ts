@@ -4,9 +4,17 @@
 // webhook). N'échoue jamais bruyamment : une panne du webhook ne doit
 // pas empêcher une candidature ou un message d'être enregistré.
 
+// Vue officiers (nécessite le rôle Raideur+, jamais accessible à un
+// candidat).
 function applicationUrl(id: string) {
   const base = process.env.NEXTAUTH_URL || "";
   return `${base}/candidatures/${id}`;
+}
+
+// Vue candidat (sa propre candidature, /candidature ne prend pas d'id).
+export function candidateApplicationUrl() {
+  const base = process.env.NEXTAUTH_URL || "";
+  return `${base}/candidature`;
 }
 
 async function postToWebhook(embed: Record<string, unknown>) {
