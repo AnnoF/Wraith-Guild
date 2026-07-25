@@ -22,9 +22,9 @@ export default function HeroBanner() {
 
       <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
         <div className="flex items-center gap-4">
-          {/* rounded-full recadre l'image en cercle : ne garde que le rond noir du logo, sans le carré blanc autour */}
+          {/* clip-path recadre l'image en cercle légèrement plus serré que le rond noir du logo, pour ne laisser aucun liseré blanc */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-16 w-16 rounded-full" />
+          <img src="/logo_net.png" alt="" className="h-16 w-16" style={{ clipPath: "circle(47%)" }} />
           <h1 className="font-display text-5xl md:text-7xl text-bone">WRAITH</h1>
         </div>
 

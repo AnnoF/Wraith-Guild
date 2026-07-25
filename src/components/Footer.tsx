@@ -14,7 +14,7 @@ export default function Footer() {
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col items-center gap-6 text-center">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-8 w-8 rounded-full" />
+          <img src="/logo_net.png" alt="" className="h-8 w-8" style={{ clipPath: "circle(47%)" }} />
           <span className="font-display text-lg text-bone">Wraith</span>
         </div>
 
