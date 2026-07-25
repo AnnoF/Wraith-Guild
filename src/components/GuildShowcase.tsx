@@ -9,6 +9,7 @@ import ClassSpecIcon from "./ClassSpecIcon";
 import Footer from "./Footer";
 import TwitchClips from "./TwitchClips";
 import TwitchStreamEmbed from "./TwitchStreamEmbed";
+import LightboxImage from "./LightboxImage";
 
 const QUI_SOMMES_NOUS = `En 2019, un noyau de joueurs qui se connaissent pour la plupart depuis 2004 sur WoW Vanilla, principalement issus de guildes de Ner'Zhul-EU (dont plusieurs membres ont été chez <wraith>), s'est réuni avec l'idée de se relancer une fois de plus dans l'aventure de Classic WoW. Un premier recrutement sur invitation, ciblant nos connaissances, nos recommandations et des joueurs fiables, a ensuite laissé place à un recrutement plus large, à la recherche de profils alliant maturité et performance. Ce recrutement est resté ouvert jusqu'en 2024, où nous avons décidé de nous arrêter à la sortie de Cataclysm Classic.
 
@@ -143,8 +144,7 @@ export default async function GuildShowcase() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <TwitchClips clips={previewClips} />
                 {previewScreenshots.map((src) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={src} src={src} alt="" className="w-full aspect-video object-cover" />
+                  <LightboxImage key={src} src={src} className="w-full aspect-video object-cover" />
                 ))}
               </div>
               <Link

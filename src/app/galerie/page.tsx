@@ -2,6 +2,7 @@ import Link from "next/link";
 import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
 import TwitchClips from "@/components/TwitchClips";
+import LightboxImage from "@/components/LightboxImage";
 
 export default function GaleriePage() {
   return (
@@ -32,8 +33,7 @@ export default function GaleriePage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {GALLERY_IMAGES.map((src) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={src} src={src} alt="" className="w-full h-40 object-cover" />
+              <LightboxImage key={src} src={src} className="w-full h-40 object-cover" />
             ))}
           </div>
         )}
