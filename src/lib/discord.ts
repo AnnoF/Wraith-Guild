@@ -57,3 +57,42 @@ export async function memberHasRole(member: DiscordMember, roleName: string): Pr
   if (!roleId) return false;
   return member.roles.includes(roleId);
 }
+
+// Envoie un message privé Discord via le bot (utilisé pour prévenir un
+// candidat qu'un officier lui a répondu, voir POST
+// /api/applications/[id]/comments). Limite Discord : un bot ne peut ouvrir
+// un DM qu'avec un utilisateur qui partage un serveur avec lui — si le
+// candidat n'a pas encore rejoint le Discord de guilde, ça échoue (403),
+// on le journalise et on continue sans bloquer le reste (le message reste
+// de toute façon visible sur /candidature).
+export async function sendDirectMessage(discordUserId: string, content: string): Promise<boolean> {
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+  if (!botToken) return false;
+
+  try {
+    const channelRes = await fetch(`${DISCORD_API}/users/@me/channels`, {
+      method: "POST",
+      headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ recipient_id: discordUserId })
+    });
+    if (!channelRes.ok) {
+      console.error(`Impossible d'ouvrir un DM Discord (${channelRes.status}) avec ${discordUserId}`);
+      return false;
+    }
+    const channel = await channelRes.json();
+
+    const messageRes = await fetch(`${DISCORD_API}/channels/${channel.id}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ content })
+    });
+    if (!messageRes.ok) {
+      console.error(`Impossible d'envoyer le DM Discord (${messageRes.status}) à ${discordUserId}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Erreur DM Discord :", err);
+    return false;
+  }
+}

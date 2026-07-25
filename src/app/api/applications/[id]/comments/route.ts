@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { notifyNewExchangeMessage } from "@/lib/discordWebhook";
+import { notifyNewExchangeMessage, candidateApplicationUrl } from "@/lib/discordWebhook";
+import { sendDirectMessage } from "@/lib/discord";
 
 // POST : ajoute un commentaire sur une candidature.
 // - INTERNE : tout connecté sauf CANDIDAT (membres + officiers).
@@ -17,7 +18,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
 
-  const application = await prisma.application.findUnique({ where: { id: params.id } });
+  const application = await prisma.application.findUnique({
+    where: { id: params.id },
+    include: { user: { select: { discordId: true } } }
+  });
   if (!application) return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
 
   const isOwner = application.userId === session.user.id;
@@ -48,6 +52,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       authorLabel: comment.author.displayName || comment.author.discordTag,
       body: text
     });
+
+    // Un officier a répondu au candidat : on le prévient en DM (l'échange
+    // reste de toute façon visible sur /candidature même si le DM échoue).
+    if (isStaff && !isOwner) {
+      await sendDirectMessage(
+        application.user.discordId,
+        `💬 Un officier de Wraith-Guild a répondu à votre candidature :\n> ${text}\n\nConsultez et répondez ici : ${candidateApplicationUrl()}`
+      );
+    }
   }
 
   return NextResponse.json(comment, { status: 201 });
