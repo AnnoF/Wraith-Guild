@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignOutLink from "./SignOutLink";
 import SignInButton from "./SignInButton";
 
 const ANCHORS = [
@@ -10,7 +11,7 @@ const ANCHORS = [
   { href: "/candidature", label: "Candidature" }
 ];
 
-export default function PublicNavbar() {
+export default function PublicNavbar({ isCandidateLoggedIn = false }: { isCandidateLoggedIn?: boolean }) {
   return (
     <header className="border-b-2 border-blood bg-char">
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
@@ -32,7 +33,16 @@ export default function PublicNavbar() {
           ))}
         </nav>
 
-        <SignInButton />
+        {isCandidateLoggedIn ? (
+          <div className="flex items-center gap-3">
+            <Link href="/candidature" className="font-ui text-xs text-bone/70 hover:text-bone focus-ring">
+              Ma candidature
+            </Link>
+            <SignOutLink className="font-ui text-xs text-bone/40 hover:text-bone focus-ring" />
+          </div>
+        ) : (
+          <SignInButton />
+        )}
       </div>
     </header>
   );
