@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { WOW_CLASSES, CLASS_SPECS } from "@/lib/classes";
+import { WOW_CLASSES, CLASS_LABELS, CLASS_SPECS } from "@/lib/classes";
 import { PROFESSIONS } from "@/lib/professions";
 import { APPLICATION_WEEKDAYS } from "@/lib/applicationInfo";
+import { notifyNewApplication } from "@/lib/discordWebhook";
 
 // GET : liste des candidatures (tout connecté sauf CANDIDAT).
 export async function GET() {
@@ -95,6 +96,13 @@ export async function POST(req: Request) {
         knownMembers,
         extra: extra || null
       }
+    });
+    await notifyNewApplication({
+      id: application.id,
+      characterName: application.characterName,
+      discordTag: application.discordTag,
+      classLabel: CLASS_LABELS[application.wowClass],
+      spec: application.spec
     });
     return NextResponse.json(application, { status: 201 });
   } catch (err: any) {

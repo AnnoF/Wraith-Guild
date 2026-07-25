@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewExchangeMessage } from "@/lib/discordWebhook";
 
 // POST : ajoute un commentaire sur une candidature.
 // - INTERNE : tout connecté sauf CANDIDAT (membres + officiers).
@@ -39,5 +40,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     },
     include: { author: { select: { discordTag: true, displayName: true } } }
   });
+
+  if (visibility === "PARTAGE") {
+    await notifyNewExchangeMessage({
+      applicationId: application.id,
+      characterName: application.characterName,
+      authorLabel: comment.author.displayName || comment.author.discordTag,
+      body: text
+    });
+  }
+
   return NextResponse.json(comment, { status: 201 });
 }
