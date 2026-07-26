@@ -81,7 +81,7 @@ model User {
   raidSignups   RaidSignup[]
   roleGrantsGiven  RoleAudit[] @relation("GrantedBy")
   roleGrantsReceived RoleAudit[] @relation("GrantedTo")
-  application   Application?
+  applications  Application[]
   applicationComments ApplicationComment[]
 }
 
@@ -178,13 +178,17 @@ model BossRoleAssignment {
 
 // Candidature de recrutement, déposée depuis /candidature par un compte
 // CANDIDAT (ou tout autre rôle, mais dans les faits surtout des CANDIDAT).
-// Une seule candidature active par compte (userId unique).
+// Un compte peut avoir plusieurs candidatures dans le temps (historique) :
+// une seule "active" à la fois (EN_ATTENTE/ACCEPTEE, ou REFUSEE depuis
+// moins de REAPPLY_COOLDOWN_DAYS), imposé côté application dans
+// POST /api/applications, pas par une contrainte unique en base.
 model Application {
   id              String            @id @default(cuid())
   status          ApplicationStatus @default(EN_ATTENTE)
   createdAt       DateTime          @default(now())
+  reviewedAt      DateTime?         // date du passage à ACCEPTEE/REFUSEE, sert au délai avant de repostuler
 
-  userId          String            @unique
+  userId          String
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   discordTag      String

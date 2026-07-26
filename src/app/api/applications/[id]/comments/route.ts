@@ -46,16 +46,19 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   });
 
   if (visibility === "PARTAGE") {
-    await notifyNewExchangeMessage({
-      applicationId: application.id,
-      characterName: application.characterName,
-      authorLabel: comment.author.displayName || comment.author.discordTag,
-      body: text
-    });
-
-    // Un officier a répondu au candidat : on le prévient en DM (l'échange
-    // reste de toute façon visible sur /candidature même si le DM échoue).
-    if (isStaff && !isOwner) {
+    if (!isStaff) {
+      // Le candidat répond : on alerte le salon officiers pour qu'ils
+      // sachent qu'il faut aller regarder. Un officier qui répond n'a pas
+      // besoin d'être notifié de son propre message.
+      await notifyNewExchangeMessage({
+        applicationId: application.id,
+        characterName: application.characterName,
+        authorLabel: comment.author.displayName || comment.author.discordTag,
+        body: text
+      });
+    } else if (!isOwner) {
+      // Un officier a répondu au candidat : on le prévient en DM (l'échange
+      // reste de toute façon visible sur /candidature même si le DM échoue).
       await sendDirectMessage(
         application.user.discordId,
         `💬 Un officier de Wraith-Guild a répondu à votre candidature :\n> ${text}\n\nConsultez et répondez ici : ${candidateApplicationUrl()}`

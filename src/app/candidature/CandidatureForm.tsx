@@ -54,6 +54,9 @@ export default function CandidatureForm({
   const [loading, setLoading] = useState(loggedIn);
   const [application, setApplication] = useState<ApplicationData | null>(null);
   const [isGuildMember, setIsGuildMember] = useState(false);
+  const [canReapply, setCanReapply] = useState(false);
+  const [reapplyAvailableAt, setReapplyAvailableAt] = useState<string | null>(null);
+  const [showReapplyForm, setShowReapplyForm] = useState(false);
 
   function loadStatus() {
     setLoading(true);
@@ -62,6 +65,8 @@ export default function CandidatureForm({
       .then((data) => {
         setApplication(data.application);
         setIsGuildMember(data.isGuildMember);
+        setCanReapply(data.canReapply);
+        setReapplyAvailableAt(data.reapplyAvailableAt);
         setLoading(false);
       });
   }
@@ -85,8 +90,16 @@ export default function CandidatureForm({
 
   if (loading) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
-  if (application) {
-    return <ApplicationStatus application={application} setApplication={setApplication} />;
+  if (application && !showReapplyForm) {
+    return (
+      <ApplicationStatus
+        application={application}
+        setApplication={setApplication}
+        canReapply={canReapply}
+        reapplyAvailableAt={reapplyAvailableAt}
+        onStartReapply={() => setShowReapplyForm(true)}
+      />
+    );
   }
 
   if (!isGuildMember) {
@@ -120,7 +133,10 @@ export default function CandidatureForm({
   return (
     <ApplicationFormFields
       defaultDiscordTag={defaultDiscordTag}
-      onSubmitted={(created) => setApplication({ ...created, comments: [] })}
+      onSubmitted={(created) => {
+        setApplication({ ...created, comments: [] });
+        setShowReapplyForm(false);
+      }}
     />
   );
 }
@@ -375,10 +391,16 @@ function ApplicationFormFields({
 
 function ApplicationStatus({
   application,
-  setApplication
+  setApplication,
+  canReapply,
+  reapplyAvailableAt,
+  onStartReapply
 }: {
   application: ApplicationData;
   setApplication: (a: ApplicationData) => void;
+  canReapply: boolean;
+  reapplyAvailableAt: string | null;
+  onStartReapply: () => void;
 }) {
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
@@ -421,6 +443,37 @@ function ApplicationStatus({
           Candidature envoyée le{" "}
           {new Date(application.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}.
         </p>
+
+        {application.status === "REFUSEE" && (
+          <div className="mt-4 pt-4 border-t border-bone/10">
+            {canReapply ? (
+              <>
+                <p className="font-ui text-xs text-bone/60 mb-3">
+                  Vous pouvez déposer une nouvelle candidature.
+                </p>
+                <button
+                  type="button"
+                  onClick={onStartReapply}
+                  className="font-display text-xs bg-blood text-void font-medium px-4 py-2 focus-ring"
+                >
+                  Déposer une nouvelle candidature
+                </button>
+              </>
+            ) : (
+              reapplyAvailableAt && (
+                <p className="font-ui text-xs text-bone/50">
+                  Vous pourrez déposer une nouvelle candidature à partir du{" "}
+                  {new Date(reapplyAvailableAt).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  })}
+                  .
+                </p>
+              )
+            )}
+          </div>
+        )}
       </div>
 
       <div className="war-border bg-char p-6">
