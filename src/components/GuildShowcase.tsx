@@ -47,33 +47,6 @@ export default async function GuildShowcase() {
           </p>
         </section>
 
-        <section id="recrutement" className="scroll-mt-20">
-          <SectionTitle>État du recrutement</SectionTitle>
-          <p className="font-ui text-sm text-bone/60 mb-6 max-w-3xl">
-            Nous restons ouverts à toutes les candidatures de qualité. Le
-            tableau ci-dessous reflète simplement nos besoins actuels par
-            rôle : certaines spécialisations sont activement recherchées,
-            tandis que d'autres ne seront retenues que si le profil se
-            démarque réellement.
-          </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {RECRUITMENT_COLUMNS.map((col) => (
-              <div key={col.label} className="war-border bg-char">
-                <div className={`font-display text-sm text-void px-3 py-1.5 ${col.colorClass}`}>
-                  {col.label}
-                </div>
-                <div className="p-3 flex flex-wrap gap-2">
-                  {col.classes.flatMap((wowClass) =>
-                    CLASS_SPECS[wowClass].map((spec) => (
-                      <ClassSpecIcon key={`${wowClass}-${spec}`} wowClass={wowClass} spec={spec} size="h-7 w-7" />
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section className="grid md:grid-cols-2 gap-8">
           <div id="raids" className="scroll-mt-20">
             <SectionTitle>Raids à venir</SectionTitle>
@@ -118,6 +91,33 @@ export default async function GuildShowcase() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section id="recrutement" className="scroll-mt-20">
+          <SectionTitle>État du recrutement</SectionTitle>
+          <p className="font-ui text-sm text-bone/60 mb-6 max-w-3xl">
+            Nous restons ouverts à toutes les candidatures de qualité. Le
+            tableau ci-dessous reflète simplement nos besoins actuels par
+            rôle : certaines spécialisations sont activement recherchées,
+            tandis que d'autres ne seront retenues que si le profil se
+            démarque réellement.
+          </p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {RECRUITMENT_COLUMNS.map((col) => (
+              <div key={col.label} className="war-border bg-char">
+                <div className={`font-display text-sm text-void px-3 py-1.5 ${col.colorClass}`}>
+                  {col.label}
+                </div>
+                <div className="p-3 flex flex-wrap gap-2">
+                  {col.classes.flatMap((wowClass) =>
+                    CLASS_SPECS[wowClass].map((spec) => (
+                      <ClassSpecIcon key={`${wowClass}-${spec}`} wowClass={wowClass} spec={spec} size="h-7 w-7" />
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
