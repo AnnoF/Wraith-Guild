@@ -7,7 +7,7 @@ const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald", weight: [
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Wraith-Guild — Registre de guilde",
+  title: "Wraith",
   description: "Inscriptions, personnages et compositions de raid de la guilde"
 };
 
