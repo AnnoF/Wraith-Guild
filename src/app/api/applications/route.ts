@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WOW_CLASSES, CLASS_LABELS, CLASS_SPECS } from "@/lib/classes";
 import { PROFESSIONS } from "@/lib/professions";
-import { APPLICATION_WEEKDAYS } from "@/lib/applicationInfo";
+import { APPLICATION_WEEKDAYS, isApplicationActive } from "@/lib/applicationInfo";
 import { notifyNewApplication } from "@/lib/discordWebhook";
 import { fetchGuildMember } from "@/lib/discord";
 
@@ -49,6 +49,14 @@ export async function POST(req: Request) {
       { error: "Vous devez d'abord rejoindre notre Discord avant de pouvoir postuler." },
       { status: 403 }
     );
+  }
+
+  const latest = await prisma.application.findFirst({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" }
+  });
+  if (latest && isApplicationActive(latest)) {
+    return NextResponse.json({ error: "Vous avez déjà une candidature en cours" }, { status: 409 });
   }
 
   const body = await req.json();
@@ -98,41 +106,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
 
-  try {
-    const application = await prisma.application.create({
-      data: {
-        userId: session.user.id,
-        discordTag,
-        characterName,
-        wowClass,
-        spec,
-        race,
-        level,
-        professions,
-        addons,
-        uiScreenshotUrl,
-        experience,
-        goals,
-        pvpGoals,
-        nightsPerWeek,
-        availableNights,
-        discoverySource,
-        knownMembers,
-        extra: extra || null
-      }
-    });
-    await notifyNewApplication({
-      id: application.id,
-      characterName: application.characterName,
-      discordTag: application.discordTag,
-      classLabel: CLASS_LABELS[application.wowClass],
-      spec: application.spec
-    });
-    return NextResponse.json(application, { status: 201 });
-  } catch (err: any) {
-    if (err.code === "P2002") {
-      return NextResponse.json({ error: "Vous avez déjà une candidature en cours" }, { status: 409 });
+  const application = await prisma.application.create({
+    data: {
+      userId: session.user.id,
+      discordTag,
+      characterName,
+      wowClass,
+      spec,
+      race,
+      level,
+      professions,
+      addons,
+      uiScreenshotUrl,
+      experience,
+      goals,
+      pvpGoals,
+      nightsPerWeek,
+      availableNights,
+      discoverySource,
+      knownMembers,
+      extra: extra || null
     }
-    throw err;
-  }
+  });
+  await notifyNewApplication({
+    id: application.id,
+    characterName: application.characterName,
+    discordTag: application.discordTag,
+    classLabel: CLASS_LABELS[application.wowClass],
+    spec: application.spec
+  });
+  return NextResponse.json(application, { status: 201 });
 }

@@ -90,3 +90,19 @@ export const APPLICATION_WEEKDAYS = [
   "Samedi",
   "Dimanche"
 ];
+
+// Délai avant de pouvoir redéposer une candidature après un refus.
+export const REAPPLY_COOLDOWN_DAYS = 30;
+
+export function reapplyAvailableAt(reviewedAt: Date): Date {
+  return new Date(reviewedAt.getTime() + REAPPLY_COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
+}
+
+// Une candidature EN_ATTENTE/ACCEPTEE est toujours "active" (bloque une
+// nouvelle candidature). Une candidature REFUSEE ne l'est plus une fois le
+// délai de repostulation écoulé.
+export function isApplicationActive(app: { status: string; reviewedAt: Date | null }): boolean {
+  if (app.status !== "REFUSEE") return true;
+  if (!app.reviewedAt) return true;
+  return new Date() < reapplyAvailableAt(app.reviewedAt);
+}
