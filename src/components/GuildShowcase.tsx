@@ -11,9 +11,9 @@ import TwitchClips from "./TwitchClips";
 import TwitchStreamEmbed from "./TwitchStreamEmbed";
 import LightboxImage from "./LightboxImage";
 
-const QUI_SOMMES_NOUS = `En 2019, un noyau de joueurs qui se connaissent pour la plupart depuis 2004 sur WoW Vanilla, principalement issus de guildes de Ner'Zhul-EU (dont plusieurs membres ont été chez <wraith>), s'est réuni avec l'idée de se relancer une fois de plus dans l'aventure de Classic WoW. Un premier recrutement sur invitation, ciblant nos connaissances, nos recommandations et des joueurs fiables, a ensuite laissé place à un recrutement plus large, à la recherche de profils alliant maturité et performance. Ce recrutement est resté ouvert jusqu'en 2024, où nous avons décidé de nous arrêter à la sortie de Cataclysm Classic.
+const QUI_SOMMES_NOUS = `En 2019, un noyau de joueurs qui se connaissent pour la plupart depuis 2004 sur WoW Vanilla, principalement issus de guildes de Ner'Zhul-EU (dont plusieurs membres ont été chez <Wraith>), s'est réuni avec l'idée de se relancer une fois de plus dans l'aventure de Classic WoW. Un premier recrutement sur invitation, ciblant nos connaissances, nos recommandations et des joueurs fiables, a ensuite laissé place à un recrutement plus large, à la recherche de profils alliant maturité et performance. Ce recrutement est resté ouvert jusqu'en 2024, où nous avons décidé de nous arrêter à la sortie de Cataclysm Classic.
 
-Tout cela nous amène à aujourd'hui. Un nouveau noyau de joueurs, formé d'anciens membres de Wraith et de joueurs de Wraith Classic, souhaite se lancer dans une nouvelle aventure : World of Warcraft Camelote.`;
+Tout cela nous amène à aujourd'hui. Un nouveau noyau de joueurs, formé d'anciens membres de Wraith et de joueurs de Wraith Classic, souhaite se lancer dans une nouvelle aventure : World of Warcraft Camelot.`;
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -45,33 +45,6 @@ export default async function GuildShowcase() {
           <p className="font-ui text-bone leading-relaxed whitespace-pre-line">
             {QUI_SOMMES_NOUS}
           </p>
-        </section>
-
-        <section id="recrutement" className="scroll-mt-20">
-          <SectionTitle>État du recrutement</SectionTitle>
-          <p className="font-ui text-sm text-bone/60 mb-6 max-w-3xl">
-            Nous restons ouverts à toutes les candidatures de qualité. Le
-            tableau ci-dessous reflète simplement nos besoins actuels par
-            rôle : certaines spécialisations sont activement recherchées,
-            tandis que d'autres ne seront retenues que si le profil se
-            démarque réellement.
-          </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {RECRUITMENT_COLUMNS.map((col) => (
-              <div key={col.label} className="war-border bg-char">
-                <div className={`font-display text-sm text-void px-3 py-1.5 ${col.colorClass}`}>
-                  {col.label}
-                </div>
-                <div className="p-3 flex flex-wrap gap-2">
-                  {col.classes.flatMap((wowClass) =>
-                    CLASS_SPECS[wowClass].map((spec) => (
-                      <ClassSpecIcon key={`${wowClass}-${spec}`} wowClass={wowClass} spec={spec} size="h-7 w-7" />
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
         </section>
 
         <section className="grid md:grid-cols-2 gap-8">
@@ -118,6 +91,33 @@ export default async function GuildShowcase() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section id="recrutement" className="scroll-mt-20">
+          <SectionTitle>État du recrutement</SectionTitle>
+          <p className="font-ui text-sm text-bone/60 mb-6 max-w-3xl">
+            Nous restons ouverts à toutes les candidatures de qualité. Le
+            tableau ci-dessous reflète simplement nos besoins actuels par
+            rôle : certaines spécialisations sont activement recherchées,
+            tandis que d'autres ne seront retenues que si le profil se
+            démarque réellement.
+          </p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {RECRUITMENT_COLUMNS.map((col) => (
+              <div key={col.label} className="war-border bg-char">
+                <div className={`font-display text-sm text-void px-3 py-1.5 ${col.colorClass}`}>
+                  {col.label}
+                </div>
+                <div className="p-3 flex flex-wrap gap-2">
+                  {col.classes.flatMap((wowClass) =>
+                    CLASS_SPECS[wowClass].map((spec) => (
+                      <ClassSpecIcon key={`${wowClass}-${spec}`} wowClass={wowClass} spec={spec} size="h-7 w-7" />
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
