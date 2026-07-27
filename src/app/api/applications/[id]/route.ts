@@ -7,7 +7,8 @@ import { candidateApplicationUrl } from "@/lib/discordWebhook";
 
 // GET : détail d'une candidature + tous les commentaires (INTERNE + PARTAGE).
 // Réservé aux comptes connectés autres que CANDIDAT.
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (session.user.siteRole === "CANDIDAT") {
@@ -15,7 +16,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 
   const application = await prisma.application.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { discordTag: true, displayName: true } },
       comments: {
@@ -30,7 +31,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // PATCH : change le statut d'une candidature (Officier/Administrateur).
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!canConfigureRaids(session.user.siteRole)) {
@@ -43,13 +45,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const existing = await prisma.application.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { user: { select: { discordId: true } } }
   });
   if (!existing) return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
 
   const application = await prisma.application.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       status,
       // Sert au délai avant de pouvoir repostuler après un refus (voir
