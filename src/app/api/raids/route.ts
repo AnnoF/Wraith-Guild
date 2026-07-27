@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
-import { RAID_INSTANCES, RAID_INSTANCE_SIZES } from "@/lib/raidInstances";
+import { RAID_INSTANCES, RAID_INSTANCE_SIZES, instancesShareSize } from "@/lib/raidInstances";
 
 // GET : liste des raids.
 // ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel, filtre sur le statut brut)
@@ -34,10 +34,12 @@ export async function GET(req: Request) {
   return NextResponse.json(raids.map((r) => ({ ...r, status: effectiveRaidStatus(r) })));
 }
 
-// POST : création d'un ou plusieurs raids (Officier / Administrateur
-// uniquement). Plusieurs instances peuvent être sélectionnées en une
-// seule fois (même date/date limite/notes), pratique pour planifier
-// plusieurs raids d'un coup.
+// POST : création d'un événement de raid (Officier / Administrateur
+// uniquement). Plusieurs instances peuvent être sélectionnées pour un même
+// soir (ex: Molten Core + Blackwing Lair) — un seul événement est créé,
+// avec une seule liste d'inscrits et une seule composition, jamais un par
+// instance. Les instances sélectionnées doivent toutes avoir la même
+// taille (la guilde ne mélange jamais 40 et 20 le même soir).
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -54,22 +56,24 @@ export async function POST(req: Request) {
   if (titles.some((title: string) => !RAID_INSTANCES.includes(title))) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
+  if (!instancesShareSize(titles)) {
+    return NextResponse.json(
+      { error: "Les instances sélectionnées doivent toutes avoir la même taille" },
+      { status: 400 }
+    );
+  }
 
   // La taille est fixée par l'instance, jamais par le client, pour éviter
   // toute incohérence (voir RAID_INSTANCE_SIZES).
-  const raids = await prisma.$transaction(
-    titles.map((title: string) =>
-      prisma.raid.create({
-        data: {
-          title,
-          date: new Date(date),
-          size: RAID_INSTANCE_SIZES[title],
-          signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
-          notes: notes || null,
-          createdById: session.user.id
-        }
-      })
-    )
-  );
-  return NextResponse.json(raids, { status: 201 });
+  const raid = await prisma.raid.create({
+    data: {
+      titles,
+      date: new Date(date),
+      size: RAID_INSTANCE_SIZES[titles[0]],
+      signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
+      notes: notes || null,
+      createdById: session.user.id
+    }
+  });
+  return NextResponse.json(raid, { status: 201 });
 }

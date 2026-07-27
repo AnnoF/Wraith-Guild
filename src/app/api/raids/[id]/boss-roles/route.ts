@@ -23,8 +23,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const raid = await prisma.raid.findUnique({ where: { id } });
   if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
 
-  const template = RAID_BOSS_ROLES[raid.title];
-  const bossEntry = template?.find((b) => b.boss === boss);
+  // L'événement peut couvrir plusieurs instances (même soirée) : on
+  // cherche le boss dans le template combiné de toutes les instances.
+  const template = raid.titles.flatMap((t) => RAID_BOSS_ROLES[t] ?? []);
+  const bossEntry = template.find((b) => b.boss === boss);
   if (!bossEntry || !bossEntry.roles.some((r) => r.label === role)) {
     return NextResponse.json({ error: "Rôle inconnu pour ce raid" }, { status: 400 });
   }

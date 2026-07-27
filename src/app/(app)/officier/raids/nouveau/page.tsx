@@ -3,8 +3,8 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RAID_INSTANCES, RAID_INSTANCE_SIZES, type RaidInstance } from "@/lib/raidInstances";
 
-function isRaidInstance(value: string | null): value is RaidInstance {
-  return !!value && (RAID_INSTANCES as string[]).includes(value);
+function isRaidInstance(value: string): value is RaidInstance {
+  return (RAID_INSTANCES as string[]).includes(value);
 }
 
 export default function NouveauRaidPage() {
@@ -18,13 +18,18 @@ export default function NouveauRaidPage() {
 function NouveauRaidForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const prefillTitle = searchParams.get("title");
-  const [titles, setTitles] = useState<string[]>(isRaidInstance(prefillTitle) ? [prefillTitle] : []);
+  const prefillTitles = (searchParams.get("titles") ?? "").split(",").filter(isRaidInstance);
+  const [titles, setTitles] = useState<string[]>(prefillTitles);
   const [date, setDate] = useState("");
   const [signupDeadline, setSignupDeadline] = useState("");
   const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // On ne mélange jamais deux tailles différentes le même soir (ex: pas de
+  // 40 et 20 en même temps) : une fois une instance choisie, les autres
+  // tailles deviennent indisponibles.
+  const selectedSize = titles.length > 0 ? RAID_INSTANCE_SIZES[titles[0]] : null;
 
   function toggleTitle(title: string) {
     setTitles((current) =>
@@ -55,11 +60,7 @@ function NouveauRaidForm() {
       setError(data.error || "Erreur lors de la création.");
       return;
     }
-    if (data.length === 1) {
-      router.push(`/officier/raids/${data[0].id}/composition`);
-    } else {
-      router.push("/officier/raids");
-    }
+    router.push(`/officier/raids/${data.id}/composition`);
   }
 
   return (
@@ -71,20 +72,24 @@ function NouveauRaidForm() {
 
         <div>
           <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-2">
-            Raid(s) — plusieurs choix possibles
+            Raid(s) — plusieurs instances possibles pour un même soir, même taille uniquement
           </label>
           <div className="grid grid-cols-2 gap-2">
             {RAID_INSTANCES.map((r) => {
               const selected = titles.includes(r);
+              const disabled = !selected && selectedSize !== null && RAID_INSTANCE_SIZES[r] !== selectedSize;
               return (
                 <button
                   key={r}
                   type="button"
+                  disabled={disabled}
                   onClick={() => toggleTitle(r)}
                   className={`font-ui text-xs px-3 py-2 text-left border transition-colors focus-ring ${
                     selected
                       ? "bg-blood border-blood text-void font-medium"
-                      : "border-bone/15 text-bone/70 hover:border-bone/40"
+                      : disabled
+                        ? "border-bone/5 text-bone/25 cursor-not-allowed"
+                        : "border-bone/15 text-bone/70 hover:border-bone/40"
                   }`}
                 >
                   {r}
@@ -105,7 +110,7 @@ function NouveauRaidForm() {
           />
           {titles.length > 1 && (
             <p className="font-ui text-xs text-bone/40 mt-1">
-              Cette date s'appliquera aux {titles.length} raids sélectionnés.
+              Un seul événement, avec {titles.length} instances à la suite, à cette date.
             </p>
           )}
         </div>
@@ -142,7 +147,7 @@ function NouveauRaidForm() {
           disabled={loading}
           className="font-display text-sm bg-blood text-void font-medium px-5 py-2.5 disabled:opacity-50 focus-ring"
         >
-          {loading ? "Création..." : titles.length > 1 ? `Créer les ${titles.length} raids` : "Créer le raid"}
+          {loading ? "Création..." : titles.length > 1 ? "Créer l'événement" : "Créer le raid"}
         </button>
       </form>
     </div>

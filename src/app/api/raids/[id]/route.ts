@@ -45,7 +45,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       status: "INSCRIT",
       slot: { not: null },
       raidId: { not: id },
-      raid: { title: raid.title, date: { gte: start, lte: end } }
+      raid: { titles: { hasSome: raid.titles }, date: { gte: start, lte: end } }
     },
     select: { characterId: true }
   });
@@ -80,7 +80,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const raid = await prisma.raid.update({
     where: { id },
     data: {
-      title: body.title ?? undefined,
+      titles: body.titles ?? undefined,
       date: body.date ? new Date(body.date) : undefined,
       size: body.size ?? undefined,
       signupDeadline: body.signupDeadline !== undefined ? (body.signupDeadline ? new Date(body.signupDeadline) : null) : undefined,
