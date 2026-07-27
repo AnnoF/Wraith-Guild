@@ -49,10 +49,20 @@ function NouveauRaidForm() {
       return;
     }
     setLoading(true);
+    // Les champs datetime-local n'ont pas de fuseau horaire : le navigateur
+    // les interprète dans l'heure locale de l'utilisateur (heure française
+    // pour la guilde), donc c'est ici qu'il faut convertir en ISO/UTC avant
+    // envoi — sinon le serveur (en UTC sur le VPS) réinterprète la même
+    // chaîne comme si elle était déjà en UTC, décalant l'heure affichée.
     const res = await fetch("/api/raids", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ titles, date, signupDeadline: signupDeadline || null, notes })
+      body: JSON.stringify({
+        titles,
+        date: new Date(date).toISOString(),
+        signupDeadline: signupDeadline ? new Date(signupDeadline).toISOString() : null,
+        notes
+      })
     });
     const data = await res.json();
     setLoading(false);
