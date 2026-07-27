@@ -9,6 +9,7 @@ import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
+import { raidTitleLabel } from "@/lib/raidInstances";
 
 interface AssignedCharacter {
   id: string;
@@ -30,7 +31,7 @@ interface Signup {
 
 interface RaidDetail {
   id: string;
-  title: string;
+  titles: string[];
   date: string;
   size: number;
   status: string;
@@ -113,7 +114,7 @@ export default function RaidDetailPage() {
       </div>
 
       <div className="war-border bg-char p-5">
-        <p className="font-display text-xl text-bone mb-1">{raid.title}</p>
+        <p className="font-display text-xl text-bone mb-1">{raidTitleLabel(raid.titles)}</p>
         <p className="font-ui text-sm text-bone/60">
           {new Date(raid.date).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}
         </p>

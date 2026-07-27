@@ -118,7 +118,7 @@ model CharacterProfession {
 
 model Raid {
   id             String     @id @default(cuid())
-  title          String
+  titles         String[]   // plusieurs instances possibles le même soir (toujours de même taille, voir POST /api/raids) — une seule composition/liste d'inscrits pour tout l'événement
   date           DateTime
   size           Int        // 10, 20, 25, 40...
   status         RaidStatus @default(OUVERT)

@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { raidTitleLabel } from "@/lib/raidInstances";
 
 export interface RaidData {
   id: string;
-  title: string;
+  titles: string[];
   date: string;
   size: number;
   status: "OUVERT" | "FERME" | "TERMINE" | "ANNULE";
@@ -29,7 +30,7 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
   return (
     <Link href={href ?? `/raids/${raid.id}`} className="war-border bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
       <div className="flex justify-between items-start mb-2">
-        <span className="font-display text-sm text-bone">{raid.title}</span>
+        <span className="font-display text-sm text-bone">{raidTitleLabel(raid.titles)}</span>
         <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
           {status.label}
         </span>

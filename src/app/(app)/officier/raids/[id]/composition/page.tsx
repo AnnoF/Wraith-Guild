@@ -6,6 +6,7 @@ import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import { RAID_BOSS_ROLES, type BossRoles } from "@/lib/bossRoles";
+import { raidTitleLabel } from "@/lib/raidInstances";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
@@ -48,7 +49,7 @@ interface BossRoleAssignmentData {
 
 interface RaidDetail {
   id: string;
-  title: string;
+  titles: string[];
   size: number;
   status: string;
   notes: string | null;
@@ -223,7 +224,7 @@ export default function CompositionPage() {
   const filteredUnplaced = unplaced.filter(matchesFilters);
   const filteredPlaced = placed.filter(matchesFilters);
 
-  const bossTemplate = RAID_BOSS_ROLES[raid.title] ?? [];
+  const bossTemplate = raid.titles.flatMap((t) => RAID_BOSS_ROLES[t] ?? []);
   const bossAssignmentMap = new Map<string, BossRoleAssignmentData>();
   raid.bossRoleAssignments.forEach((a) => bossAssignmentMap.set(`${a.boss}|${a.role}`, a));
   const characterOwnerMap = new Map<string, string>();
@@ -235,7 +236,7 @@ export default function CompositionPage() {
     <div className="relative left-1/2 w-screen -translate-x-1/2 px-6">
     <div className="max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <p className="font-display text-lg text-bone">Composition — {raid.title}</p>
+        <p className="font-display text-lg text-bone">Composition — {raidTitleLabel(raid.titles)}</p>
         <div className="flex gap-2">
           <button
             onClick={() => setRaidStatus("OUVERT")}
@@ -264,7 +265,7 @@ export default function CompositionPage() {
             Annuler le raid
           </button>
           <Link
-            href={`/officier/raids/nouveau?title=${encodeURIComponent(raid.title)}&notes=${encodeURIComponent(raid.notes ?? "")}`}
+            href={`/officier/raids/nouveau?titles=${encodeURIComponent(raid.titles.join(","))}&notes=${encodeURIComponent(raid.notes ?? "")}`}
             className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 hover:text-bone focus-ring"
           >
             Dupliquer ce raid
@@ -498,7 +499,7 @@ export default function CompositionPage() {
         <div className="lg:w-1/2 mx-auto space-y-3">
           {bossTemplate.length === 0 ? (
             <p className="font-ui text-sm text-bone/50 text-center">
-              Pas encore de rôles définis pour {raid.title}.
+              Pas encore de rôles définis pour {raidTitleLabel(raid.titles)}.
             </p>
           ) : (
             groupCollapsedRuns(bossTemplate, collapsedBosses).map((group, groupIdx) => {

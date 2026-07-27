@@ -5,6 +5,7 @@ import { GUILD_PROGRESS, DISCORD_INVITE_URL } from "@/lib/guildInfo";
 import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
 import { prisma } from "@/lib/prisma";
+import { raidTitleLabel } from "@/lib/raidInstances";
 import ClassSpecIcon from "./ClassSpecIcon";
 import Footer from "./Footer";
 import TwitchClips from "./TwitchClips";
@@ -28,7 +29,7 @@ async function getUpcomingRaids() {
     where: { date: { gte: new Date() } },
     orderBy: { date: "asc" },
     take: 3,
-    select: { id: true, title: true, date: true }
+    select: { id: true, titles: true, date: true }
   });
 }
 
@@ -64,7 +65,7 @@ export default async function GuildShowcase() {
                   const timeLabel = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
                   return (
                     <div key={r.id} className="war-border bg-char p-4">
-                      <p className="font-display text-sm text-bone">{r.title}</p>
+                      <p className="font-display text-sm text-bone">{raidTitleLabel(r.titles)}</p>
                       <p className="font-ui text-xs text-bone/55 mt-1">{dateLabel}, {timeLabel}</p>
                     </div>
                   );

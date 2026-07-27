@@ -4,6 +4,7 @@ import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
+import { raidTitleLabel } from "@/lib/raidInstances";
 
 // POST : un Raideur s'inscrit lui-même (disponibilité), sans choisir de
 // personnage — c'est un Officier qui assignera un personnage ensuite
@@ -90,14 +91,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           status: "INSCRIT",
           slot: { not: null },
           raidId: { not: id },
-          raid: { title: raid.title, date: { gte: start, lte: end } }
+          raid: { titles: { hasSome: raid.titles }, date: { gte: start, lte: end } }
         },
         include: { raid: true }
       });
       if (conflict) {
         return NextResponse.json(
           {
-            error: `Ce personnage est déjà engagé sur ${raid.title} cette semaine (${new Date(
+            error: `Ce personnage est déjà engagé sur ${raidTitleLabel(raid.titles)} cette semaine (${new Date(
               conflict.raid.date
             ).toLocaleDateString("fr-FR")})`
           },
