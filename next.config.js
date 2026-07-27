@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // Le site n'utilise jamais next/image (que des <img> classiques) : on
+  // désactive l'optimiseur d'images intégré, qui embarque `sharp` (CVEs
+  // récurrentes). Aucune perte fonctionnelle, ça neutralise juste un
+  // chemin de code jamais emprunté ici.
+  images: { unoptimized: true },
   async headers() {
     return [
       {

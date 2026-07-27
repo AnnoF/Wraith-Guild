@@ -6,7 +6,8 @@ import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
 
 // GET : détail d'un raid + inscriptions (avec personnage et propriétaire)
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!isMember(session.user.siteRole)) {
@@ -14,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 
   const raid = await prisma.raid.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       signups: {
         include: {
@@ -43,7 +44,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     where: {
       status: "INSCRIT",
       slot: { not: null },
-      raidId: { not: params.id },
+      raidId: { not: id },
       raid: { title: raid.title, date: { gte: start, lte: end } }
     },
     select: { characterId: true }
@@ -67,7 +68,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 // PATCH : modifier statut/infos du raid (Officier/Admin)
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!canConfigureRaids(session.user.siteRole)) {
@@ -76,7 +78,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const body = await req.json();
   const raid = await prisma.raid.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       title: body.title ?? undefined,
       date: body.date ? new Date(body.date) : undefined,

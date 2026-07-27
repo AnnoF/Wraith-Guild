@@ -7,7 +7,8 @@ import { RAID_BOSS_ROLES } from "@/lib/bossRoles";
 // PATCH : assigne (ou retire) un personnage à un rôle spécifique à un
 // boss, dans le "mode avancé" de la composition. Le personnage doit
 // déjà être placé dans la grille du raid (RaidSignup.slot renseigné).
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!canConfigureRaids(session.user.siteRole)) {
@@ -19,7 +20,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "boss/role manquant" }, { status: 400 });
   }
 
-  const raid = await prisma.raid.findUnique({ where: { id: params.id } });
+  const raid = await prisma.raid.findUnique({ where: { id } });
   if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
 
   const template = RAID_BOSS_ROLES[raid.title];
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   if (characterId) {
     const placement = await prisma.raidSignup.findFirst({
-      where: { raidId: params.id, characterId, status: "INSCRIT", slot: { not: null } }
+      where: { raidId: id, characterId, status: "INSCRIT", slot: { not: null } }
     });
     if (!placement) {
       return NextResponse.json(
@@ -41,9 +42,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const assignment = await prisma.bossRoleAssignment.upsert({
-    where: { raidId_boss_role: { raidId: params.id, boss, role } },
+    where: { raidId_boss_role: { raidId: id, boss, role } },
     update: { characterId: characterId || null },
-    create: { raidId: params.id, boss, role, characterId: characterId || null }
+    create: { raidId: id, boss, role, characterId: characterId || null }
   });
   return NextResponse.json(assignment);
 }

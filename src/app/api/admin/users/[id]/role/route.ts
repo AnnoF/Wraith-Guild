@@ -7,7 +7,8 @@ const VALID_ROLES = ["RAIDEUR", "OFFICIER", "ADMINISTRATEUR"];
 
 // PATCH : changer le rôle site d'un utilisateur (Administrateur uniquement)
 // Chaque changement est journalisé dans RoleAudit pour la traçabilité.
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!canManageRoles(session.user.siteRole)) {
@@ -19,14 +20,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Rôle invalide" }, { status: 400 });
   }
 
-  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  const target = await prisma.user.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
 
   const [updated] = await prisma.$transaction([
-    prisma.user.update({ where: { id: params.id }, data: { siteRole: role } }),
+    prisma.user.update({ where: { id }, data: { siteRole: role } }),
     prisma.roleAudit.create({
       data: {
-        targetUserId: params.id,
+        targetUserId: id,
         grantedById: session.user.id,
         previousRole: target.siteRole,
         newRole: role

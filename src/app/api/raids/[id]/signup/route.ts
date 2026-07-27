@@ -8,7 +8,8 @@ import { getWowWeekRange } from "@/lib/wowWeek";
 // POST : un Raideur s'inscrit lui-même (disponibilité), sans choisir de
 // personnage — c'est un Officier qui assignera un personnage ensuite
 // (voir PATCH ci-dessous).
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!isMember(session.user.siteRole)) {
@@ -18,22 +19,23 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const body = await req.json().catch(() => ({}));
   const comment = typeof body.comment === "string" ? body.comment.trim() || null : null;
 
-  const raid = await prisma.raid.findUnique({ where: { id: params.id } });
+  const raid = await prisma.raid.findUnique({ where: { id } });
   if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
   if (effectiveRaidStatus(raid) !== "OUVERT") {
     return NextResponse.json({ error: "Les inscriptions ne sont pas ouvertes pour ce raid" }, { status: 409 });
   }
 
   const signup = await prisma.raidSignup.upsert({
-    where: { raidId_userId: { raidId: params.id, userId: session.user.id } },
+    where: { raidId_userId: { raidId: id, userId: session.user.id } },
     update: { status: "INSCRIT", comment },
-    create: { raidId: params.id, userId: session.user.id, comment, status: "INSCRIT" }
+    create: { raidId: id, userId: session.user.id, comment, status: "INSCRIT" }
   });
   return NextResponse.json(signup, { status: 201 });
 }
 
 // DELETE : se désinscrire (le Raideur lui-même) ou retirer quelqu'un (Officier/Admin)
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
 
@@ -46,7 +48,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 
   await prisma.raidSignup.update({
-    where: { raidId_userId: { raidId: params.id, userId: targetUserId } },
+    where: { raidId_userId: { raidId: id, userId: targetUserId } },
     data: { status: isOwner ? "DESISTE" : "ABSENT" }
   });
   return NextResponse.json({ ok: true });
@@ -55,7 +57,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 // PATCH : un Officier/Admin assigne un personnage et/ou une position dans
 // la grille de composition (drag & drop). Déplacer un personnage sur un
 // slot déjà occupé libère l'ancien occupant de ce slot.
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!canConfigureRaids(session.user.siteRole)) {
@@ -77,7 +80,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     // Un personnage ne peut pas être placé deux fois sur le même raid
     // (même titre) au sein de la même semaine WoW (mercredi -> mardi).
     if (typeof slot === "number") {
-      const raid = await prisma.raid.findUnique({ where: { id: params.id } });
+      const raid = await prisma.raid.findUnique({ where: { id } });
       if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
 
       const { start, end } = getWowWeekRange(raid.date);
@@ -86,7 +89,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           characterId,
           status: "INSCRIT",
           slot: { not: null },
-          raidId: { not: params.id },
+          raidId: { not: id },
           raid: { title: raid.title, date: { gte: start, lte: end } }
         },
         include: { raid: true }
@@ -107,7 +110,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const signup = await prisma.$transaction(async (tx) => {
     if (typeof slot === "number") {
       const mover = await tx.raidSignup.findUnique({
-        where: { raidId_userId: { raidId: params.id, userId } },
+        where: { raidId_userId: { raidId: id, userId } },
         select: { slot: true }
       });
       const originSlot = mover?.slot ?? null;
@@ -115,18 +118,18 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       // Vide d'abord le slot d'origine du joueur déplacé pour éviter un
       // conflit avec la contrainte d'unicité (raidId, slot) pendant l'échange.
       await tx.raidSignup.updateMany({
-        where: { raidId: params.id, userId },
+        where: { raidId: id, userId },
         data: { slot: null }
       });
       // Celui qui occupait déjà le slot cible récupère l'ancien slot du
       // joueur déplacé (échange), ou redevient non placé s'il n'y en avait pas.
       await tx.raidSignup.updateMany({
-        where: { raidId: params.id, slot, userId: { not: userId } },
+        where: { raidId: id, slot, userId: { not: userId } },
         data: { slot: originSlot }
       });
     }
     return tx.raidSignup.update({
-      where: { raidId_userId: { raidId: params.id, userId } },
+      where: { raidId_userId: { raidId: id, userId } },
       data: {
         status: status ?? undefined,
         characterId: characterId === undefined ? undefined : characterId || null,

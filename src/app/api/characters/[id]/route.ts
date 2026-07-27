@@ -9,14 +9,15 @@ import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
 // spécialisation et ses métiers (pas de suppression dure, pour ne pas
 // casser l'historique des raids passés — voir schema.prisma). La classe
 // reste fixe.
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
   if (!isMember(session.user.siteRole)) {
     return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
   }
 
-  const character = await prisma.character.findUnique({ where: { id: params.id } });
+  const character = await prisma.character.findUnique({ where: { id } });
   if (!character || character.userId !== session.user.id) {
     return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   }
@@ -76,7 +77,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   try {
     const updated = await prisma.character.update({
-      where: { id: params.id },
+      where: { id },
       data,
       include: { professions: true }
     });

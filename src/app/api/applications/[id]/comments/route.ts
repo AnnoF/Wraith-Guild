@@ -9,7 +9,8 @@ import { sendDirectMessage } from "@/lib/discord";
 // - INTERNE : tout connecté sauf CANDIDAT (membres + officiers).
 // - PARTAGE : Officier/Administrateur, ou le candidat propriétaire de la
 //   candidature (il répond depuis /candidature).
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
 
@@ -19,7 +20,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const application = await prisma.application.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { user: { select: { discordId: true } } }
   });
   if (!application) return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
@@ -48,7 +49,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const comment = await prisma.applicationComment.create({
     data: {
-      applicationId: params.id,
+      applicationId: id,
       visibility,
       body: text,
       authorId: session.user.id
