@@ -404,12 +404,14 @@ function ApplicationStatus({
 }) {
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
   const status = STATUS_STYLE[application.status];
 
   async function handleReply(e: React.FormEvent) {
     e.preventDefault();
     if (!reply.trim()) return;
     setSending(true);
+    setReplyError(null);
     const res = await fetch(`/api/applications/${application.id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -420,6 +422,8 @@ function ApplicationStatus({
     if (res.ok) {
       setApplication({ ...application, comments: [...application.comments, comment] });
       setReply("");
+    } else {
+      setReplyError(comment.error || "Erreur lors de l'envoi.");
     }
   }
 
@@ -493,6 +497,7 @@ function ApplicationStatus({
             ))
           )}
         </div>
+        {replyError && <p className="font-ui text-xs text-blood mb-2">{replyError}</p>}
         <form onSubmit={handleReply} className="flex gap-2">
           <input
             value={reply}
