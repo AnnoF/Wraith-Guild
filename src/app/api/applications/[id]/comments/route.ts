@@ -35,6 +35,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
   }
 
+  const lastComment = await prisma.applicationComment.findFirst({
+    where: { authorId: session.user.id },
+    orderBy: { createdAt: "desc" }
+  });
+  if (lastComment && Date.now() - lastComment.createdAt.getTime() < 60_000) {
+    return NextResponse.json(
+      { error: "Merci de patienter une minute avant d'envoyer un nouveau message." },
+      { status: 429 }
+    );
+  }
+
   const comment = await prisma.applicationComment.create({
     data: {
       applicationId: params.id,

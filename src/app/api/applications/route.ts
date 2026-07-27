@@ -8,6 +8,18 @@ import { APPLICATION_WEEKDAYS, isApplicationActive } from "@/lib/applicationInfo
 import { notifyNewApplication } from "@/lib/discordWebhook";
 import { fetchGuildMember } from "@/lib/discord";
 
+// N'accepte que des liens http(s) : un schéma comme javascript: rendu tel
+// quel en href sur la page de détail candidature (côté officiers)
+// exécuterait du JS dans leur session au clic (XSS stockée).
+function isSafeHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // GET : liste des candidatures (tout connecté sauf CANDIDAT).
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -91,6 +103,7 @@ export async function POST(req: Request) {
     professions.some((p: string) => !PROFESSIONS.includes(p as any)) ||
     !addons ||
     !uiScreenshotUrl ||
+    !isSafeHttpUrl(uiScreenshotUrl) ||
     !experience ||
     !goals ||
     !pvpGoals ||

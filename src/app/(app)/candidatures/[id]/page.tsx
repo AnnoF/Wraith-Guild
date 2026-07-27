@@ -66,6 +66,7 @@ export default function CandidatureDetailPage() {
   const [internalDraft, setInternalDraft] = useState("");
   const [sharedDraft, setSharedDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/applications/${id}`)
@@ -79,6 +80,7 @@ export default function CandidatureDetailPage() {
   async function postComment(visibility: "INTERNE" | "PARTAGE", body: string) {
     if (!body.trim() || !application) return;
     setSending(true);
+    setCommentError(null);
     const res = await fetch(`/api/applications/${application.id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -90,6 +92,8 @@ export default function CandidatureDetailPage() {
       setApplication({ ...application, comments: [...application.comments, comment] });
       if (visibility === "INTERNE") setInternalDraft("");
       else setSharedDraft("");
+    } else {
+      setCommentError(comment.error || "Erreur lors de l'envoi.");
     }
   }
 
@@ -198,6 +202,7 @@ export default function CandidatureDetailPage() {
         </div>
       </div>
 
+      {commentError && <p className="font-ui text-xs text-blood">{commentError}</p>}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="war-border bg-char p-5">
           <p className="font-display text-sm text-bone mb-3">Notes internes</p>
