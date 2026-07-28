@@ -38,6 +38,8 @@ function NouveauRaidForm() {
   const [signupDeadline, setSignupDeadline] = useState("");
   const [deadlineTouched, setDeadlineTouched] = useState(false);
   const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
+  const [recurrent, setRecurrent] = useState(false);
+  const [occurrences, setOccurrences] = useState(4);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -72,6 +74,10 @@ function NouveauRaidForm() {
       setError("La date est obligatoire.");
       return;
     }
+    if (recurrent && (!Number.isInteger(occurrences) || occurrences < 2 || occurrences > 52)) {
+      setError("Le nombre d'occurrences doit être compris entre 2 et 52.");
+      return;
+    }
     setLoading(true);
     // Les champs datetime-local n'ont pas de fuseau horaire : le navigateur
     // les interprète dans l'heure locale de l'utilisateur (heure française
@@ -85,7 +91,8 @@ function NouveauRaidForm() {
         titles,
         date: new Date(date).toISOString(),
         signupDeadline: signupDeadline ? new Date(signupDeadline).toISOString() : null,
-        notes
+        notes,
+        recurrenceCount: recurrent ? occurrences : undefined
       })
     });
     const data = await res.json();
@@ -94,7 +101,7 @@ function NouveauRaidForm() {
       setError(data.error || "Erreur lors de la création.");
       return;
     }
-    router.push(`/officier/raids/${data.id}/composition`);
+    router.push(`/officier/raids/${Array.isArray(data.raids) ? data.raids[0].id : data.id}/composition`);
   }
 
   return (
@@ -168,6 +175,37 @@ function NouveauRaidForm() {
           </p>
         </div>
 
+        <div className="war-border bg-void/40 p-3 space-y-2">
+          <label className="flex items-center gap-2 font-ui text-xs text-bone/80 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={recurrent}
+              onChange={(e) => setRecurrent(e.target.checked)}
+              className="focus-ring"
+            />
+            Récurrent — répéter ce raid chaque semaine, même jour et heure
+          </label>
+          {recurrent && (
+            <div>
+              <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+                Nombre d'occurrences
+              </label>
+              <input
+                type="number"
+                min={2}
+                max={52}
+                value={occurrences}
+                onChange={(e) => setOccurrences(Number(e.target.value))}
+                className="w-24 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+              />
+              <p className="font-ui text-xs text-bone/40 mt-1">
+                Crée {occurrences} raids, un chaque semaine à partir de la date ci-dessus. La date
+                limite d'inscription (si définie) suit le même décalage à chaque occurrence.
+              </p>
+            </div>
+          )}
+        </div>
+
         <div>
           <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
             Notes (optionnel)
@@ -185,7 +223,13 @@ function NouveauRaidForm() {
           disabled={loading}
           className="font-display text-sm bg-blood text-void font-medium px-5 py-2.5 disabled:opacity-50 focus-ring"
         >
-          {loading ? "Création..." : titles.length > 1 ? "Créer l'événement" : "Créer le raid"}
+          {loading
+            ? "Création..."
+            : recurrent
+              ? `Créer les ${occurrences} raids`
+              : titles.length > 1
+                ? "Créer l'événement"
+                : "Créer le raid"}
         </button>
       </form>
     </div>
