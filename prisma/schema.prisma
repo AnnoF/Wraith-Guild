@@ -228,6 +228,19 @@ model ApplicationComment {
   author        User              @relation(fields: [authorId], references: [id])
 }
 
+// Guide de raid (un boss = une entrée), éditable par les Officiers,
+// consultable par tout membre connecté (voir /guide).
+model GuideEntry {
+  id        String   @id @default(cuid())
+  raidTitle String   // une des valeurs de RAID_INSTANCES (lib/raidInstances.ts)
+  bossName  String
+  videoUrl  String?
+  notes     String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // Historique des changements de rôle site (traçabilité pour les admins)
 model RoleAudit {
   id            String   @id @default(cuid())
