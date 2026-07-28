@@ -4,6 +4,7 @@ import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
+import { notifyRaidLocked } from "@/lib/raidNotify";
 
 // GET : détail d'un raid + inscriptions (avec personnage et propriétaire)
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -77,6 +78,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const body = await req.json();
+
+  const existing = await prisma.raid.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+
   const raid = await prisma.raid.update({
     where: { id },
     data: {
@@ -88,5 +93,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       status: body.status ?? undefined
     }
   });
+
+  // "Verrouiller" = fermer les inscriptions : alerte Discord au moment où
+  // ça passe effectivement à FERME (pas de re-notification si déjà FERME).
+  if (body.status === "FERME" && existing.status !== "FERME") {
+    await notifyRaidLocked(raid);
+  }
+
   return NextResponse.json(raid);
 }

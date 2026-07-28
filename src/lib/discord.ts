@@ -33,7 +33,7 @@ export async function fetchGuildMember(discordUserId: string): Promise<DiscordMe
 let roleCache: { map: Record<string, string>; fetchedAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-async function getRoleIdByName(name: string): Promise<string | null> {
+export async function getRoleIdByName(name: string): Promise<string | null> {
   const guildId = process.env.DISCORD_GUILD_ID;
   const botToken = process.env.DISCORD_BOT_TOKEN;
 
