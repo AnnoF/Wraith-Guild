@@ -56,22 +56,29 @@ export default function RaidDetailPage() {
     load();
   }, [id]);
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
+  async function submitSignup(status: "INSCRIT" | "ABSENT") {
     setError(null);
-
     const res = await fetch(`/api/raids/${id}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ comment: comment || undefined })
+      body: JSON.stringify({ comment: comment || undefined, status })
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setError(data.error || "Impossible de s'inscrire.");
+      setError(data.error || "Impossible d'enregistrer votre statut.");
       return;
     }
     setComment("");
     load();
+  }
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    await submitSignup("INSCRIT");
+  }
+
+  async function handleMarkAbsent() {
+    await submitSignup("ABSENT");
   }
 
   async function handleWithdraw() {
@@ -87,7 +94,8 @@ export default function RaidDetailPage() {
 
   const activeSignups = raid.signups.filter((s) => s.status === "INSCRIT" || s.status === "RESERVE");
   const mySignup = raid.signups.find((s) => s.user.id === session?.user.id);
-  const canSignup = !mySignup || mySignup.status === "DESISTE" || mySignup.status === "ABSENT";
+  const canSignup = !mySignup || mySignup.status === "DESISTE";
+  const isAbsent = mySignup?.status === "ABSENT";
 
   const canConfigure = session?.user.siteRole === "OFFICIER" || session?.user.siteRole === "ADMINISTRATEUR";
 
@@ -144,10 +152,29 @@ export default function RaidDetailPage() {
           <button type="submit" className="font-display text-xs bg-blood text-void font-medium px-5 py-2.5 focus-ring">
             S'inscrire
           </button>
+          <button
+            type="button"
+            onClick={handleMarkAbsent}
+            className="font-ui text-xs text-bone/50 hover:text-bone focus-ring underline"
+          >
+            Me déclarer absent
+          </button>
         </form>
       )}
 
-      {mySignup && !canSignup && (
+      {raid.status === "OUVERT" && isAbsent && (
+        <div className="war-border bg-char p-5 flex items-center justify-between flex-wrap gap-3">
+          <p className="font-ui text-sm text-bone/60">Vous vous êtes signalé absent pour ce raid.</p>
+          <button
+            onClick={() => submitSignup("INSCRIT")}
+            className="font-ui text-xs text-moss hover:text-bone focus-ring underline"
+          >
+            Je suis finalement disponible
+          </button>
+        </div>
+      )}
+
+      {mySignup && !canSignup && !isAbsent && (
         <div className="war-border bg-char p-5 flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="font-ui text-sm text-bone">
@@ -159,12 +186,20 @@ export default function RaidDetailPage() {
                 : "En attente d'assignation d'un personnage par un Officier."}
             </p>
           </div>
-          <button
-            onClick={handleWithdraw}
-            className="font-ui text-xs text-bone/40 hover:text-blood focus-ring underline"
-          >
-            Se désinscrire
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleMarkAbsent}
+              className="font-ui text-xs text-bone/50 hover:text-bone focus-ring underline"
+            >
+              Me déclarer absent
+            </button>
+            <button
+              onClick={handleWithdraw}
+              className="font-ui text-xs text-bone/40 hover:text-blood focus-ring underline"
+            >
+              Se désinscrire
+            </button>
+          </div>
         </div>
       )}
       {error && <p className="font-ui text-xs text-blood">{error}</p>}

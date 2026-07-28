@@ -8,7 +8,9 @@ import { raidTitleLabel } from "@/lib/raidInstances";
 
 // POST : un Raideur s'inscrit lui-même (disponibilité), sans choisir de
 // personnage — c'est un Officier qui assignera un personnage ensuite
-// (voir PATCH ci-dessous).
+// (voir PATCH ci-dessous). Peut aussi se signaler absent (status: "ABSENT")
+// pour prévenir sans se désinscrire complètement (DESISTE) — reste visible,
+// grisé, en composition, contrairement à un désistement.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
@@ -19,17 +21,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = await req.json().catch(() => ({}));
   const comment = typeof body.comment === "string" ? body.comment.trim() || null : null;
+  const status = body.status === "ABSENT" ? "ABSENT" : "INSCRIT";
 
   const raid = await prisma.raid.findUnique({ where: { id } });
   if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
-  if (effectiveRaidStatus(raid) !== "OUVERT") {
+  // Se signaler absent reste possible même après la fermeture des
+  // inscriptions (utile en dernière minute) ; s'inscrire non.
+  if (status === "INSCRIT" && effectiveRaidStatus(raid) !== "OUVERT") {
     return NextResponse.json({ error: "Les inscriptions ne sont pas ouvertes pour ce raid" }, { status: 409 });
   }
 
   const signup = await prisma.raidSignup.upsert({
     where: { raidId_userId: { raidId: id, userId: session.user.id } },
-    update: { status: "INSCRIT", comment },
-    create: { raidId: id, userId: session.user.id, comment, status: "INSCRIT" }
+    // Se signaler absent libère la place qu'on occupait éventuellement.
+    update: { status, comment, ...(status === "ABSENT" ? { characterId: null, slot: null } : {}) },
+    create: { raidId: id, userId: session.user.id, comment, status }
   });
   return NextResponse.json(signup, { status: 201 });
 }
