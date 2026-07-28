@@ -124,7 +124,10 @@ export default function CompositionPage() {
     load();
   }, [id]);
 
-  async function updateSignup(userId: string, data: { characterId?: string | null; slot?: number | null }) {
+  async function updateSignup(
+    userId: string,
+    data: { characterId?: string | null; slot?: number | null; status?: string }
+  ) {
     const res = await fetch(`/api/raids/${id}/signup`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -191,6 +194,11 @@ export default function CompositionPage() {
   const players = raid.signups.filter((s) => s.status === "INSCRIT");
   const placed = players.filter((s) => s.slot !== null && s.character);
   const unplaced = players.filter((s) => s.slot === null);
+  // Mis en réserve par un Officier (bench) ou signalés absents par
+  // eux-mêmes : affichés à droite, sans personnage, toujours après les
+  // inscrits placés — les absents en grisé.
+  const benched = raid.signups.filter((s) => s.status === "RESERVE");
+  const absentSignups = raid.signups.filter((s) => s.status === "ABSENT");
   const roleGroups = { TANK: 0, SOIGNEUR: 0, DPS: 0 };
   placed.forEach((s) => {
     const role = guessRaidRole(s.character!.class, s.character!.spec);
@@ -223,6 +231,8 @@ export default function CompositionPage() {
 
   const filteredUnplaced = unplaced.filter(matchesFilters);
   const filteredPlaced = placed.filter(matchesFilters);
+  const filteredBenched = benched.filter(matchesFilters);
+  const filteredAbsent = absentSignups.filter(matchesFilters);
 
   const bossTemplate = raid.titles.flatMap((t) => RAID_BOSS_ROLES[t] ?? []);
   const bossAssignmentMap = new Map<string, BossRoleAssignmentData>();
@@ -279,6 +289,8 @@ export default function CompositionPage() {
         <span>DPS : {roleGroups.DPS}</span>
         <span>Inscrits : {players.length}</span>
         <span>Placés : {placed.length} / {raid.size}</span>
+        {benched.length > 0 && <span>Réserve : {benched.length}</span>}
+        {absentSignups.length > 0 && <span>Absents : {absentSignups.length}</span>}
       </div>
 
       {error && (
@@ -324,7 +336,16 @@ export default function CompositionPage() {
             )}
             {filteredUnplaced.map((s) => (
               <div key={s.id} className="war-border bg-char px-3 py-2.5">
-                <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                  <button
+                    onClick={() => updateSignup(s.user.id, { status: "RESERVE", characterId: null, slot: null })}
+                    title="Mettre en réserve (bench)"
+                    className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
+                  >
+                    Bench
+                  </button>
+                </div>
                 {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
                 <div className="mt-1.5 space-y-1">
                   {s.user.characters.length === 0 && (
@@ -442,7 +463,16 @@ export default function CompositionPage() {
               const otherCharacters = s.user.characters.filter((c) => c.id !== s.characterId);
               return (
                 <div key={s.id} className="war-border bg-char px-3 py-2.5">
-                  <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                    <button
+                      onClick={() => updateSignup(s.user.id, { status: "RESERVE", characterId: null, slot: null })}
+                      title="Mettre en réserve (bench)"
+                      className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
+                    >
+                      Bench
+                    </button>
+                  </div>
                   <div className="mt-1.5 space-y-1">
                     <div
                       draggable
@@ -483,6 +513,51 @@ export default function CompositionPage() {
               );
             })}
           </div>
+
+          {benched.length > 0 && (
+            <>
+              <p className="font-display text-xs text-bone/50 mt-4 mb-2">Réserve</p>
+              <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
+                {filteredBenched.map((s) => (
+                  <div key={s.id} className="war-border bg-char px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-ui text-sm text-bone/80">{s.user.discordTag}</p>
+                      <button
+                        onClick={() => updateSignup(s.user.id, { status: "INSCRIT" })}
+                        title="Retirer de la réserve"
+                        className="font-ui text-[10px] text-bone/30 hover:text-moss focus-ring shrink-0"
+                      >
+                        Réinscrire
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {absentSignups.length > 0 && (
+            <>
+              <p className="font-display text-xs text-bone/50 mt-4 mb-2">Absents</p>
+              <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
+                {filteredAbsent.map((s) => (
+                  <div key={s.id} className="war-border bg-char px-3 py-2.5 opacity-40">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                      <button
+                        onClick={() => updateSignup(s.user.id, { status: "INSCRIT" })}
+                        title="Réinscrire"
+                        className="font-ui text-[10px] text-bone/40 hover:text-moss focus-ring shrink-0"
+                      >
+                        Réinscrire
+                      </button>
+                    </div>
+                    {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
