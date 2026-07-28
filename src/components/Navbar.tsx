@@ -108,6 +108,16 @@ export default function Navbar({
               Membres
             </Link>
           )}
+          {(role === "OFFICIER" || role === "ADMINISTRATEUR") && (
+            <Link
+              href="/presence"
+              className={`px-3 py-2 transition-colors focus-ring ${
+                pathname === "/presence" ? "bg-blood text-void font-semibold" : "text-bone/60 hover:text-bone"
+              }`}
+            >
+              Présence
+            </Link>
+          )}
           {role === "ADMINISTRATEUR" && (
             <Link
               href="/admin"
