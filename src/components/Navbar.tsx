@@ -18,7 +18,7 @@ const TABS = [
   { href: "/dashboard/raids-a-venir", label: "Raids à venir" },
   { href: "/dashboard/raids-passes", label: "Raids passés" },
   { href: "/candidatures", label: "Candidatures" },
-  { href: "/guide", label: "Guide" }
+  { href: "/guide", label: "Guides" }
 ];
 
 export default function Navbar({
