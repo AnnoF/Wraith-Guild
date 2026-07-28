@@ -7,6 +7,20 @@ function isRaidInstance(value: string): value is RaidInstance {
   return (RAID_INSTANCES as string[]).includes(value);
 }
 
+// Calcule "date - jours" en restant en heure locale (pas de passage par
+// toISOString ici, pour ne pas réintroduire le décalage de fuseau déjà
+// corrigé ailleurs) — le format datetime-local n'a pas de fuseau, on
+// manipule directement ses composants.
+function subtractDaysLocal(datetimeLocal: string, days: number): string {
+  const [datePart, timePart] = datetimeLocal.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  const d = new Date(year, month - 1, day, hour, minute);
+  d.setDate(d.getDate() - days);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function NouveauRaidPage() {
   return (
     <Suspense fallback={<p className="font-ui text-sm text-bone/50">Chargement...</p>}>
@@ -22,6 +36,7 @@ function NouveauRaidForm() {
   const [titles, setTitles] = useState<string[]>(prefillTitles);
   const [date, setDate] = useState("");
   const [signupDeadline, setSignupDeadline] = useState("");
+  const [deadlineTouched, setDeadlineTouched] = useState(false);
   const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,6 +50,15 @@ function NouveauRaidForm() {
     setTitles((current) =>
       current.includes(title) ? current.filter((t) => t !== title) : [...current, title]
     );
+  }
+
+  // Par défaut, la date limite d'inscription se cale 3 jours avant la date
+  // du raid — tant que l'officier n'a pas lui-même modifié ce champ.
+  function handleDateChange(value: string) {
+    setDate(value);
+    if (!deadlineTouched) {
+      setSignupDeadline(value ? subtractDaysLocal(value, 3) : "");
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -115,7 +139,7 @@ function NouveauRaidForm() {
           <input
             type="datetime-local"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value)}
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
           {titles.length > 1 && (
@@ -132,11 +156,15 @@ function NouveauRaidForm() {
           <input
             type="datetime-local"
             value={signupDeadline}
-            onChange={(e) => setSignupDeadline(e.target.value)}
+            onChange={(e) => {
+              setDeadlineTouched(true);
+              setSignupDeadline(e.target.value);
+            }}
             className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
           <p className="font-ui text-xs text-bone/40 mt-1">
-            Passé cette date, les inscriptions se ferment automatiquement.
+            Passé cette date, les inscriptions se ferment automatiquement. Par
+            défaut, 3 jours avant le raid — modifiable librement.
           </p>
         </div>
 
