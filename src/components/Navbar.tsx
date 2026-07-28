@@ -17,7 +17,8 @@ const TABS = [
   { href: "/dashboard/personnages", label: "Mes personnages" },
   { href: "/dashboard/raids-a-venir", label: "Raids à venir" },
   { href: "/dashboard/raids-passes", label: "Raids passés" },
-  { href: "/candidatures", label: "Candidatures" }
+  { href: "/candidatures", label: "Candidatures" },
+  { href: "/guide", label: "Guide" }
 ];
 
 export default function Navbar({
