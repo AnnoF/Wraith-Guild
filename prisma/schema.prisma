@@ -73,6 +73,7 @@ model User {
   displayName   String?  // surnom personnalisé sur le site ; prioritaire sur discordTag si défini
   avatarUrl     String?
   siteRole      SiteRole @default(CANDIDAT)
+  isArchived    Boolean  @default(false) // personne partie de la guilde ; masquée de /membres, historique conservé
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

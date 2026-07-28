@@ -98,6 +98,16 @@ export default function Navbar({
               Gérer les raids
             </Link>
           )}
+          {(role === "OFFICIER" || role === "ADMINISTRATEUR") && (
+            <Link
+              href="/membres"
+              className={`px-3 py-2 transition-colors focus-ring ${
+                pathname === "/membres" ? "bg-blood text-void font-semibold" : "text-bone/60 hover:text-bone"
+              }`}
+            >
+              Membres
+            </Link>
+          )}
           {role === "ADMINISTRATEUR" && (
             <Link
               href="/admin"
