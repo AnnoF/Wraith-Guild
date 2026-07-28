@@ -4,6 +4,7 @@ import { authOptions, canConfigureRaids, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { RAID_INSTANCES, RAID_INSTANCE_SIZES, instancesShareSize } from "@/lib/raidInstances";
+import { autoAbsentForVacationingUsers } from "@/lib/vacation";
 
 // GET : liste des raids.
 // ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel, filtre sur le statut brut)
@@ -75,5 +76,10 @@ export async function POST(req: Request) {
       createdById: session.user.id
     }
   });
+
+  // Mode vacances : inscrit auto en absent les personnes déjà en vacances
+  // pour cette date, sans attendre qu'elles interviennent.
+  await autoAbsentForVacationingUsers(raid.id, raid.date);
+
   return NextResponse.json(raid, { status: 201 });
 }

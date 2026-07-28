@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import CharacterForm from "@/components/CharacterForm";
 import CharacterCard, { type CharacterData } from "@/components/CharacterCard";
+import VacationMode from "@/components/VacationMode";
 
 export default function PersonnagesPage() {
   const [characters, setCharacters] = useState<CharacterData[]>([]);
@@ -30,6 +31,8 @@ export default function PersonnagesPage() {
 
   return (
     <div className="space-y-6">
+      <VacationMode />
+
       <div className="flex items-center justify-between">
         <p className="font-display text-lg text-bone">Mes personnages</p>
         <button
