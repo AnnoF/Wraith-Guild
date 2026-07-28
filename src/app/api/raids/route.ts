@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { titles, date, signupDeadline, notes } = body;
+  const { titles, date, signupDeadline, notes, recurrenceCount } = body;
 
   if (!Array.isArray(titles) || titles.length === 0 || !date) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
@@ -64,22 +64,41 @@ export async function POST(req: Request) {
     );
   }
 
+  // Récurrence hebdomadaire (même jour/heure chaque semaine) : bornée à 52
+  // occurrences (un an) pour éviter une saisie fantaisiste.
+  const count =
+    Number.isInteger(recurrenceCount) && recurrenceCount > 1 ? Math.min(recurrenceCount, 52) : 1;
+
+  const baseDate = new Date(date);
+  const baseDeadline = signupDeadline ? new Date(signupDeadline) : null;
+
   // La taille est fixée par l'instance, jamais par le client, pour éviter
   // toute incohérence (voir RAID_INSTANCE_SIZES).
-  const raid = await prisma.raid.create({
-    data: {
-      titles,
-      date: new Date(date),
-      size: RAID_INSTANCE_SIZES[titles[0]],
-      signupDeadline: signupDeadline ? new Date(signupDeadline) : null,
-      notes: notes || null,
-      createdById: session.user.id
-    }
-  });
+  const raids = await prisma.$transaction(
+    Array.from({ length: count }, (_, i) => {
+      const raidDate = new Date(baseDate);
+      raidDate.setDate(raidDate.getDate() + 7 * i);
+      const deadline = baseDeadline ? new Date(baseDeadline) : null;
+      if (deadline) deadline.setDate(deadline.getDate() + 7 * i);
+      return prisma.raid.create({
+        data: {
+          titles,
+          date: raidDate,
+          size: RAID_INSTANCE_SIZES[titles[0]],
+          signupDeadline: deadline,
+          notes: notes || null,
+          createdById: session.user.id
+        }
+      });
+    })
+  );
 
   // Mode vacances : inscrit auto en absent les personnes déjà en vacances
-  // pour cette date, sans attendre qu'elles interviennent.
-  await autoAbsentForVacationingUsers(raid.id, raid.date);
+  // pour chaque date, sans attendre qu'elles interviennent.
+  for (const raid of raids) {
+    await autoAbsentForVacationingUsers(raid.id, raid.date);
+  }
 
-  return NextResponse.json(raid, { status: 201 });
+  if (count === 1) return NextResponse.json(raids[0], { status: 201 });
+  return NextResponse.json({ raids }, { status: 201 });
 }
