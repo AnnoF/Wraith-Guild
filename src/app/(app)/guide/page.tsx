@@ -35,7 +35,7 @@ export default function GuidePage() {
 
   return (
     <div className="space-y-10">
-      <p className="font-display text-lg text-bone">Guide de raid</p>
+      <p className="font-display text-lg text-bone">Guides de raid</p>
 
       {RAID_INSTANCES.map((instance) => (
         <GuideSection
