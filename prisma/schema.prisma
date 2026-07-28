@@ -74,6 +74,8 @@ model User {
   avatarUrl     String?
   siteRole      SiteRole @default(CANDIDAT)
   isArchived    Boolean  @default(false) // personne partie de la guilde ; masquée de /membres, historique conservé
+  vacationStart DateTime? // mode vacances : inscrit auto en ABSENT sur les raids dans cette période
+  vacationEnd   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
