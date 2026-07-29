@@ -33,7 +33,8 @@ export async function notifyRaidLocked(raid: { id: string; titles: string[]; dat
     day: "numeric",
     month: "long",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
+    timeZone: "Europe/Paris"
   });
 
   const content = `🔒 ${mentions ? mentions + " — " : ""}Les inscriptions pour **${raidTitleLabel(raid.titles)}** (${dateLabel}) sont closes, la composition est prête.\n${raidUrl(raid.id)}`;

@@ -60,9 +60,14 @@ export default async function GuildShowcase() {
                   const dateLabel = date.toLocaleDateString("fr-FR", {
                     weekday: "short",
                     day: "numeric",
-                    month: "long"
+                    month: "long",
+                    timeZone: "Europe/Paris"
                   });
-                  const timeLabel = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+                  const timeLabel = date.toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "Europe/Paris"
+                  });
                   return (
                     <div key={r.id} className="war-border bg-char p-4">
                       <p className="font-display text-sm text-bone">{raidTitleLabel(r.titles)}</p>

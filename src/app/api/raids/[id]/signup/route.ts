@@ -106,7 +106,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           {
             error: `Ce personnage est déjà engagé sur ${raidTitleLabel(raid.titles)} cette semaine (${new Date(
               conflict.raid.date
-            ).toLocaleDateString("fr-FR")})`
+            ).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })})`
           },
           { status: 409 }
         );
