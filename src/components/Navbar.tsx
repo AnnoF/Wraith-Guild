@@ -18,7 +18,8 @@ const TABS = [
   { href: "/dashboard/raids-a-venir", label: "Raids à venir" },
   { href: "/dashboard/raids-passes", label: "Raids passés" },
   { href: "/candidatures", label: "Candidatures" },
-  { href: "/guide", label: "Guides" }
+  { href: "/guide", label: "Guides" },
+  { href: "/hall-of-fame", label: "Hall of Fame" }
 ];
 
 export default function Navbar({
@@ -34,8 +35,21 @@ export default function Navbar({
   const [nameInput, setNameInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const displayName = session?.user.name ?? discordTag;
+
+  const extraLinks = [
+    (role === "OFFICIER" || role === "ADMINISTRATEUR") && { href: "/officier/raids", label: "Gérer les raids", match: (p: string) => p.startsWith("/officier") },
+    (role === "OFFICIER" || role === "ADMINISTRATEUR") && { href: "/membres", label: "Membres", match: (p: string) => p === "/membres" },
+    (role === "OFFICIER" || role === "ADMINISTRATEUR") && { href: "/presence", label: "Présence", match: (p: string) => p === "/presence" },
+    role === "ADMINISTRATEUR" && { href: "/admin", label: "Administration", match: (p: string) => p === "/admin" }
+  ].filter(Boolean) as { href: string; label: string; match: (p: string) => boolean }[];
+
+  const allLinks = [
+    ...TABS.map((tab) => ({ href: tab.href, label: tab.label, match: (p: string) => p === tab.href })),
+    ...extraLinks
+  ];
 
   function startEditing() {
     setNameInput(displayName);
@@ -72,65 +86,41 @@ export default function Navbar({
           <span className="font-display text-xl text-bone">Wraith</span>
         </Link>
 
-        <nav className="flex gap-1 font-ui text-xs uppercase tracking-wide">
-          {TABS.map((tab) => (
+        <nav className="hidden lg:flex gap-1 font-ui text-xs uppercase tracking-wide flex-wrap">
+          {allLinks.map((link) => (
             <Link
-              key={tab.href}
-              href={tab.href}
+              key={link.href}
+              href={link.href}
               className={`px-3 py-2 transition-colors focus-ring ${
-                pathname === tab.href
+                link.match(pathname)
                   ? "bg-blood text-void font-semibold"
                   : "text-bone/60 hover:text-bone"
               }`}
             >
-              {tab.label}
+              {link.label}
             </Link>
           ))}
-          {(role === "OFFICIER" || role === "ADMINISTRATEUR") && (
-            <Link
-              href="/officier/raids"
-              className={`px-3 py-2 transition-colors focus-ring ${
-                pathname.startsWith("/officier")
-                  ? "bg-blood text-void font-semibold"
-                  : "text-bone/60 hover:text-bone"
-              }`}
-            >
-              Gérer les raids
-            </Link>
-          )}
-          {(role === "OFFICIER" || role === "ADMINISTRATEUR") && (
-            <Link
-              href="/membres"
-              className={`px-3 py-2 transition-colors focus-ring ${
-                pathname === "/membres" ? "bg-blood text-void font-semibold" : "text-bone/60 hover:text-bone"
-              }`}
-            >
-              Membres
-            </Link>
-          )}
-          {(role === "OFFICIER" || role === "ADMINISTRATEUR") && (
-            <Link
-              href="/presence"
-              className={`px-3 py-2 transition-colors focus-ring ${
-                pathname === "/presence" ? "bg-blood text-void font-semibold" : "text-bone/60 hover:text-bone"
-              }`}
-            >
-              Présence
-            </Link>
-          )}
-          {role === "ADMINISTRATEUR" && (
-            <Link
-              href="/admin"
-              className={`px-3 py-2 transition-colors focus-ring ${
-                pathname === "/admin" ? "bg-blood text-void font-semibold" : "text-bone/60 hover:text-bone"
-              }`}
-            >
-              Administration
-            </Link>
-          )}
         </nav>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={mobileOpen}
+            className="lg:hidden text-bone/70 hover:text-bone focus-ring p-1 -mr-1"
+          >
+            {mobileOpen ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+
           {editing ? (
             <form onSubmit={handleSave} className="flex items-center gap-1">
               <input
@@ -186,6 +176,25 @@ export default function Navbar({
           </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <nav className="lg:hidden mt-3 pt-3 border-t border-bone/10 flex flex-col gap-1 font-ui text-xs uppercase tracking-wide">
+          {allLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2 transition-colors focus-ring ${
+                link.match(pathname)
+                  ? "bg-blood text-void font-semibold"
+                  : "text-bone/60 hover:text-bone"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
 
       <div className="flex justify-end mt-1">
         <span
