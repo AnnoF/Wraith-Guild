@@ -13,6 +13,6 @@ export interface RecruitmentColumn {
 export const RECRUITMENT_COLUMNS: RecruitmentColumn[] = [
   { label: "Haut", colorClass: "bg-moss", classes: ["PRETRE", "MAGE", "DEMONISTE"] },
   { label: "Moyen", colorClass: "bg-amber", classes: ["VOLEUR", "DRUIDE"] },
-  { label: "Bas", colorClass: "bg-bone/30", classes: ["CHASSEUR", "CHAMAN"] },
-  { label: "Fermé", colorClass: "bg-blood", classes: ["GUERRIER", "PALADIN"] }
+  { label: "Bas", colorClass: "bg-blood", classes: ["CHASSEUR", "CHAMAN"] },
+  { label: "Fermé", colorClass: "bg-bone/30", classes: ["GUERRIER", "PALADIN"] }
 ];
