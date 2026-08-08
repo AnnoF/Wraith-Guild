@@ -1,18 +1,36 @@
 # Wraith-Guild
 
-Site de gestion de guilde pour Camelote (WoW Classic-like) : inscriptions,
-personnages et compositions de raid.
+Site de gestion de guilde pour Camelote (WoW Classic-like) : recrutement,
+personnages, inscriptions et compositions de raid.
+
+Production : https://wraith-guild.fr
+
+## Fonctionnalités
+
+- **Recrutement** : formulaire de candidature en ligne, suivi et échange
+  avec le candidat côté Officier, notifications Discord (webhook + DM)
+- **Personnages** : plusieurs personnages par joueur (classe, spé, jusqu'à
+  2 métiers), archivage plutôt que suppression pour préserver l'historique
+- **Raids** : planification d'un ou plusieurs donjons le même soir, date
+  limite d'inscription, statut calculé automatiquement à l'affichage
+- **Compositions** : constructeur de composition par les Officiers, avec un
+  mode avancé d'assignation de rôles par boss
+- **Suivi de guilde** : annuaire des membres, statistiques de présence,
+  mode vacances (mise en absent automatique), guide de raid, Hall of Fame
+- **Vitrine publique** : progression de guilde, état du recrutement,
+  médiathèque (captures d'écran, clips et streams Twitch)
 
 ## Stack
 
-- Next.js 14 (App Router) + TypeScript
+- Next.js 16 (App Router) + React 19 + TypeScript
 - Prisma + PostgreSQL
 - NextAuth (Discord OAuth) avec vérification des rôles Discord via un bot
 - Tailwind CSS
+- PM2 (process manager en production)
 
 ## Prérequis
 
-- Node.js 18+
+- Node.js 20+
 - PostgreSQL (local ou distant)
 - Une application Discord (pour l'OAuth et le bot de vérification des rôles)
 
@@ -21,43 +39,92 @@ personnages et compositions de raid.
 ```bash
 npm install
 cp .env.example .env   # puis remplir les valeurs
-npx prisma migrate dev --name init
+npx prisma db push
 npm run dev
 ```
 
+Le projet n'utilise pas (encore) d'historique de migrations Prisma : le
+schéma est appliqué avec `prisma db push`, en local comme en production.
+
+### Variables d'environnement
+
+Voir `.env.example`. Les noms de rôles Discord (`DISCORD_ROLE_RAIDEUR`,
+`DISCORD_ROLE_OFFICIER`) sont sensibles à la casse et doivent correspondre
+exactement aux rôles du serveur Discord de la guilde.
+
+Deux variables sont optionnelles : `DISCORD_APPLICATIONS_WEBHOOK_URL` et
+`DISCORD_RAID_WEBHOOK_URL`. Sans elles, les notifications Discord
+correspondantes sont simplement désactivées.
+
+## Scripts
+
+| Commande | Effet |
+|---|---|
+| `npm run dev` | serveur de développement |
+| `npm run build` | build de production |
+| `npm run start` | démarre le build de production |
+| `npm run lint` | lint Next.js |
+| `npm run prisma:generate` | régénère le client Prisma |
+| `npm run prisma:studio` | ouvre Prisma Studio |
+
 ## Déploiement (VPS)
+
+Première installation :
 
 ```bash
 git clone https://github.com/AnnoF/Wraith-Guild.git
 cd Wraith-Guild
 cp .env.example .env   # remplir avec les vraies valeurs de production
 npm install
-npx prisma migrate deploy
+npx prisma db push
 npm run build
 pm2 start npm --name wraith-guild -- start
 pm2 save
 ```
 
 Configurer ensuite Nginx en reverse proxy vers `localhost:3000` et Certbot
-pour le certificat SSL (voir la conversation de mise en place pour le détail
-des commandes).
+pour le certificat SSL.
+
+Mises à jour suivantes :
+
+```bash
+cd /var/www/Wraith-Guild
+git pull
+npm install            # si les dépendances ont changé
+npx prisma db push     # si le schéma a changé
+npm run build
+pm2 restart wraith-guild
+```
+
+Note : les images ajoutées depuis le site (Hall of Fame) sont écrites dans
+`public/uploads/`, qui est hors de git — à sauvegarder séparément.
 
 ## Rôles
 
-- **Raideur** : peut s'inscrire aux raids ouverts avec ses personnages
-- **Officier** : peut en plus configurer les raids et gérer les compositions
-- **Administrateur** : peut en plus attribuer les rôles Officier
+- **Candidat** : rôle par défaut à la première connexion ; accès limité à
+  son espace de candidature
+- **Raideur** : peut créer ses personnages et s'inscrire aux raids ouverts
+- **Officier** : peut en plus configurer les raids, gérer les compositions,
+  traiter les candidatures et consulter membres/présence
+- **Administrateur** : peut en plus attribuer les rôles des autres membres
 
-Seuls les membres Discord ayant le rôle "Raideur" ou "Officier" sur le
-serveur de guilde peuvent se connecter au site.
+N'importe quel compte Discord peut se connecter, mais il reste Candidat tant
+qu'il n'a pas le rôle Discord `Raideur` ou `Officier` sur le serveur de la
+guilde. Le rôle site n'est déterminé depuis Discord qu'à la création du
+compte : il est ensuite géré manuellement depuis la page d'administration.
 
 ## Structure
 
 ```
 src/
-  app/            pages (App Router) + routes API
-  components/     composants réutilisables
-  lib/            auth, prisma, classes/spécialisations, vérif Discord
+  app/
+    page.tsx        vitrine publique + connexion
+    candidature/    formulaire public de candidature
+    galerie/        médiathèque publique
+    (app)/          pages protégées (dashboard, raids, officier, admin…)
+    api/            routes API
+  components/       composants réutilisables
+  lib/              auth, prisma, Discord, classes/spés, raids, uploads…
 prisma/
-  schema.prisma   modèle de données
+  schema.prisma     modèle de données
 ```
