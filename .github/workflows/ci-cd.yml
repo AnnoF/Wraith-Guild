@@ -54,13 +54,7 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' <<'EOF'
-            set -euo pipefail
-            cd /var/www/Wraith-Guild
-            git pull
-            npm ci
-            npx prisma generate
-            npx prisma db push
-            npm run build
-            pm2 restart wraith-guild
-          EOF
+          # La clé de déploiement est restreinte côté serveur (authorized_keys,
+          # directive `command=`) à l'exécution de /var/www/Wraith-Guild/deploy.sh :
+          # la commande demandée ici est ignorée et remplacée par ce script forcé.
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" true
