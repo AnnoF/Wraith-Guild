@@ -258,6 +258,19 @@ model HallOfFameEntry {
   updatedAt   DateTime  @updatedAt
 }
 
+// Progression de guilde affichée sur la page vitrine (accueil / dashboard,
+// voir GuildShowcase), éditable par les Administrateurs uniquement (voir
+// /api/guild-progress).
+model GuildProgressEntry {
+  id        String   @id @default(cuid())
+  instance  String
+  killed    Int
+  total     Int
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // Historique des changements de rôle site (traçabilité pour les admins)
 model RoleAudit {
   id            String   @id @default(cuid())
