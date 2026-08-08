@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
+import { WOW_CLASSES, CLASS_LABELS, CLASS_COLORS, guessRaidRole, type WowClass, type RaidRole } from "@/lib/classes";
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import { RAID_BOSS_ROLES, type BossRoles } from "@/lib/bossRoles";
@@ -12,10 +12,9 @@ import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
 import WeekLockBadge from "@/components/WeekLockBadge";
 
-const ROLE_FILTERS: { value: RaidRole | "ALL"; label: string }[] = [
-  { value: "ALL", label: "Tous" },
+const ROLE_TAGS: { value: RaidRole; label: string }[] = [
   { value: "TANK", label: "Tank" },
-  { value: "SOIGNEUR", label: "Soigneur" },
+  { value: "SOIGNEUR", label: "Healer" },
   { value: "DPS", label: "DPS" }
 ];
 
@@ -71,7 +70,8 @@ export default function CompositionPage() {
   const [raid, setRaid] = useState<RaidDetail | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<RaidRole | "ALL">("ALL");
+  const [roleFilters, setRoleFilters] = useState<Set<RaidRole>>(new Set());
+  const [classFilters, setClassFilters] = useState<Set<WowClass>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [dragOverBossRole, setDragOverBossRole] = useState<string | null>(null);
@@ -151,6 +151,30 @@ export default function CompositionPage() {
     load();
   }
 
+  function toggleRoleFilter(role: RaidRole) {
+    setRoleFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(role)) next.delete(role);
+      else next.add(role);
+      return next;
+    });
+  }
+
+  function toggleClassFilter(cls: WowClass) {
+    setClassFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(cls)) next.delete(cls);
+      else next.add(cls);
+      return next;
+    });
+  }
+
+  function clearFilters() {
+    setSearch("");
+    setRoleFilters(new Set());
+    setClassFilters(new Set());
+  }
+
   function handleDragStart(e: React.DragEvent, payload: DragPayload) {
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
     e.dataTransfer.effectAllowed = "move";
@@ -219,15 +243,26 @@ export default function CompositionPage() {
     }
   }
 
+  // Les tags rôle/classe s'accumulent sur un même personnage (ex: Healer +
+  // Druid ne retient que les personnages qui sont à la fois Druide et
+  // healer, pas un joueur ayant un healer d'un côté et un Druide de
+  // l'autre sur deux personnages différents).
   function matchesFilters(s: Signup) {
     const chars = s.user.characters;
-    if (roleFilter !== "ALL" && !chars.some((c) => guessRaidRole(c.class, c.spec) === roleFilter)) {
-      return false;
+    if (roleFilters.size > 0 || classFilters.size > 0) {
+      const hasMatchingCharacter = chars.some((c) => {
+        const roleOk = roleFilters.size === 0 || roleFilters.has(guessRaidRole(c.class, c.spec));
+        const classOk = classFilters.size === 0 || classFilters.has(c.class);
+        return roleOk && classOk;
+      });
+      if (!hasMatchingCharacter) return false;
     }
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return s.user.discordTag.toLowerCase().includes(q) || chars.some((c) => c.name.toLowerCase().includes(q));
   }
+
+  const filtersActive = search.trim() !== "" || roleFilters.size > 0 || classFilters.size > 0;
 
   const filteredUnplaced = unplaced.filter(matchesFilters);
   const filteredPlaced = placed.filter(matchesFilters);
@@ -285,7 +320,7 @@ export default function CompositionPage() {
 
       <div className="flex gap-4 font-ui text-xs text-bone/60">
         <span>Tanks : {roleGroups.TANK}</span>
-        <span>Soigneurs : {roleGroups.SOIGNEUR}</span>
+        <span>Healers : {roleGroups.SOIGNEUR}</span>
         <span>DPS : {roleGroups.DPS}</span>
         <span>Inscrits : {players.length}</span>
         <span>Placés : {placed.length} / {raid.size}</span>
@@ -297,27 +332,59 @@ export default function CompositionPage() {
         <p className="font-ui text-xs text-blood war-border bg-char px-4 py-2.5">{error}</p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un joueur ou un personnage..."
-          className="bg-void border border-bone/15 focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
-        />
-        <div className="flex gap-1">
-          {ROLE_FILTERS.map((r) => (
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un joueur ou un personnage..."
+            className="bg-void border border-bone/15 focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
+          />
+          <div className="flex gap-1">
+            {ROLE_TAGS.map((r) => (
+              <button
+                key={r.value}
+                onClick={() => toggleRoleFilter(r.value)}
+                className={`font-ui text-xs px-2.5 py-1.5 border focus-ring ${
+                  roleFilters.has(r.value)
+                    ? "bg-blood text-void border-blood"
+                    : "border-bone/20 text-bone/60 hover:text-bone"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          {filtersActive && (
             <button
-              key={r.value}
-              onClick={() => setRoleFilter(r.value)}
-              className={`font-ui text-xs px-2.5 py-1.5 border focus-ring ${
-                roleFilter === r.value
-                  ? "bg-blood text-void border-blood"
-                  : "border-bone/20 text-bone/60 hover:text-bone"
-              }`}
+              onClick={clearFilters}
+              className="font-ui text-xs text-bone/40 hover:text-blood focus-ring"
             >
-              {r.label}
+              Réinitialiser les filtres
             </button>
-          ))}
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {WOW_CLASSES.map((cls) => {
+            const active = classFilters.has(cls);
+            const color = CLASS_COLORS[cls];
+            return (
+              <button
+                key={cls}
+                onClick={() => toggleClassFilter(cls)}
+                style={
+                  active
+                    ? { backgroundColor: `${color}CC`, borderColor: color }
+                    : { borderColor: `${color}66` }
+                }
+                className={`font-ui text-xs px-2.5 py-1.5 border focus-ring ${
+                  active ? "text-void font-semibold" : "text-bone/60 hover:text-bone"
+                }`}
+              >
+                {CLASS_LABELS[cls]}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -518,6 +585,9 @@ export default function CompositionPage() {
             <>
               <p className="font-display text-xs text-bone/50 mt-4 mb-2">Réserve</p>
               <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
+                {filteredBenched.length === 0 && (
+                  <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
+                )}
                 {filteredBenched.map((s) => (
                   <div key={s.id} className="war-border bg-char px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2">
@@ -540,6 +610,9 @@ export default function CompositionPage() {
             <>
               <p className="font-display text-xs text-bone/50 mt-4 mb-2">Absents</p>
               <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
+                {filteredAbsent.length === 0 && (
+                  <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
+                )}
                 {filteredAbsent.map((s) => (
                   <div key={s.id} className="war-border bg-char px-3 py-2.5 opacity-40">
                     <div className="flex items-center justify-between gap-2">
