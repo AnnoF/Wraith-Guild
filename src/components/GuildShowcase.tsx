@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions, canManageRoles } from "@/lib/auth";
 import { CLASS_SPECS } from "@/lib/classes";
 import { RECRUITMENT_COLUMNS } from "@/lib/recruitment";
-import { GUILD_PROGRESS, DISCORD_INVITE_URL } from "@/lib/guildInfo";
+import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
+import { getGuildProgress } from "@/lib/guildProgress";
 import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
 import { prisma } from "@/lib/prisma";
@@ -11,6 +14,7 @@ import Footer from "./Footer";
 import TwitchClips from "./TwitchClips";
 import TwitchStreamEmbed from "./TwitchStreamEmbed";
 import LightboxImage from "./LightboxImage";
+import GuildProgressEditor from "./GuildProgressEditor";
 
 const QUI_SOMMES_NOUS = `En 2019, un noyau de joueurs qui se connaissent pour la plupart depuis 2004 sur WoW Vanilla, principalement issus de guildes de Ner'Zhul-EU (dont plusieurs membres ont été chez <Wraith>), s'est réuni avec l'idée de se relancer une fois de plus dans l'aventure de Classic WoW. Un premier recrutement sur invitation, ciblant nos connaissances, nos recommandations et des joueurs fiables, a ensuite laissé place à un recrutement plus large, à la recherche de profils alliant maturité et performance. Ce recrutement est resté ouvert jusqu'en 2024, où nous avons décidé de nous arrêter à la sortie de Cataclysm Classic.
 
@@ -34,7 +38,9 @@ async function getUpcomingRaids() {
 }
 
 export default async function GuildShowcase() {
-  const raids = await getUpcomingRaids();
+  const session = await getServerSession(authOptions);
+  const isAdmin = canManageRoles(session?.user.siteRole);
+  const [raids, progress] = await Promise.all([getUpcomingRaids(), getGuildProgress()]);
   const previewClips = TWITCH_CLIPS.slice(0, 2);
   const previewScreenshots = GALLERY_IMAGES.slice(0, 2);
 
@@ -81,22 +87,7 @@ export default async function GuildShowcase() {
 
           <div id="progression" className="scroll-mt-20">
             <SectionTitle>Notre progression</SectionTitle>
-            <div className="space-y-3">
-              {GUILD_PROGRESS.map((entry) => (
-                <div key={entry.instance} className="war-border bg-char p-4">
-                  <p className="font-display text-sm text-bone mb-2">{entry.instance}</p>
-                  <div className="h-2 w-full bg-void mb-2">
-                    <div
-                      className="h-2 bg-blood"
-                      style={{ width: `${(entry.killed / entry.total) * 100}%` }}
-                    />
-                  </div>
-                  <p className="font-ui text-xs text-bone/60">
-                    {entry.killed} / {entry.total}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <GuildProgressEditor initialEntries={progress} isAdmin={isAdmin} />
           </div>
         </section>
 

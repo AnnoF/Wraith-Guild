@@ -1,18 +1,6 @@
 // Contenu éditorial de la page vitrine, centralisé ici pour être mis à
-// jour facilement sans toucher aux composants (progression de guilde,
-// lien Discord...).
+// jour facilement sans toucher aux composants (lien Discord...).
+// La progression de guilde n'est plus ici : elle est éditable par les
+// Administrateurs et stockée en base, voir src/lib/guildProgress.ts.
 
 export const DISCORD_INVITE_URL = "https://discord.gg/JhMqNwm";
-
-export interface GuildProgressEntry {
-  instance: string;
-  killed: number;
-  total: number;
-}
-
-export const GUILD_PROGRESS: GuildProgressEntry[] = [
-  { instance: "Molten Core", killed: 7, total: 10 },
-  { instance: "Blackwing Lair", killed: 7, total: 8 },
-  { instance: "Ahn'Qiraj Temple", killed: 8, total: 8 },
-  { instance: "Naxxramas", killed: 13, total: 15 }
-];

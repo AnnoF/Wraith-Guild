@@ -185,11 +185,12 @@ src/
       guide/, guide/[id]/               guide de raid (Officier+ en écriture)
       hall-of-fame/, .../upload/, .../[id]/  Hall of Fame + upload d'image
       me/                               profil courant (dont mode vacances)
+      guild-progress/, .../[id]/        progression de guilde affichée sur la vitrine (Administrateur en écriture)
   components/   Navbar, PublicNavbar, Footer, SignInButton, SignOutLink,
                 CharacterForm, CharacterCard, ClassSpecIcon, EnchantBadge,
                 RaidCard, RaidLeadBadge, WeekLockBadge, VacationMode,
-                GuildShowcase, HeroBanner, LightboxImage, TwitchClips,
-                TwitchStreamEmbed
+                GuildShowcase, GuildProgressEditor, HeroBanner, LightboxImage,
+                TwitchClips, TwitchStreamEmbed
   lib/
     auth.ts            config NextAuth + vérif rôle Discord au 1er login +
                         helpers canConfigureRaids / canManageRoles / isMember
@@ -206,7 +207,8 @@ src/
     wowWeek.ts             calcul de la semaine WoW (reset mercredi)
     recruitment.ts         colonnes "classes recherchées" affichées en vitrine
     applicationInfo.ts     texte de présentation de la page /candidature
-    guildInfo.ts            contenu éditorial vitrine (progression, lien Discord)
+    guildInfo.ts            contenu éditorial vitrine (lien Discord)
+    guildProgress.ts        lecture/amorçage de la progression de guilde (GuildProgressEntry), éditable par un Administrateur depuis GuildShowcase
     gallery.ts / twitchClips.ts / twitchChannels.ts / youtube.ts
                             listes de contenu pour /galerie et la vitrine
     uploads.ts              sauvegarde/suppression d'images uploadées (public/uploads, hors git)
@@ -228,6 +230,7 @@ prisma/schema.prisma   modèle de données complet, voir ci-dessous
 | `ApplicationComment` | échange sur une candidature (`INTERNE`/`PARTAGE`) |
 | `GuideEntry` | entrée du guide de raid (un boss = une entrée) |
 | `HallOfFameEntry` | souvenir marquant de la guilde |
+| `GuildProgressEntry` | ligne de progression affichée sur la vitrine (instance, tués/total), éditable par un Administrateur |
 | `RoleAudit` | historique des changements de `siteRole` |
 
 ## Recettes courantes
