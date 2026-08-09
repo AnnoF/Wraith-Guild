@@ -78,12 +78,12 @@ export default function Navbar({
 
   return (
     <header className="border-b-2 border-blood bg-char">
-      <div className="max-w-5xl mx-auto px-6 py-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="max-w-5xl mx-auto px-6 py-1.5">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <Link href="/dashboard" className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-9 w-9 shrink-0" style={{ clipPath: "circle(47%)" }} />
-          <span className="font-display text-xl text-bone">Wraith</span>
+          <img src="/logo_net.png" alt="" className="h-6 w-6 shrink-0" style={{ clipPath: "circle(47%)" }} />
+          <span className="font-display text-base text-bone">Wraith</span>
         </Link>
 
         <nav className="hidden lg:flex gap-1 font-ui text-xs uppercase tracking-wide flex-wrap">
@@ -91,7 +91,7 @@ export default function Navbar({
             <Link
               key={link.href}
               href={link.href}
-              className={`px-3 py-2 transition-colors focus-ring ${
+              className={`px-3 py-1 transition-colors focus-ring ${
                 link.match(pathname)
                   ? "bg-blood text-void font-semibold"
                   : "text-bone/60 hover:text-bone"
@@ -102,7 +102,7 @@ export default function Navbar({
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 ml-auto">
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
@@ -120,6 +120,14 @@ export default function Navbar({
               </svg>
             )}
           </button>
+
+          <span
+            title={ROLE_LABELS[role]}
+            className="hidden sm:inline font-display text-[10px] text-void bg-blood px-2 py-0.5"
+            style={{ clipPath: "polygon(6% 0,100% 0,94% 100%,0 100%)" }}
+          >
+            {ROLE_LABELS[role]}
+          </span>
 
           {editing ? (
             <form onSubmit={handleSave} className="flex items-center gap-1">
@@ -195,16 +203,6 @@ export default function Navbar({
           ))}
         </nav>
       )}
-
-      <div className="flex justify-end mt-1">
-        <span
-          title={ROLE_LABELS[role]}
-          className="font-display text-[10px] text-void bg-blood px-3 py-1"
-          style={{ clipPath: "polygon(6% 0,100% 0,94% 100%,0 100%)" }}
-        >
-          {ROLE_LABELS[role]}
-        </span>
-      </div>
       </div>
     </header>
   );
