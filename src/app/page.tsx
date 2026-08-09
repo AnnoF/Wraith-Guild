@@ -4,13 +4,14 @@ import { authOptions } from "@/lib/auth";
 import PublicNavbar from "@/components/PublicNavbar";
 import HeroBanner from "@/components/HeroBanner";
 import GuildShowcase from "@/components/GuildShowcase";
+import FloatingActionBar from "@/components/FloatingActionBar";
 
 export default async function HomePage({
   searchParams
 }: {
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const session = await getServerSession(authOptions);
+  const [session, { error }] = await Promise.all([getServerSession(authOptions), searchParams]);
   // Un compte CANDIDAT reste sur la vitrine publique : /dashboard le
   // renverrait de toute façon vers /candidature (voir (app)/layout.tsx),
   // donc le rediriger ici créerait une boucle et l'empêcherait de revenir
@@ -21,7 +22,7 @@ export default async function HomePage({
     <main className="min-h-screen">
       <PublicNavbar isCandidateLoggedIn={session?.user.siteRole === "CANDIDAT"} />
 
-      {searchParams.error && (
+      {error && (
         <p className="font-ui text-sm text-blood text-center war-border px-4 py-3 bg-char max-w-md mx-auto mt-6">
           Connexion refusée : une erreur est survenue lors de la vérification
           de votre compte Discord. Réessayez dans un instant.
@@ -29,10 +30,8 @@ export default async function HomePage({
       )}
 
       <HeroBanner />
-
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        <GuildShowcase />
-      </div>
+      <GuildShowcase />
+      <FloatingActionBar />
     </main>
   );
 }

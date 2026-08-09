@@ -13,8 +13,8 @@ const config: Config = {
         moss: "#7A9B5C"
       },
       fontFamily: {
-        display: ["'Oswald'", "sans-serif"],
-        ui: ["'Inter'", "sans-serif"]
+        display: ["'Rajdhani'", "sans-serif"],
+        ui: ["'Barlow Condensed'", "sans-serif"]
       }
     }
   },

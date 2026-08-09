@@ -189,8 +189,9 @@ src/
   components/   Navbar, PublicNavbar, Footer, SignInButton, SignOutLink,
                 CharacterForm, CharacterCard, ClassSpecIcon, EnchantBadge,
                 RaidCard, RaidLeadBadge, WeekLockBadge, VacationMode,
-                GuildShowcase, GuildProgressEditor, HeroBanner, LightboxImage,
-                TwitchClips, TwitchStreamEmbed
+                GuildShowcase, GuildProgressEditor, HeroBanner,
+                FloatingActionBar, LightboxImage, TwitchClips,
+                TwitchStreamEmbed
   lib/
     auth.ts            config NextAuth + vérif rôle Discord au 1er login +
                         helpers canConfigureRaids / canManageRoles / isMember
@@ -207,6 +208,7 @@ src/
     wowWeek.ts             calcul de la semaine WoW (reset mercredi)
     recruitment.ts         colonnes "classes recherchées" affichées en vitrine
     applicationInfo.ts     texte de présentation de la page /candidature
+    aboutInfo.ts             texte "Qui sommes-nous ?" affiché dans HeroBanner
     guildInfo.ts            contenu éditorial vitrine (lien Discord)
     guildProgress.ts        lecture/amorçage de la progression de guilde (GuildProgressEntry), éditable par un Administrateur depuis GuildShowcase
     gallery.ts / twitchClips.ts / twitchChannels.ts / youtube.ts
@@ -281,16 +283,25 @@ première direction parchemin/or a été essayée puis abandonnée).
   (fond), `--char #161210` (cartes), `--blood #A61B1B` (accent unique),
   `--bone #EDE7E0` (texte), `--amber #C98A2C` et `--moss #7A9B5C` (réservées
   aux badges de statut)
-- Typographie : classe utilitaire `.font-display` (**Oswald**, condensée,
-  majuscules) pour les titres/UI forte, `.font-ui` (**Inter**) pour le texte
-  courant
+- Typographie : classe utilitaire `.font-display` (**Rajdhani**, condensée,
+  majuscules) pour les titres/UI forte, `.font-ui` (**Barlow Condensed**)
+  pour le texte courant — chargées via `next/font/google` dans
+  `src/app/layout.tsx` (remplace Oswald/Inter, changement validé lors de la
+  refonte de la vitrine sur la base d'une maquette fournie par l'utilisateur)
 - Formes anguleuses plutôt qu'arrondies : bordure gauche épaisse (classe
-  `.war-border` dans `globals.css`), sceau de rôle en biseau (`clip-path`
-  polygon)
+  `.war-border` dans `globals.css`, toujours utilisée sur les cartes hors
+  vitrine), sceau de rôle en biseau (`clip-path` polygon)
 - Ne pas réintroduire de courbes/dorures type parchemin médiéval — direction
   tranchée volontairement plus "camp de guerre" que "taverne"
 - Attention copyright : ne jamais reproduire l'emblème officiel de la Horde
   (propriété Blizzard), seulement s'inspirer de la palette/l'ambiance
+- **Vitrine publique** (`/`, voir `HeroBanner.tsx` et `GuildShowcase.tsx`) :
+  fond vidéo en tête de page (`public/video/hero.mp4`), sections regroupées
+  en bandes plein écran avec image de fond dégradée vers le noir
+  (`public/vitrine/*.jpg` — recrutement, raids/progression, streams), et
+  barre d'actions persistante en bas d'écran (`FloatingActionBar.tsx`,
+  réductible/masquable). Ces fonds/vidéo sont spécifiques à la vitrine ; le
+  reste du site garde un fond sobre (`--void` uni).
 
 ## Infrastructure de production
 

@@ -5,20 +5,21 @@ import SignOutLink from "./SignOutLink";
 import SignInButton from "./SignInButton";
 
 const ANCHORS = [
-  { href: "#qui-sommes-nous", label: "À propos" },
+  { href: "#qui-sommes-nous", label: "Qui sommes-nous" },
+  { href: "#recrutement", label: "Recrutement" },
+  { href: "#candidature", label: "Candidature" },
   { href: "#raids", label: "Raids" },
   { href: "#progression", label: "Progression" },
-  { href: "#mediatheque", label: "Médiathèque" },
-  { href: "#recrutement", label: "Recrutement" },
-  { href: "/candidature", label: "Candidature" }
+  { href: "#streams", label: "Streams" },
+  { href: "#mediatheque", label: "Médiathèque" }
 ];
 
 export default function PublicNavbar({ isCandidateLoggedIn = false }: { isCandidateLoggedIn?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="border-b-2 border-blood bg-char">
-      <div className="max-w-5xl mx-auto px-6 py-4">
+    <header className="sticky top-0 z-20 border-b border-blood/30 bg-void/70 backdrop-blur-md">
+      <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
