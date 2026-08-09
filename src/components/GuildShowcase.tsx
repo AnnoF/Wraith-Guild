@@ -1,19 +1,18 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions, canManageRoles } from "@/lib/auth";
-import { CLASS_SPECS } from "@/lib/classes";
-import { RECRUITMENT_COLUMNS } from "@/lib/recruitment";
+import { authOptions, canConfigureRaids, canManageRoles } from "@/lib/auth";
+import { getRecruitmentStatus } from "@/lib/recruitment";
 import { getGuildProgress } from "@/lib/guildProgress";
 import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
 import { prisma } from "@/lib/prisma";
 import { raidTitleLabel } from "@/lib/raidInstances";
-import ClassSpecIcon from "./ClassSpecIcon";
 import Footer from "./Footer";
 import TwitchClips from "./TwitchClips";
 import TwitchStreamEmbed from "./TwitchStreamEmbed";
 import LightboxImage from "./LightboxImage";
 import GuildProgressEditor from "./GuildProgressEditor";
+import RecruitmentEditor from "./RecruitmentEditor";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -50,7 +49,12 @@ async function getUpcomingRaids() {
 export default async function GuildShowcase() {
   const session = await getServerSession(authOptions);
   const isAdmin = canManageRoles(session?.user.siteRole);
-  const [raids, progress] = await Promise.all([getUpcomingRaids(), getGuildProgress()]);
+  const canEditRecruitment = canConfigureRaids(session?.user.siteRole);
+  const [raids, progress, recruitmentStatus] = await Promise.all([
+    getUpcomingRaids(),
+    getGuildProgress(),
+    getRecruitmentStatus()
+  ]);
   const previewClips = TWITCH_CLIPS.slice(0, 2);
   const previewScreenshots = GALLERY_IMAGES.slice(0, 2);
 
@@ -66,26 +70,7 @@ export default async function GuildShowcase() {
             tandis que d&apos;autres ne seront retenues que si le profil se
             démarque réellement.
           </p>
-          <div className="flex flex-col gap-4">
-            {RECRUITMENT_COLUMNS.map((col) => (
-              <div key={col.label} className="flex items-center gap-4">
-                <span className={`font-display text-xs w-16 shrink-0 ${col.textClass}`}>{col.label}</span>
-                <div className={`flex gap-1.5 flex-wrap p-1.5 ${col.tintClass}`}>
-                  {col.classes.flatMap((wowClass) =>
-                    CLASS_SPECS[wowClass].map((spec) => (
-                      <ClassSpecIcon
-                        key={`${wowClass}-${spec}`}
-                        wowClass={wowClass}
-                        spec={spec}
-                        size="h-9 w-9"
-                        className={col.iconClass}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <RecruitmentEditor initialStatus={recruitmentStatus} canEdit={canEditRecruitment} />
         </section>
 
         <section id="candidature" className="scroll-mt-20 pb-16 max-w-3xl">
