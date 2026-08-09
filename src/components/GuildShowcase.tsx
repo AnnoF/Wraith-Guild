@@ -31,7 +31,7 @@ function FullBleedBand({ image, children }: { image: string; children: React.Rea
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
       <div
         className="absolute inset-0"
-        style={{ background: "linear-gradient(to bottom, rgba(9,7,6,0.75) 0%, var(--void) 90%)" }}
+        style={{ background: "linear-gradient(to bottom, rgba(9,7,6,0.375) 0%, var(--void) 90%)" }}
       />
       <div className="relative max-w-6xl mx-auto px-6 md:px-12">{children}</div>
     </div>
