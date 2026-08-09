@@ -1,12 +1,13 @@
 import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 
 const FOOTER_LINKS = [
-  { href: "#qui-sommes-nous", label: "À propos" },
+  { href: "#qui-sommes-nous", label: "Qui sommes-nous" },
+  { href: "#recrutement", label: "Recrutement" },
+  { href: "#candidature", label: "Candidature" },
   { href: "#raids", label: "Raids" },
   { href: "#progression", label: "Progression" },
-  { href: "#mediatheque", label: "Médiathèque" },
-  { href: "#recrutement", label: "Recrutement" },
-  { href: "/candidature", label: "Candidature" }
+  { href: "#streams", label: "Streams" },
+  { href: "#mediatheque", label: "Médiathèque" }
 ];
 
 export default function Footer() {

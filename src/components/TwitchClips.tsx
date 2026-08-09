@@ -6,7 +6,7 @@ export default function TwitchClips({ clips }: { clips: TwitchClip[] }) {
   return (
     <>
       {clips.map((clip) => (
-        <div key={clip.slug} className="war-border bg-char p-2">
+        <div key={clip.slug} className="bg-char border border-bone/10 p-2">
           <div className="aspect-video">
             <iframe
               src={`https://clips.twitch.tv/embed?clip=${clip.slug}&${PARENT_QUERY}`}

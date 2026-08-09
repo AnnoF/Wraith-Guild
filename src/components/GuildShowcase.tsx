@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions, canManageRoles } from "@/lib/auth";
 import { CLASS_SPECS } from "@/lib/classes";
 import { RECRUITMENT_COLUMNS } from "@/lib/recruitment";
-import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 import { getGuildProgress } from "@/lib/guildProgress";
 import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
@@ -16,15 +15,26 @@ import TwitchStreamEmbed from "./TwitchStreamEmbed";
 import LightboxImage from "./LightboxImage";
 import GuildProgressEditor from "./GuildProgressEditor";
 
-const QUI_SOMMES_NOUS = `En 2019, un noyau de joueurs qui se connaissent pour la plupart depuis 2004 sur WoW Vanilla, principalement issus de guildes de Ner'Zhul-EU (dont plusieurs membres ont été chez <Wraith>), s'est réuni avec l'idée de se relancer une fois de plus dans l'aventure de Classic WoW. Un premier recrutement sur invitation, ciblant nos connaissances, nos recommandations et des joueurs fiables, a ensuite laissé place à un recrutement plus large, à la recherche de profils alliant maturité et performance. Ce recrutement est resté ouvert jusqu'en 2024, où nous avons décidé de nous arrêter à la sortie de Cataclysm Classic.
-
-Tout cela nous amène à aujourd'hui. Un nouveau noyau de joueurs, formé d'anciens membres de Wraith et de joueurs de Wraith Classic, souhaite se lancer dans une nouvelle aventure : World of Warcraft Camelot.`;
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-2xl md:text-3xl text-blood uppercase tracking-wide mb-4">
-      {children}
-    </h2>
+    <h2 className="font-display text-sm text-amber tracking-[0.1em] mb-5">{children}</h2>
+  );
+}
+
+// Bande plein écran (fond illustré + dégradé vers le noir) utilisée pour
+// regrouper visuellement plusieurs sections, comme dans la maquette de la
+// vitrine. Casse le conteneur `max-w-5xl` du parent (même technique que
+// HeroBanner : relative left-1/2 w-screen -translate-x-1/2).
+function FullBleedBand({ image, children }: { image: string; children: React.ReactNode }) {
+  return (
+    <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden">
+      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to bottom, rgba(9,7,6,0.75) 0%, var(--void) 90%)" }}
+      />
+      <div className="relative max-w-6xl mx-auto px-6 md:px-12">{children}</div>
+    </div>
   );
 }
 
@@ -46,21 +56,61 @@ export default async function GuildShowcase() {
 
   return (
     <div>
-      <div className="space-y-16">
-        <section id="qui-sommes-nous" className="scroll-mt-20 max-w-3xl mx-auto text-center">
-          <SectionTitle>Qui sommes-nous ?</SectionTitle>
-          <p className="font-ui text-bone leading-relaxed whitespace-pre-line">
-            {QUI_SOMMES_NOUS}
+      <FullBleedBand image="/vitrine/recrutement-bg.jpg">
+        <section id="recrutement" className="scroll-mt-20 pt-16 pb-16">
+          <SectionTitle>État du recrutement</SectionTitle>
+          <p className="font-ui text-sm text-bone/65 mb-6 max-w-3xl">
+            Nous restons ouverts à toutes les candidatures de qualité. Le
+            tableau ci-dessous reflète simplement nos besoins actuels par
+            rôle : certaines spécialisations sont activement recherchées,
+            tandis que d&apos;autres ne seront retenues que si le profil se
+            démarque réellement.
           </p>
+          <div className="flex flex-col gap-4">
+            {RECRUITMENT_COLUMNS.map((col) => (
+              <div key={col.label} className="flex items-center gap-4">
+                <span className={`font-display text-xs w-16 shrink-0 ${col.textClass}`}>{col.label}</span>
+                <div className={`flex gap-1.5 flex-wrap p-1.5 ${col.tintClass}`}>
+                  {col.classes.flatMap((wowClass) =>
+                    CLASS_SPECS[wowClass].map((spec) => (
+                      <ClassSpecIcon
+                        key={`${wowClass}-${spec}`}
+                        wowClass={wowClass}
+                        spec={spec}
+                        size="h-9 w-9"
+                        className={col.iconClass}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
-        <section className="grid md:grid-cols-2 gap-8">
+        <section id="candidature" className="scroll-mt-20 pb-16 max-w-3xl">
+          <SectionTitle>Candidature</SectionTitle>
+          <p className="font-ui text-sm text-bone/85 mb-4">
+            Intéressé·e pour rejoindre Wraith ? Découvrez nos objectifs, le
+            profil recherché et déposez votre candidature.
+          </p>
+          <Link
+            href="/candidature"
+            className="inline-block font-display text-xs bg-blood text-bone font-medium px-6 py-3 hover:bg-amber transition-colors focus-ring"
+          >
+            Déposer une candidature →
+          </Link>
+        </section>
+      </FullBleedBand>
+
+      <FullBleedBand image="/vitrine/raids-bg.jpg">
+        <div className="grid md:grid-cols-2 gap-10 pt-16 pb-16">
           <div id="raids" className="scroll-mt-20">
             <SectionTitle>Raids à venir</SectionTitle>
             {raids.length === 0 ? (
               <p className="font-ui text-sm text-bone/50">Aucun raid à venir pour le moment.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="flex flex-col gap-px bg-bone/10">
                 {raids.map((r) => {
                   const date = new Date(r.date);
                   const dateLabel = date.toLocaleDateString("fr-FR", {
@@ -75,9 +125,9 @@ export default async function GuildShowcase() {
                     timeZone: "Europe/Paris"
                   });
                   return (
-                    <div key={r.id} className="war-border bg-char p-4">
+                    <div key={r.id} className="bg-char flex items-center justify-between gap-4 px-5 py-4">
                       <p className="font-display text-sm text-bone">{raidTitleLabel(r.titles)}</p>
-                      <p className="font-ui text-xs text-bone/55 mt-1">{dateLabel}, {timeLabel}</p>
+                      <p className="font-ui text-xs text-bone/55 shrink-0">{dateLabel}, {timeLabel}</p>
                     </div>
                   );
                 })}
@@ -89,94 +139,34 @@ export default async function GuildShowcase() {
             <SectionTitle>Notre progression</SectionTitle>
             <GuildProgressEditor initialEntries={progress} isAdmin={isAdmin} />
           </div>
-        </section>
+        </div>
+      </FullBleedBand>
 
-        <section id="recrutement" className="scroll-mt-20">
-          <SectionTitle>État du recrutement</SectionTitle>
-          <p className="font-ui text-sm text-bone/60 mb-6 max-w-3xl">
-            Nous restons ouverts à toutes les candidatures de qualité. Le
-            tableau ci-dessous reflète simplement nos besoins actuels par
-            rôle : certaines spécialisations sont activement recherchées,
-            tandis que d'autres ne seront retenues que si le profil se
-            démarque réellement.
-          </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {RECRUITMENT_COLUMNS.map((col) => (
-              <div key={col.label} className="war-border bg-char">
-                <div className={`font-display text-sm text-void px-3 py-1.5 ${col.colorClass}`}>
-                  {col.label}
-                </div>
-                <div className="p-3 flex flex-wrap gap-2">
-                  {col.classes.flatMap((wowClass) =>
-                    CLASS_SPECS[wowClass].map((spec) => (
-                      <ClassSpecIcon key={`${wowClass}-${spec}`} wowClass={wowClass} spec={spec} size="h-7 w-7" />
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="candidature" className="scroll-mt-20">
-          <SectionTitle>Candidature</SectionTitle>
-          <p className="font-ui text-sm text-bone/60 mb-4 max-w-3xl">
-            Intéressé·e pour rejoindre Wraith ? Découvrez nos objectifs, le
-            profil recherché et déposez votre candidature.
-          </p>
-          <Link
-            href="/candidature"
-            className="inline-block font-display text-sm bg-blood text-void font-medium px-5 py-2.5 hover:bg-blood/85 transition-colors focus-ring"
-          >
-            Déposer une candidature →
-          </Link>
-        </section>
-
-        <section id="mediatheque" className="scroll-mt-20">
-          <SectionTitle>Galerie / Médiathèque</SectionTitle>
-          {previewClips.length === 0 && previewScreenshots.length === 0 ? (
-            <p className="font-ui text-sm text-bone/50">Screenshots et vidéos à venir.</p>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <TwitchClips clips={previewClips} />
-                {previewScreenshots.map((src) => (
-                  <LightboxImage key={src} src={src} className="w-full aspect-video object-cover" />
-                ))}
-              </div>
-              <Link
-                href="/galerie"
-                className="inline-block font-ui text-xs text-bone/50 hover:text-bone mt-4 focus-ring"
-              >
-                Voir toute la médiathèque →
-              </Link>
-            </>
-          )}
-        </section>
-
-        <section>
+      <FullBleedBand image="/vitrine/streams-bg.jpg">
+        <section id="streams" className="scroll-mt-20 pt-16 pb-16">
           <SectionTitle>Streams Twitch</SectionTitle>
           <TwitchStreamEmbed />
         </section>
 
-        <section className="war-border bg-char p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <p className="font-display text-lg text-bone">Rejoignez la communauté</p>
-            <p className="font-ui text-sm text-bone/60 mt-1">
-              Même sans rejoindre nos raids tout de suite, venez discuter avec
-              nous et faire connaissance avec la guilde.
-            </p>
+        <section id="mediatheque" className="scroll-mt-20 pb-20">
+          <div className="flex items-baseline justify-between mb-5">
+            <SectionTitle>Médiathèque</SectionTitle>
+            <Link href="/galerie" className="font-display text-xs text-bone/50 hover:text-bone focus-ring">
+              Voir toute la médiathèque →
+            </Link>
           </div>
-          <a
-            href={DISCORD_INVITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-display text-sm shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-[#5865F2] hover:bg-[#4752c4] transition-colors text-white font-medium focus-ring"
-          >
-            Rejoindre le Discord
-          </a>
+          {previewClips.length === 0 && previewScreenshots.length === 0 ? (
+            <p className="font-ui text-sm text-bone/50">Screenshots et vidéos à venir.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <TwitchClips clips={previewClips} />
+              {previewScreenshots.map((src) => (
+                <LightboxImage key={src} src={src} className="w-full aspect-[16/10] object-cover" />
+              ))}
+            </div>
+          )}
         </section>
-      </div>
+      </FullBleedBand>
 
       <Footer />
     </div>

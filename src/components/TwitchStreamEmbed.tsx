@@ -7,7 +7,7 @@ export default function TwitchStreamEmbed() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {TWITCH_LIVE_CHANNELS.map((channel) => (
-        <div key={channel} className="war-border bg-char p-2">
+        <div key={channel} className="bg-char border border-bone/10 p-2">
           <div className="aspect-video">
             <iframe
               src={`https://player.twitch.tv/?channel=${channel}&${PARENT_QUERY}`}

@@ -84,7 +84,7 @@ function ProgressCard({
   }
 
   return (
-    <div className="war-border bg-char p-4">
+    <div className="bg-char border border-bone/10 p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="font-display text-sm text-bone">{entry.instance}</p>
         {isAdmin && (
@@ -98,8 +98,11 @@ function ProgressCard({
           </div>
         )}
       </div>
-      <div className="h-2 w-full bg-void mb-2">
-        <div className="h-2 bg-blood" style={{ width: `${(entry.killed / entry.total) * 100}%` }} />
+      <div className="h-1.5 w-full bg-void mb-2">
+        <div
+          className={`h-1.5 ${entry.killed >= entry.total ? "bg-amber" : "bg-blood"}`}
+          style={{ width: `${(entry.killed / entry.total) * 100}%` }}
+        />
       </div>
       <p className="font-ui text-xs text-bone/60">
         {entry.killed} / {entry.total}

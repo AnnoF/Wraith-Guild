@@ -1,61 +1,61 @@
-import Link from "next/link";
-import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
+"use client";
+import { useRef, useState } from "react";
+import { QUI_SOMMES_NOUS } from "@/lib/aboutInfo";
 
-// Bannière plein écran en tête de la vitrine. Casse le conteneur
-// `max-w-5xl` du parent avec la technique full-bleed déjà utilisée dans
-// la page de composition (relative left-1/2 w-screen -translate-x-1/2).
+// Bannière plein écran en tête de la vitrine, avec la section "Qui sommes-nous ?"
+// qui prolonge le même fond vidéo (dégradé continu jusqu'au noir). Casse le
+// conteneur `max-w-5xl` du parent avec la technique full-bleed déjà utilisée
+// dans la page de composition (relative left-1/2 w-screen -translate-x-1/2).
 export default function HeroBanner() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+
+  function toggleSound() {
+    const next = !muted;
+    setMuted(next);
+    if (videoRef.current) videoRef.current.muted = next;
+  }
+
   return (
-    <section className="relative left-1/2 w-screen -translate-x-1/2 h-[70vh] min-h-[480px] overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/qui-sommes-nous.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+    <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden">
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover opacity-55"
+      >
+        <source src="/video/hero.mp4" type="video/mp4" />
+      </video>
+      <button
+        type="button"
+        onClick={toggleSound}
+        className="absolute top-4 right-4 z-20 font-display text-xs text-bone/80 bg-void/60 hover:bg-void/80 transition-colors px-3 py-1.5 rounded-sm focus-ring"
+      >
+        {muted ? "🔇 Son" : "🔊 Son"}
+      </button>
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(to bottom, rgba(13,11,10,0.55) 0%, rgba(13,11,10,0.75) 60%, rgba(13,11,10,1) 100%)"
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(13,11,10,0.85) 55%, var(--void) 100%)"
         }}
       />
 
-      <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
-        <div className="flex items-center gap-4">
-          {/* clip-path recadre l'image en cercle légèrement plus serré que le rond noir du logo, pour ne laisser aucun liseré blanc */}
+      <div className="relative z-10 min-h-[340px] flex items-end px-6 md:px-12 pb-11">
+        <div className="flex items-center gap-5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_net.png" alt="" className="h-16 w-16" style={{ clipPath: "circle(47%)" }} />
-          <h1 className="font-display text-5xl md:text-7xl text-bone">WRAITH</h1>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
-          <a
-            href={DISCORD_INVITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 bg-[#5865F2] hover:bg-[#4752c4] transition-colors text-white font-medium focus-ring"
-          >
-            Rejoindre le Discord
-          </a>
-          <Link
-            href="/candidature"
-            className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 border border-bone/30 hover:border-bone text-bone transition-colors focus-ring"
-          >
-            Déposer une candidature
-          </Link>
+          <img src="/logo_net.png" alt="" className="h-16 w-16 md:h-20 md:w-20 shrink-0" style={{ clipPath: "circle(47%)" }} />
+          <h1 className="font-display text-4xl md:text-6xl text-bone">WRAITH</h1>
         </div>
       </div>
 
-      <a
-        href="#qui-sommes-nous"
-        aria-label="Défiler vers le contenu"
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 text-bone/50 hover:text-bone focus-ring"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </a>
+      <section id="qui-sommes-nous" className="scroll-mt-20 relative z-10 px-6 md:px-12 pb-16">
+        <h2 className="font-display text-sm text-amber tracking-[0.1em] mb-4">Qui sommes-nous ?</h2>
+        <p className="max-w-3xl font-ui text-bone/85 leading-relaxed whitespace-pre-line">
+          {QUI_SOMMES_NOUS}
+        </p>
+      </section>
     </section>
   );
 }
