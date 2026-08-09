@@ -1,21 +1,22 @@
 import { describe, it, expect } from "vitest";
-import { groupByColumn, RECRUITMENT_PRIORITIES } from "./recruitment";
-import { WOW_CLASSES } from "./classes";
+import { allSpecs, groupByColumn, RECRUITMENT_PRIORITIES, specKey } from "./recruitment";
 import type { RecruitmentPriority } from "@prisma/client";
 
 describe("groupByColumn", () => {
-  it("chaque classe apparaît exactement une fois, dans la bonne colonne", () => {
-    const status = Object.fromEntries(
-      WOW_CLASSES.map((wowClass, i) => [wowClass, RECRUITMENT_PRIORITIES[i % RECRUITMENT_PRIORITIES.length]])
-    ) as Record<(typeof WOW_CLASSES)[number], RecruitmentPriority>;
+  it("chaque spécialisation apparaît exactement une fois, dans la bonne colonne", () => {
+    const specs = allSpecs();
+    const status: Record<string, RecruitmentPriority> = {};
+    specs.forEach(({ wowClass, spec }, i) => {
+      status[specKey(wowClass, spec)] = RECRUITMENT_PRIORITIES[i % RECRUITMENT_PRIORITIES.length];
+    });
 
     const columns = groupByColumn(status);
-    const allClasses = columns.flatMap((col) => col.classes);
-    expect(allClasses.sort()).toEqual([...WOW_CLASSES].sort());
+    const allListed = columns.flatMap((col) => col.specs.map(({ wowClass, spec }) => specKey(wowClass, spec)));
+    expect(allListed.sort()).toEqual(specs.map(({ wowClass, spec }) => specKey(wowClass, spec)).sort());
 
     for (const col of columns) {
-      for (const wowClass of col.classes) {
-        expect(status[wowClass]).toBe(col.priority);
+      for (const { wowClass, spec } of col.specs) {
+        expect(status[specKey(wowClass, spec)]).toBe(col.priority);
       }
     }
   });
