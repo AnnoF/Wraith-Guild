@@ -11,6 +11,10 @@
   --moss: #7A9B5C;
 }
 
+html {
+  font-size: 120%;
+}
+
 body {
   background-color: var(--void);
   background-image:
