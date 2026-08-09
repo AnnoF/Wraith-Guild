@@ -278,14 +278,18 @@ model GuildProgressEntry {
   updatedAt DateTime @updatedAt
 }
 
-// État du recrutement par classe, affiché sur la page vitrine (voir
+// État du recrutement par spécialisation, affiché sur la page vitrine (voir
 // GuildShowcase), éditable par les Officiers et Administrateurs (voir
-// /api/recruitment). Une ligne par WowClass, créée à l'amorçage (voir
-// src/lib/recruitment.ts) donc toujours au nombre de WOW_CLASSES.
+// /api/recruitment). Une ligne par (classe, spé) — spé en String, comme
+// Character.spec, voir src/lib/classes.ts (CLASS_SPECS) — créée à l'amorçage
+// (voir src/lib/recruitment.ts).
 model RecruitmentStatus {
-  wowClass  WowClass            @id
+  wowClass  WowClass
+  spec      String
   priority  RecruitmentPriority
   updatedAt DateTime            @updatedAt
+
+  @@id([wowClass, spec])
 }
 
 // Historique des changements de rôle site (traçabilité pour les admins)

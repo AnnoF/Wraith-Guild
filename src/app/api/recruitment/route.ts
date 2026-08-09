@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import type { RecruitmentPriority } from "@prisma/client";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getRecruitmentStatus, RECRUITMENT_PRIORITIES } from "@/lib/recruitment";
+import { allSpecs, getRecruitmentStatus, RECRUITMENT_PRIORITIES, specKey } from "@/lib/recruitment";
 import { WOW_CLASSES, type WowClass } from "@/lib/classes";
 
 // GET : état du recrutement affiché sur la page vitrine — publique (accueil
@@ -13,7 +13,7 @@ export async function GET() {
   return NextResponse.json(status);
 }
 
-// PUT : remplace l'état du recrutement pour toutes les classes (Officier+).
+// PUT : remplace l'état du recrutement pour toutes les spés (Officier+).
 export async function PUT(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -23,34 +23,41 @@ export async function PUT(req: Request) {
 
   const body = await req.json();
   const entries = body?.entries;
-  if (!Array.isArray(entries) || entries.length !== WOW_CLASSES.length) {
+  const specs = allSpecs();
+  if (!Array.isArray(entries) || entries.length !== specs.length) {
     return NextResponse.json({ error: "Données invalides" }, { status: 400 });
   }
 
+  const validKeys = new Set(specs.map(({ wowClass, spec }) => specKey(wowClass, spec)));
   const seen = new Set<string>();
   for (const entry of entries) {
     if (
       !entry ||
       typeof entry.wowClass !== "string" ||
+      typeof entry.spec !== "string" ||
       typeof entry.priority !== "string" ||
       !WOW_CLASSES.includes(entry.wowClass as WowClass) ||
-      !RECRUITMENT_PRIORITIES.includes(entry.priority as RecruitmentPriority) ||
-      seen.has(entry.wowClass)
+      !validKeys.has(specKey(entry.wowClass, entry.spec)) ||
+      !RECRUITMENT_PRIORITIES.includes(entry.priority as RecruitmentPriority)
     ) {
       return NextResponse.json({ error: "Données invalides" }, { status: 400 });
     }
-    seen.add(entry.wowClass);
+    const key = specKey(entry.wowClass, entry.spec);
+    if (seen.has(key)) {
+      return NextResponse.json({ error: "Données invalides" }, { status: 400 });
+    }
+    seen.add(key);
   }
-  if (seen.size !== WOW_CLASSES.length) {
-    return NextResponse.json({ error: "Chaque classe doit être renseignée exactement une fois" }, { status: 400 });
+  if (seen.size !== specs.length) {
+    return NextResponse.json({ error: "Chaque spécialisation doit être renseignée exactement une fois" }, { status: 400 });
   }
 
   await prisma.$transaction(
-    (entries as { wowClass: WowClass; priority: RecruitmentPriority }[]).map((entry) =>
+    (entries as { wowClass: WowClass; spec: string; priority: RecruitmentPriority }[]).map((entry) =>
       prisma.recruitmentStatus.upsert({
-        where: { wowClass: entry.wowClass },
+        where: { wowClass_spec: { wowClass: entry.wowClass, spec: entry.spec } },
         update: { priority: entry.priority },
-        create: { wowClass: entry.wowClass, priority: entry.priority }
+        create: { wowClass: entry.wowClass, spec: entry.spec, priority: entry.priority }
       })
     )
   );

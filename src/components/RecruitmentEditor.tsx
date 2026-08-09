@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 import type { RecruitmentPriority } from "@prisma/client";
-import { CLASS_LABELS, CLASS_SPECS, WOW_CLASSES, type WowClass } from "@/lib/classes";
-import { RECRUITMENT_COLUMN_META, RECRUITMENT_PRIORITIES, groupByColumn } from "@/lib/recruitment";
+import { CLASS_LABELS, CLASS_SPECS, WOW_CLASSES } from "@/lib/classes";
+import { RECRUITMENT_COLUMN_META, RECRUITMENT_PRIORITIES, groupByColumn, specKey } from "@/lib/recruitment";
 import ClassSpecIcon from "./ClassSpecIcon";
 
-type RecruitmentStatus = Record<WowClass, RecruitmentPriority>;
+type RecruitmentStatus = Record<string, RecruitmentPriority>;
 
 export default function RecruitmentEditor({
   initialStatus,
@@ -37,7 +37,9 @@ export default function RecruitmentEditor({
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const entries = WOW_CLASSES.map((wowClass) => ({ wowClass, priority: draft[wowClass] }));
+    const entries = WOW_CLASSES.flatMap((wowClass) =>
+      CLASS_SPECS[wowClass].map((spec) => ({ wowClass, spec, priority: draft[specKey(wowClass, spec)] }))
+    );
     const res = await fetch("/api/recruitment", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -81,23 +83,31 @@ export default function RecruitmentEditor({
       )}
 
       {editing ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {WOW_CLASSES.map((wowClass) => (
-            <div key={wowClass} className="flex items-center justify-between gap-3 bg-char border border-bone/10 px-3 py-2">
-              <span className="font-ui text-sm text-bone">{CLASS_LABELS[wowClass]}</span>
-              <select
-                value={draft[wowClass]}
-                onChange={(e) =>
-                  setDraft((prev) => ({ ...prev, [wowClass]: e.target.value as RecruitmentPriority }))
-                }
-                className="bg-void border border-bone/15 focus-ring px-2 py-1 font-ui text-xs text-bone"
-              >
-                {RECRUITMENT_PRIORITIES.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {RECRUITMENT_COLUMN_META[priority].label}
-                  </option>
-                ))}
-              </select>
+            <div key={wowClass} className="bg-char border border-bone/10 p-3 space-y-2">
+              <p className="font-display text-xs text-bone/70 tracking-[0.08em]">{CLASS_LABELS[wowClass]}</p>
+              {CLASS_SPECS[wowClass].map((spec) => {
+                const key = specKey(wowClass, spec);
+                return (
+                  <div key={key} className="flex items-center justify-between gap-3">
+                    <span className="font-ui text-sm text-bone">{spec}</span>
+                    <select
+                      value={draft[key]}
+                      onChange={(e) =>
+                        setDraft((prev) => ({ ...prev, [key]: e.target.value as RecruitmentPriority }))
+                      }
+                      className="bg-void border border-bone/15 focus-ring px-2 py-1 font-ui text-xs text-bone"
+                    >
+                      {RECRUITMENT_PRIORITIES.map((priority) => (
+                        <option key={priority} value={priority}>
+                          {RECRUITMENT_COLUMN_META[priority].label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -107,17 +117,15 @@ export default function RecruitmentEditor({
             <div key={col.priority} className="flex items-center gap-4">
               <span className={`font-display text-xs w-16 shrink-0 ${col.textClass}`}>{col.label}</span>
               <div className={`flex gap-1.5 flex-wrap p-1.5 ${col.tintClass}`}>
-                {col.classes.flatMap((wowClass) =>
-                  CLASS_SPECS[wowClass].map((spec) => (
-                    <ClassSpecIcon
-                      key={`${wowClass}-${spec}`}
-                      wowClass={wowClass}
-                      spec={spec}
-                      size="h-9 w-9"
-                      className={col.iconClass}
-                    />
-                  ))
-                )}
+                {col.specs.map(({ wowClass, spec }) => (
+                  <ClassSpecIcon
+                    key={`${wowClass}-${spec}`}
+                    wowClass={wowClass}
+                    spec={spec}
+                    size="h-9 w-9"
+                    className={col.iconClass}
+                  />
+                ))}
               </div>
             </div>
           ))}

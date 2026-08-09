@@ -1,12 +1,12 @@
 import type { RecruitmentPriority } from "@prisma/client";
-import { WOW_CLASSES, type WowClass } from "./classes";
+import { CLASS_SPECS, WOW_CLASSES, type WowClass } from "./classes";
 import { prisma } from "./prisma";
 
-// État du recrutement affiché sur la page vitrine : chaque classe (toutes
-// spés confondues) est rangée dans un niveau de priorité. Éditable par les
+// État du recrutement affiché sur la page vitrine : chaque spécialisation
+// (classe + spé) est rangée dans un niveau de priorité. Éditable par les
 // Officiers/Administrateurs depuis GuildShowcase (voir RecruitmentEditor et
 // /api/recruitment). Le style/libellé de chaque niveau reste fixe ici ; seule
-// l'affectation classe -> niveau est stockée en base (RecruitmentStatus).
+// l'affectation spé -> niveau est stockée en base (RecruitmentStatus).
 
 export const RECRUITMENT_PRIORITIES: RecruitmentPriority[] = ["HAUT", "MOYEN", "BAS", "FERME"];
 
@@ -30,10 +30,24 @@ export const RECRUITMENT_COLUMN_META: Record<
   }
 };
 
-// Valeurs de repli utilisées uniquement pour amorcer la table au tout
-// premier accès (avant qu'un Officier n'ait rien édité depuis GuildShowcase).
-// Une fois la table peuplée, ces valeurs ne sont plus lues.
-const DEFAULT_RECRUITMENT: Record<WowClass, RecruitmentPriority> = {
+export interface SpecKey {
+  wowClass: WowClass;
+  spec: string;
+}
+
+export function specKey(wowClass: WowClass, spec: string): string {
+  return `${wowClass}::${spec}`;
+}
+
+export function allSpecs(): SpecKey[] {
+  return WOW_CLASSES.flatMap((wowClass) => CLASS_SPECS[wowClass].map((spec) => ({ wowClass, spec })));
+}
+
+// Valeurs de repli par classe (appliquées à toutes ses spés) utilisées
+// uniquement pour amorcer la table au tout premier accès (avant qu'un
+// Officier n'ait rien édité depuis GuildShowcase). Une fois la table
+// peuplée, ces valeurs ne sont plus lues.
+const DEFAULT_RECRUITMENT_BY_CLASS: Record<WowClass, RecruitmentPriority> = {
   PRETRE: "HAUT",
   MAGE: "HAUT",
   DEMONISTE: "HAUT",
@@ -45,17 +59,27 @@ const DEFAULT_RECRUITMENT: Record<WowClass, RecruitmentPriority> = {
   PALADIN: "FERME"
 };
 
-export async function getRecruitmentStatus(): Promise<Record<WowClass, RecruitmentPriority>> {
+export async function getRecruitmentStatus(): Promise<Record<string, RecruitmentPriority>> {
+  const specs = allSpecs();
   const rows = await prisma.recruitmentStatus.findMany();
-  if (rows.length === 0) {
-    await prisma.recruitmentStatus.createMany({
-      data: WOW_CLASSES.map((wowClass) => ({ wowClass, priority: DEFAULT_RECRUITMENT[wowClass] }))
-    });
-    return { ...DEFAULT_RECRUITMENT };
+
+  const status: Record<string, RecruitmentPriority> = {};
+  for (const { wowClass, spec } of specs) {
+    status[specKey(wowClass, spec)] = DEFAULT_RECRUITMENT_BY_CLASS[wowClass];
   }
 
-  const status = { ...DEFAULT_RECRUITMENT };
-  for (const row of rows) status[row.wowClass] = row.priority;
+  if (rows.length === 0) {
+    await prisma.recruitmentStatus.createMany({
+      data: specs.map(({ wowClass, spec }) => ({
+        wowClass,
+        spec,
+        priority: DEFAULT_RECRUITMENT_BY_CLASS[wowClass]
+      }))
+    });
+    return status;
+  }
+
+  for (const row of rows) status[specKey(row.wowClass, row.spec)] = row.priority;
   return status;
 }
 
@@ -65,13 +89,14 @@ export interface RecruitmentColumn {
   textClass: string;
   tintClass: string;
   iconClass?: string;
-  classes: WowClass[];
+  specs: SpecKey[];
 }
 
-export function groupByColumn(status: Record<WowClass, RecruitmentPriority>): RecruitmentColumn[] {
+export function groupByColumn(status: Record<string, RecruitmentPriority>): RecruitmentColumn[] {
+  const specs = allSpecs();
   return RECRUITMENT_PRIORITIES.map((priority) => ({
     priority,
     ...RECRUITMENT_COLUMN_META[priority],
-    classes: WOW_CLASSES.filter((wowClass) => status[wowClass] === priority)
+    specs: specs.filter(({ wowClass, spec }) => status[specKey(wowClass, spec)] === priority)
   }));
 }
