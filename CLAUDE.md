@@ -186,10 +186,11 @@ src/
       hall-of-fame/, .../upload/, .../[id]/  Hall of Fame + upload d'image
       me/                               profil courant (dont mode vacances)
       guild-progress/, .../[id]/        progression de guilde affichée sur la vitrine (Administrateur en écriture)
+      recruitment/                      état du recrutement affiché sur la vitrine (Officier+ en écriture)
   components/   Navbar, PublicNavbar, Footer, SignInButton, SignOutLink,
                 CharacterForm, CharacterCard, ClassSpecIcon, EnchantBadge,
                 RaidCard, RaidLeadBadge, WeekLockBadge, VacationMode,
-                GuildShowcase, GuildProgressEditor, HeroBanner,
+                GuildShowcase, GuildProgressEditor, RecruitmentEditor, HeroBanner,
                 FloatingActionBar, LightboxImage, TwitchClips,
                 TwitchStreamEmbed
   lib/
@@ -206,7 +207,7 @@ src/
     raidStatus.ts         statut affiché calculé (deadline / date dépassée)
     vacation.ts            bascule auto en ABSENT pendant les vacances
     wowWeek.ts             calcul de la semaine WoW (reset mercredi)
-    recruitment.ts         colonnes "classes recherchées" affichées en vitrine
+    recruitment.ts         lecture/amorçage de l'état du recrutement par classe (RecruitmentStatus), éditable par Officier+ depuis GuildShowcase
     applicationInfo.ts     texte de présentation de la page /candidature
     aboutInfo.ts             texte "Qui sommes-nous ?" affiché dans HeroBanner
     guildInfo.ts            contenu éditorial vitrine (lien Discord)
@@ -233,6 +234,7 @@ prisma/schema.prisma   modèle de données complet, voir ci-dessous
 | `GuideEntry` | entrée du guide de raid (un boss = une entrée) |
 | `HallOfFameEntry` | souvenir marquant de la guilde |
 | `GuildProgressEntry` | ligne de progression affichée sur la vitrine (instance, tués/total), éditable par un Administrateur |
+| `RecruitmentStatus` | niveau de priorité de recrutement par classe, affiché sur la vitrine, éditable par Officier+ |
 | `RoleAudit` | historique des changements de `siteRole` |
 
 ## Recettes courantes
