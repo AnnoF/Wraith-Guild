@@ -35,27 +35,28 @@ export default function FloatingActionBar() {
         )}
 
         {state === "expanded" && (
-          <div className="relative px-14 py-3.5">
-            <div className="flex items-center justify-center gap-5 flex-wrap">
+          <div className="relative flex items-center px-6 py-3.5 min-h-[70px]">
+            <div className="flex items-center gap-2.5 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo_net.png" alt="Wraith" className="h-7 w-7" style={{ clipPath: "circle(47%)" }} />
-              <span className="font-display text-lg text-bone">WRAITH</span>
-              <div className="flex items-center gap-3 flex-wrap justify-center">
-                <a
-                  href={DISCORD_INVITE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-display text-xs bg-blood hover:bg-amber transition-colors text-bone px-5 py-2.5 focus-ring"
-                >
-                  Rejoindre le Discord
-                </a>
-                <Link
-                  href="/candidature"
-                  className="font-display text-xs border border-bone/25 hover:border-amber text-bone px-5 py-2.5 transition-colors focus-ring"
-                >
-                  Candidater
-                </Link>
-              </div>
+              <img src="/logo_net.png" alt="Wraith" className="h-7 w-7 shrink-0" style={{ clipPath: "circle(47%)" }} />
+              <span className="font-display text-lg text-bone whitespace-nowrap">WRAITH</span>
+            </div>
+
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 flex-wrap justify-center px-16">
+              <a
+                href={DISCORD_INVITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-display text-xs bg-blood hover:bg-amber transition-colors text-bone px-5 py-2.5 focus-ring"
+              >
+                Rejoindre le Discord
+              </a>
+              <Link
+                href="/candidature"
+                className="font-display text-xs border border-bone/25 hover:border-amber text-bone px-5 py-2.5 transition-colors focus-ring"
+              >
+                Candidater
+              </Link>
             </div>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <button
