@@ -10,6 +10,8 @@
     "type-check": "tsc --noEmit",
     "test": "cross-env TZ=Europe/Paris vitest run",
     "test:watch": "cross-env TZ=Europe/Paris vitest",
+    "test:e2e": "cross-env TZ=Europe/Paris playwright test",
+    "test:e2e:ui": "cross-env TZ=Europe/Paris playwright test --ui",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -22,6 +24,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20.14.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

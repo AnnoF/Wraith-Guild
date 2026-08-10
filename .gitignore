@@ -6,3 +6,8 @@ node_modules/
 .DS_Store
 *.tsbuildinfo
 /public/uploads/
+.env.test
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
