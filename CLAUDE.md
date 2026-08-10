@@ -25,13 +25,26 @@ Domaine de production : https://wraith-guild.fr (VPS OVH)
   `canConfigureRaids(role)` (Officier+), `canManageRoles(role)`
   (Administrateur), `isMember(role)` (connecté et pas Candidat). Ne jamais
   réimplémenter cette logique inline — voir [Recettes](#recettes-courantes).
-- **Versions réelles** (voir `package.json`, pas le README qui est
-  optimiste) : Next.js `^16.2.12` (App Router), React `^19.2.8`, NextAuth
-  `^4.24.15`, Prisma `^5.20.0`, TypeScript `^5.5.3`, PM2 en prod.
+- **Versions réelles** (toujours vérifier `package.json`) : Next.js
+  `^16.2.12` (App Router), React `^19.2.8`, NextAuth `^4.24.15`, Prisma
+  `^5.20.0`, TypeScript `^5.5.3`, Vitest `^4.1.10`, Playwright `^1.62.1`,
+  PM2 en prod.
+- **Avant de conclure une modification de code** : lancer
+  `npm run type-check` puis `npm test` (rapide, sans base de données). Ce
+  sont les deux commandes que la CI fait tourner sur chaque PR. **Il n'y a
+  pas de `npm run lint`** : le script a été retiré, `next lint` n'existe
+  plus en Next.js 16 et aucun ESLint n'est installé — ne pas le proposer.
+- **Un merge sur `main` déploie automatiquement en production** via GitHub
+  Actions (`.github/workflows/ci-cd.yml`), `prisma db push` compris. Ce
+  n'est plus un déploiement manuel — voir [CI/CD](#cicd-github-actions)
+  avant de toucher au schéma ou au workflow.
 - **Pas de `prisma/migrations` versionné** : le schéma est appliqué avec
   `npx prisma db push`, en local comme en prod. Ne jamais lancer
   `prisma migrate dev/deploy` sans en discuter avec l'utilisateur d'abord
   (ça initialiserait un historique de migrations qui n'existe pas encore).
+- **Les tests E2E ne tournent jamais contre la base de production** : ils
+  vident les tables avant chaque run. Ils utilisent la base dédiée
+  `wraithguild_test` et ne tournent pas en CI — voir [Tests](#tests).
 - **UI en français, code/identifiants en anglais** : les libellés affichés
   et les commentaires sont en français ; les noms de variables, fonctions,
   routes et enums Prisma sont en anglais (sauf les enums `WowClass` et
@@ -217,7 +230,17 @@ src/
     uploads.ts              sauvegarde/suppression d'images uploadées (public/uploads, hors git)
     url.ts                  helpers d'URL
     prisma.ts               client Prisma partagé
+    *.test.ts               tests unitaires Vitest, à côté du fichier testé
 prisma/schema.prisma   modèle de données complet, voir ci-dessous
+e2e/                   tests Playwright, voir e2e/README.md et la section Tests
+  fixtures.ts            fixture `signInAs` (crée un user + pose son cookie)
+  global-setup.ts        vide la base de test avant le run
+  helpers/db.ts          client Prisma de test, resetDb, createUser
+  helpers/session.ts     signe un cookie de session NextAuth sans passer par Discord
+  tests/*.spec.ts        un fichier par parcours (auth, personnages, raid, candidature, admin)
+.github/workflows/ci-cd.yml   CI (type-check, tests unitaires, build) + déploiement auto
+vitest.config.mts      config Vitest (environnement node, alias `@` → src/)
+playwright.config.ts   config Playwright (série, webServer `npm run dev`, lit .env.test)
 ```
 
 ### Modèles de données (Prisma)
@@ -237,7 +260,71 @@ prisma/schema.prisma   modèle de données complet, voir ci-dessous
 | `RecruitmentStatus` | niveau de priorité de recrutement par spécialisation (classe + spé), affiché sur la vitrine, éditable par Officier+ |
 | `RoleAudit` | historique des changements de `siteRole` |
 
+## Tests
+
+Deux niveaux, avec des contraintes très différentes — ne pas les confondre.
+
+### Tests unitaires (Vitest) — `npm test`
+Rapides, sans base de données ni réseau, lancés par la CI sur chaque PR.
+Les fichiers vivent **à côté du code testé** (`src/lib/classes.test.ts` pour
+`src/lib/classes.ts`) ; `vitest.config.mts` ne ramasse que
+`src/**/*.test.ts`, en environnement `node`, avec l'alias `@` → `src/`.
+
+Ils couvrent aujourd'hui les modules purs de `src/lib/` (classes, raids,
+statuts, semaine WoW, recrutement, URL…). Le fuseau est forcé à
+`Europe/Paris` via `cross-env` dans le script npm : ne pas retirer ce
+préfixe, plusieurs tests de dates en dépendent.
+
+`npm run test:watch` pour le mode interactif.
+
+### Tests E2E (Playwright) — `npm run test:e2e`
+Vrai navigateur, vrai serveur Next.js, vraie base Postgres. Couvrent les
+parcours critiques : accès par rôle, personnages, inscription à un raid,
+composition, candidature, admin.
+
+⚠️ **Trois points à connaître avant d'y toucher** :
+1. Ils tournent contre la base **`wraithguild_test`**, jamais `wraithguild`
+   (la prod) : `e2e/global-setup.ts` fait un `TRUNCATE` de toutes les tables
+   avant chaque run. Une mauvaise `DATABASE_URL` dans `.env.test` effacerait
+   de vraies données de guilde.
+2. Il n'y a pas de Postgres sur le poste de travail : la base de test est
+   sur le VPS, atteinte par un **tunnel SSH à garder ouvert** pendant le run
+   (`ssh -L 5432:localhost:5432 <user>@51.210.247.13 -N`). Sans tunnel, les
+   tests échouent à la connexion — ce n'est pas un bug du code testé.
+3. **Ils ne tournent pas en CI** (ils auraient besoin de ce tunnel et de
+   secrets de base) : c'est une commande à lancer manuellement, en local.
+
+La procédure complète (création de la base, `.env.test`, `db push` sur la
+base de test) est dans **`e2e/README.md`** — s'y référer plutôt que de la
+réinventer.
+
+Le flux OAuth Discord n'est pas automatisable : `e2e/helpers/session.ts`
+signe directement un cookie de session NextAuth. Aucun code de
+`src/lib/auth.ts` n'est modifié ni contourné pour les tests.
+
 ## Recettes courantes
+
+**Écrire un test** : d'abord se demander lequel des deux niveaux convient.
+Une fonction pure de `src/lib/` → test unitaire à côté d'elle, c'est
+toujours le choix par défaut (rapide, tourne en CI). Un parcours qui
+traverse plusieurs pages, la base et les droits → test E2E dans
+`e2e/tests/<parcours>.spec.ts`, en important `test`/`expect` depuis
+`../fixtures` (jamais depuis `@playwright/test` directement, sinon la
+fixture `signInAs` n'existe pas) :
+
+```ts
+import { test, expect } from "../fixtures";
+
+test("un RAIDEUR crée un personnage", async ({ page, signInAs }) => {
+  await signInAs("RAIDEUR");
+  await page.goto("/dashboard/personnages");
+  // ...
+});
+```
+
+Chaque test crée ses propres données (`signInAs` + `prisma` réexporté par
+`../fixtures`) : pas de fixture partagée mutable entre specs, la suite
+tourne en série et doit rester indépendante de l'ordre d'exécution.
 
 **Nouvelle page protégée (Raideur+)** : la créer sous
 `src/app/(app)/...` — le layout `src/app/(app)/layout.tsx` gère déjà la
@@ -273,8 +360,9 @@ type/taille ailleurs.
 
 **Ajout de champ au schéma Prisma** : demander d'abord si on garde
 `db push` (rapide, cohérent avec l'existant) ou si c'est le moment de
-démarrer un historique `prisma migrate` — ne pas trancher seul (voir
-[Point d'attention Prisma](#point-dattention-prisma)).
+démarrer un historique `prisma migrate` — ne pas trancher seul. Prévenir
+aussi que le merge sur `main` appliquera le changement en production
+automatiquement (voir [Point d'attention Prisma](#point-dattention-prisma)).
 
 ## Design — identité visuelle
 
@@ -293,6 +381,18 @@ première direction parchemin/or a été essayée puis abandonnée).
 - Formes anguleuses plutôt qu'arrondies : bordure gauche épaisse (classe
   `.war-border` dans `globals.css`, toujours utilisée sur les cartes hors
   vitrine), sceau de rôle en biseau (`clip-path` polygon)
+- `globals.css` pose `html { font-size: 120% }` : toutes les tailles Tailwind
+  (`text-sm`, `text-4xl`…) sont donc agrandies de 20% par rapport au défaut.
+  Choisir les tailles en regardant le rendu, pas l'échelle Tailwind
+  habituelle — et ne pas « corriger » ce 120%, c'est un choix validé.
+- Accessibilité déjà en place, à réutiliser plutôt qu'à réinventer : classe
+  `.focus-ring` sur les éléments cliquables (contour rouge au clavier
+  uniquement, `:focus-visible`), et un bloc
+  `@media (prefers-reduced-motion: reduce)` qui coupe animations/transitions
+- Pour qu'une section de la vitrine déborde du conteneur `max-w-5xl` du
+  parent (bande plein écran), reprendre la technique déjà utilisée dans
+  `HeroBanner.tsx`/`GuildShowcase.tsx` :
+  `relative left-1/2 w-screen -translate-x-1/2`
 - Ne pas réintroduire de courbes/dorures type parchemin médiéval — direction
   tranchée volontairement plus "camp de guerre" que "taverne"
 - Attention copyright : ne jamais reproduire l'emblème officiel de la Horde
@@ -346,16 +446,45 @@ changement de schéma est nécessaire, décider avec l'utilisateur s'il veut
 initialiser un vrai historique de migrations (`prisma migrate dev` en local
 puis `migrate deploy` en prod) plutôt que de continuer au `db push`.
 
-### Workflow de déploiement actuel (manuel, pas de CI/CD)
-Sur le VPS, après un `git push` depuis le poste de travail :
-```bash
-cd /var/www/Wraith-Guild
-git pull
-npm install            # si les dépendances ont changé
-npx prisma db push     # si le schéma a changé
-npm run build
-pm2 restart wraith-guild
-```
+Depuis la mise en place du CI/CD, `prisma db push` sur la base de prod est
+lancé **automatiquement** par `deploy.sh` à chaque merge sur `main` : un
+changement de schéma est donc appliqué en production sans intervention. Ne
+pas oublier que `db push` peut supprimer des colonnes/données sans
+avertissement — un renommage de champ est une suppression + un ajout.
+
+La base de test E2E (`wraithguild_test`) n'est mise à jour par personne
+automatiquement : après un changement de schéma, y appliquer `db push` à la
+main avant de relancer les tests E2E (voir `e2e/README.md`).
+
+### CI/CD (GitHub Actions)
+Le déploiement n'est plus manuel. `.github/workflows/ci-cd.yml` définit deux
+jobs :
+
+- **`ci`** — sur chaque PR vers `main` *et* sur chaque push sur `main` :
+  `npm ci`, `prisma generate`, `npm run type-check`, `npm test`,
+  `npm run build`. Pas de step de lint (voir
+  [Repères essentiels](#repères-essentiels-à-ne-pas-deviner-à-partir-du-nom-des-choses)),
+  et pas de tests E2E (voir [Tests](#tests)).
+- **`deploy`** — uniquement sur push sur `main`, après un `ci` vert :
+  connexion SSH au VPS avec les secrets GitHub `DEPLOY_HOST`, `DEPLOY_USER`,
+  `DEPLOY_SSH_KEY` (environnement `production`, `concurrency` sur
+  `deploy-production` pour éviter deux déploiements simultanés).
+
+La clé SSH de déploiement est **restreinte côté serveur** : dans
+`authorized_keys`, une directive `command=` force l'exécution de
+`/var/www/Wraith-Guild/deploy.sh` et ignore la commande envoyée par le
+workflow. Ce script n'est pas versionné dans le dépôt (il vit sur le VPS) et
+enchaîne `git pull`, `npm ci`, `prisma generate`, `prisma db push`,
+`npm run build`, `pm2 restart wraith-guild`.
+
+Conséquences pratiques :
+- **Un merge sur `main` part en prod tout seul**, migration de schéma
+  comprise (`db push` est dans le script). Ne pas merger un changement de
+  schéma sans être prêt à le voir appliqué en production.
+- Modifier les étapes du déploiement demande d'éditer `deploy.sh` **sur le
+  VPS**, pas le workflow — le workflow ne fait qu'ouvrir la connexion.
+- Le déploiement manuel reste possible en secours (se connecter au VPS et
+  lancer `deploy.sh`), mais ce n'est plus le chemin normal.
 
 ## État d'avancement
 
@@ -363,7 +492,10 @@ Le site est **déployé et fonctionnel en production** (auth Discord testée
 avec succès, thème Horde en ligne). Le périmètre a beaucoup grandi depuis le
 MVP initial (raids/personnages) : recrutement par candidature, annuaire des
 membres, stats de présence, mode vacances, guide de raid, Hall of Fame,
-médiathèque/Twitch. L'utilisateur prévoit de nombreux changements à venir —
+médiathèque/Twitch. L'outillage a suivi : refonte de la vitrine publique
+d'après une maquette, pipeline CI/CD avec déploiement automatique, tests
+unitaires Vitest et suite E2E Playwright sur les parcours critiques.
+L'utilisateur prévoit de nombreux changements à venir —
 rien de figé, itérer librement sur les pages/fonctionnalités existantes
 selon ses demandes. **Si le code observé contredit ce fichier, faire
 confiance au code** et signaler l'écart plutôt que de le reproduire
