@@ -118,8 +118,8 @@ l'historique des raids passés.
 
 ### Raids
 Un événement de raid regroupe une ou plusieurs **instances** figées dans
-`src/lib/raidInstances.ts` (`RAID_INSTANCE_SIZES` — ex. Molten Core = 40,
-Zul'Gurub = 20). La taille n'est plus un champ libre : plusieurs instances
+`src/lib/raidInstances.ts` (`RAID_INSTANCE_SIZES` — Barrow Deeps = 10,
+Hyjal Summit = 20, Onyxia's Lair = 40). La taille n'est plus un champ libre : plusieurs instances
 peuvent être programmées le même soir (`Raid.titles: String[]`) mais
 uniquement si elles partagent la même taille (`instancesShareSize`). Une
 seule composition/liste d'inscrits sert pour tout l'événement. Statuts :

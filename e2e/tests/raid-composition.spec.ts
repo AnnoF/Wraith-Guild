@@ -5,7 +5,7 @@ test("un OFFICIER crée un raid puis y place un inscrit", async ({ page, signInA
   await signInAs("OFFICIER");
 
   await page.goto("/officier/raids/nouveau");
-  await page.getByRole("button", { name: /Zul'Gurub/ }).click();
+  await page.getByRole("button", { name: /Hyjal Summit/ }).click();
   await page.locator('input[type="datetime-local"]').first().fill("2026-09-01T20:00");
   await page.getByRole("button", { name: "Créer le raid" }).click();
 

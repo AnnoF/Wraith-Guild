@@ -7,7 +7,7 @@ describe("groupRows", () => {
   });
 
   it("cas générique : numGroups multiple de 4 -> lignes complètes de 4", () => {
-    // Molten Core (40 joueurs, 8 groupes)
+    // Onyxia's Lair (40 joueurs, 8 groupes)
     expect(groupRows(40, 8)).toEqual([
       [0, 1, 2, 3],
       [4, 5, 6, 7]
@@ -15,7 +15,7 @@ describe("groupRows", () => {
   });
 
   it("cas générique : dernière ligne partielle quand numGroups n'est pas multiple de 4", () => {
-    // Zul'Gurub (20 joueurs, 4 groupes) -> une seule ligne pleine
+    // Hyjal Summit (20 joueurs, 4 groupes) -> une seule ligne pleine
     expect(groupRows(20, 4)).toEqual([[0, 1, 2, 3]]);
     // 6 groupes -> une ligne de 4 puis une ligne de 2
     expect(groupRows(10, 6)).toEqual([[0, 1, 2, 3], [4, 5]]);
