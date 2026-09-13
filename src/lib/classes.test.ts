@@ -14,7 +14,7 @@ describe("classSpecIconPath", () => {
       "/icons/classes/Druid_Feral_Bear.png"
     );
     expect(classSpecIconPath("CHASSEUR", "Beast Mastery")).toBe(
-      "/icons/classes/Hunter_Beast_Mastery.png"
+      "/icons/classes/Hunter_Beast_Mastery.jpg"
     );
   });
 
@@ -25,10 +25,18 @@ describe("classSpecIconPath", () => {
   it("fonctionne pour chaque classe connue", () => {
     for (const wowClass of WOW_CLASSES) {
       const [spec] = CLASS_SPECS[wowClass];
-      expect(classSpecIconPath(wowClass, spec)).toBe(
-        `/icons/classes/${CLASS_LABELS[wowClass].replace(/ /g, "_")}_${spec.replace(/ /g, "_")}.png`
+      const path = classSpecIconPath(wowClass, spec);
+      expect(path).toMatch(
+        new RegExp(
+          `^/icons/classes/${CLASS_LABELS[wowClass].replace(/ /g, "_")}_${spec.replace(/ /g, "_")}\\.(png|jpg)$`
+        )
       );
     }
+  });
+
+  it("utilise le .jpg pour les icônes fournies dans ce format", () => {
+    expect(classSpecIconPath("PALADIN", "Holy")).toBe("/icons/classes/Paladin_Holy.jpg");
+    expect(classSpecIconPath("GUERRIER", "Arms")).toBe("/icons/classes/Warrior_Arms.jpg");
   });
 });
 

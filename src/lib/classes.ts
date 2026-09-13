@@ -33,7 +33,7 @@ export const CLASS_SPECS: Record<WowClass, string[]> = {
   PRETRE: ["Discipline", "Holy", "Shadow"],
   MAGE: ["Arcane", "Fire", "Frost"],
   DEMONISTE: ["Affliction", "Demonology", "Destruction"],
-  DRUIDE: ["Balance", "Feral Bear", "Feral Cat", "Restoration"],
+  DRUIDE: ["Balance", "Feral Bear", "Restoration"],
   VOLEUR: ["Assassination", "Combat", "Subtlety"],
   CHASSEUR: ["Beast Mastery", "Marksmanship", "Survival"],
   CHAMAN: ["Elemental", "Enhancement", "Restoration"],
@@ -55,10 +55,23 @@ export const CLASS_COLORS: Record<WowClass, string> = {
   PALADIN: "#F58CBA"
 };
 
-// Icône classe/spé (public/icons/classes/Class_Specialisation.png).
+// Icône classe/spé (public/icons/classes/Class_Specialisation.{png,jpg}).
+// La plupart des icônes sont en .png ; certaines ont été fournies en .jpg
+// haute résolution et gardent ce format plutôt que d'être reconverties.
+const JPG_ICONS = new Set([
+  "Hunter_Beast_Mastery",
+  "Paladin_Holy",
+  "Paladin_Protection",
+  "Paladin_Retribution",
+  "Warrior_Arms",
+  "Warrior_Fury",
+  "Warrior_Protection"
+]);
+
 export function classSpecIconPath(wowClass: WowClass, spec: string): string {
   const fileName = `${CLASS_LABELS[wowClass]}_${spec}`.replace(/ /g, "_");
-  return `/icons/classes/${fileName}.png`;
+  const extension = JPG_ICONS.has(fileName) ? "jpg" : "png";
+  return `/icons/classes/${fileName}.${extension}`;
 }
 
 // Rôle de raid déduit de la spé (utile pour les compos : tanks / heals / dps)
