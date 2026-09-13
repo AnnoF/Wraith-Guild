@@ -7,17 +7,18 @@ describe("instancesShareSize", () => {
   });
 
   it("retourne true quand toutes les instances font la même taille", () => {
-    expect(instancesShareSize(["Molten Core", "Onyxia's Lair"])).toBe(true);
-    expect(RAID_INSTANCE_SIZES["Molten Core"]).toBe(40);
+    // Les 3 instances actuelles ont chacune une taille différente : la seule
+    // façon de partager une taille est de répéter la même instance.
+    expect(instancesShareSize(["Onyxia's Lair", "Onyxia's Lair"])).toBe(true);
     expect(RAID_INSTANCE_SIZES["Onyxia's Lair"]).toBe(40);
   });
 
   it("retourne true pour une seule instance", () => {
-    expect(instancesShareSize(["Zul'Gurub"])).toBe(true);
+    expect(instancesShareSize(["Hyjal Summit"])).toBe(true);
   });
 
   it("retourne false quand les tailles sont mélangées (40 et 20)", () => {
-    expect(instancesShareSize(["Molten Core", "Zul'Gurub"])).toBe(false);
+    expect(instancesShareSize(["Onyxia's Lair", "Hyjal Summit"])).toBe(false);
   });
 
   it("comportement actuel documenté : des titres inconnus s'effondrent en un seul undefined", () => {
@@ -28,17 +29,17 @@ describe("instancesShareSize", () => {
   });
 
   it("un mélange instance connue + inconnue est considéré comme des tailles différentes", () => {
-    expect(instancesShareSize(["Molten Core", "Bogus"])).toBe(false);
+    expect(instancesShareSize(["Onyxia's Lair", "Bogus"])).toBe(false);
   });
 });
 
 describe("raidTitleLabel", () => {
   it("joint les titres avec ' + '", () => {
-    expect(raidTitleLabel(["Molten Core", "Onyxia's Lair"])).toBe("Molten Core + Onyxia's Lair");
+    expect(raidTitleLabel(["Barrow Deeps", "Onyxia's Lair"])).toBe("Barrow Deeps + Onyxia's Lair");
   });
 
   it("retourne le titre seul s'il n'y en a qu'un", () => {
-    expect(raidTitleLabel(["Molten Core"])).toBe("Molten Core");
+    expect(raidTitleLabel(["Onyxia's Lair"])).toBe("Onyxia's Lair");
   });
 
   it("retourne une chaîne vide pour un tableau vide", () => {

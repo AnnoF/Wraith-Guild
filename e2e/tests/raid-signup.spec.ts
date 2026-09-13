@@ -8,7 +8,7 @@ test("un RAIDEUR s'inscrit à un raid ouvert", async ({ page, signInAs }) => {
   const officer = await createUser("OFFICIER");
   const raid = await prisma.raid.create({
     data: {
-      titles: ["Zul'Gurub"],
+      titles: ["Hyjal Summit"],
       date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       size: 20,
       status: "OUVERT",

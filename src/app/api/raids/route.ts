@@ -37,10 +37,10 @@ export async function GET(req: Request) {
 
 // POST : création d'un événement de raid (Officier / Administrateur
 // uniquement). Plusieurs instances peuvent être sélectionnées pour un même
-// soir (ex: Molten Core + Blackwing Lair) — un seul événement est créé,
-// avec une seule liste d'inscrits et une seule composition, jamais un par
-// instance. Les instances sélectionnées doivent toutes avoir la même
-// taille (la guilde ne mélange jamais 40 et 20 le même soir).
+// soir, à condition qu'elles partagent la même taille — un seul événement
+// est créé, avec une seule liste d'inscrits et une seule composition,
+// jamais un par instance. Les instances sélectionnées doivent toutes avoir
+// la même taille (la guilde ne mélange jamais deux tailles le même soir).
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
