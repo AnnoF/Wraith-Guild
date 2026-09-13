@@ -55,23 +55,10 @@ export const CLASS_COLORS: Record<WowClass, string> = {
   PALADIN: "#F58CBA"
 };
 
-// Icône classe/spé (public/icons/classes/Class_Specialisation.{png,jpg}).
-// La plupart des icônes sont en .png ; certaines ont été fournies en .jpg
-// haute résolution et gardent ce format plutôt que d'être reconverties.
-const JPG_ICONS = new Set([
-  "Hunter_Beast_Mastery",
-  "Paladin_Holy",
-  "Paladin_Protection",
-  "Paladin_Retribution",
-  "Warrior_Arms",
-  "Warrior_Fury",
-  "Warrior_Protection"
-]);
-
+// Icône classe/spé (public/icons/classes/Class_Specialisation.png).
 export function classSpecIconPath(wowClass: WowClass, spec: string): string {
   const fileName = `${CLASS_LABELS[wowClass]}_${spec}`.replace(/ /g, "_");
-  const extension = JPG_ICONS.has(fileName) ? "jpg" : "png";
-  return `/icons/classes/${fileName}.${extension}`;
+  return `/icons/classes/${fileName}.png`;
 }
 
 // Rôle de raid déduit de la spé (utile pour les compos : tanks / heals / dps)
