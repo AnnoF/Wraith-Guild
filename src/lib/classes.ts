@@ -1,6 +1,7 @@
 // Mapping classe -> spécialisations disponibles.
 // Centralisé ici pour pouvoir être ajusté facilement quand les infos
-// officielles de Camelote seront connues (nouvelles classes, talents...).
+// officielles de World of Warcraft Forever seront connues (nouvelles
+// classes, talents...).
 
 export const WOW_CLASSES = [
   "PRETRE",

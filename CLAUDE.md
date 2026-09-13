@@ -1,10 +1,10 @@
 # Wraith-Guild — Contexte du projet
 
-Site de gestion de guilde pour **Camelote**, un futur opus de World of
-Warcraft basé sur WoW Classic/Vanilla (aucune information officielle sur le
-jeu pour l'instant — sortie prévue dans quelques mois). Le site gère les
-candidatures de recrutement, les personnages, les inscriptions et les
-compositions de raid de la guilde.
+Site de gestion de guilde pour **World of Warcraft Forever**, un futur opus
+de World of Warcraft basé sur WoW Classic/Vanilla, annoncé à la Blizzcon
+(sortie prévue dans quelques mois). Le site gère les candidatures de
+recrutement, les personnages, les inscriptions et les compositions de raid
+de la guilde.
 
 Dépôt : https://github.com/AnnoF/Wraith-Guild
 Domaine de production : https://wraith-guild.fr (VPS OVH)
