@@ -57,6 +57,7 @@ enum Profession {
   ENGINEERING
   LEATHERWORKING
   TAILORING
+  CAMPING // conservé en base pour ne pas bloquer `prisma db push` (suppression = perte de données) ; retiré uniquement de src/lib/professions.ts, donc plus proposé côté UI
 }
 
 enum SignupStatus {
