@@ -77,7 +77,7 @@ export default function Navbar({
   }
 
   return (
-    <header className="border-b-2 border-blood bg-char">
+    <header className="border-b-2 border-gold bg-char">
       <div className="max-w-5xl mx-auto px-6 py-1.5">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <Link href="/dashboard" className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export default function Navbar({
               href={link.href}
               className={`px-3 py-1 transition-colors focus-ring ${
                 link.match(pathname)
-                  ? "bg-blood text-void font-semibold"
+                  ? "bg-gold text-void font-semibold"
                   : "text-bone/60 hover:text-bone"
               }`}
             >
@@ -123,8 +123,7 @@ export default function Navbar({
 
           <span
             title={ROLE_LABELS[role]}
-            className="hidden sm:inline font-display text-[10px] text-void bg-blood px-2 py-0.5"
-            style={{ clipPath: "polygon(6% 0,100% 0,94% 100%,0 100%)" }}
+            className="hidden sm:inline font-display text-[10px] text-void bg-gold rounded-full px-3 py-0.5"
           >
             {ROLE_LABELS[role]}
           </span>
@@ -136,7 +135,7 @@ export default function Navbar({
                 onChange={(e) => setNameInput(e.target.value)}
                 maxLength={32}
                 autoFocus
-                className="bg-void border border-bone/15 focus-ring px-2 py-1 font-ui text-xs text-bone w-28"
+                className="bg-void border border-bone/15 rounded-sm focus-ring px-2 py-1 font-ui text-xs text-bone w-28"
               />
               <button
                 type="submit"
@@ -152,13 +151,13 @@ export default function Navbar({
                 type="button"
                 onClick={() => setEditing(false)}
                 title="Annuler"
-                className="text-bone/40 hover:text-blood focus-ring"
+                className="text-bone/40 hover:text-garnet focus-ring"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
-              {error && <span className="font-ui text-[10px] text-blood">{error}</span>}
+              {error && <span className="font-ui text-[10px] text-garnet">{error}</span>}
             </form>
           ) : (
             <span className="flex items-center gap-1.5">
@@ -194,7 +193,7 @@ export default function Navbar({
               onClick={() => setMobileOpen(false)}
               className={`px-3 py-2 transition-colors focus-ring ${
                 link.match(pathname)
-                  ? "bg-blood text-void font-semibold"
+                  ? "bg-gold text-void font-semibold"
                   : "text-bone/60 hover:text-bone"
               }`}
             >

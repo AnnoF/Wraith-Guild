@@ -5,16 +5,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bone: "#EDE7E0",
-        void: "#0D0B0A",
-        char: "#161210",
-        blood: "#A61B1B",
-        amber: "#C98A2C",
-        moss: "#7A9B5C"
+        bone: "#F1E6C9",
+        void: "#0B1E22",
+        char: "#122A2E",
+        gold: "#D4AF37",
+        amber: "#B8863B",
+        moss: "#7A9B5C",
+        garnet: "#8B2E2E"
       },
       fontFamily: {
-        display: ["'Rajdhani'", "sans-serif"],
-        ui: ["'Barlow Condensed'", "sans-serif"]
+        display: ["'Cinzel'", "serif"],
+        ui: ["'EB Garamond'", "serif"]
       }
     }
   },

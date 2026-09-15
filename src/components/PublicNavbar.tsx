@@ -18,7 +18,7 @@ export default function PublicNavbar({ isCandidateLoggedIn = false }: { isCandid
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-blood/30 bg-void/70 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-gold/30 bg-void/70 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 shrink-0">

@@ -18,7 +18,7 @@ export default function FloatingActionBar() {
     <>
       <div style={{ height: BAR_HEIGHT[state] }} className="transition-[height] duration-200" />
       <div
-        className="fixed inset-x-0 bottom-0 z-30 bg-void/95 backdrop-blur border-t border-blood/30"
+        className="fixed inset-x-0 bottom-0 z-30 bg-void/95 backdrop-blur border-t border-gold/30"
         style={{ display: state === "closed" ? "none" : "block" }}
       >
         {state === "collapsed" && (
@@ -47,13 +47,13 @@ export default function FloatingActionBar() {
                 href={DISCORD_INVITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-display text-xs bg-blood hover:bg-amber transition-colors text-bone px-5 py-2.5 focus-ring"
+                className="font-display text-xs bg-gold hover:bg-amber transition-colors text-void rounded-full px-5 py-2.5 focus-ring"
               >
                 Rejoindre le Discord
               </a>
               <Link
                 href="/candidature"
-                className="font-display text-xs border border-bone/25 hover:border-amber text-bone px-5 py-2.5 transition-colors focus-ring"
+                className="font-display text-xs border border-bone/25 hover:border-amber text-bone rounded-full px-5 py-2.5 transition-colors focus-ring"
               >
                 Candidater
               </Link>

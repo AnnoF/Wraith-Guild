@@ -40,7 +40,7 @@ export default function PresencePage() {
   }, []);
 
   if (loading) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
-  if (error) return <p className="font-ui text-sm text-blood">{error}</p>;
+  if (error) return <p className="font-ui text-sm text-garnet">{error}</p>;
 
   return (
     <div className="space-y-6">
@@ -62,7 +62,7 @@ export default function PresencePage() {
                 <th className="py-2 px-4">Rôle</th>
                 <th className="py-2 px-4 text-center text-moss">Présent</th>
                 <th className="py-2 px-4 text-center text-amber">Absent</th>
-                <th className="py-2 px-4 text-center text-blood">Déserteur</th>
+                <th className="py-2 px-4 text-center text-garnet">Déserteur</th>
                 <th className="py-2 pl-4 text-right">Taux de présence</th>
               </tr>
             </thead>

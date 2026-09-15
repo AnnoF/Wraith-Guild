@@ -18,8 +18,8 @@ export const RECRUITMENT_COLUMN_META: Record<
   MOYEN: { label: "Moyen", textClass: "text-amber", tintClass: "bg-amber/15 border border-amber/40" },
   BAS: {
     label: "Bas",
-    textClass: "text-blood",
-    tintClass: "bg-blood/15 border border-blood/40",
+    textClass: "text-garnet",
+    tintClass: "bg-garnet/15 border border-garnet/40",
     iconClass: "opacity-80"
   },
   FERME: {

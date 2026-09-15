@@ -3,12 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --bone: #EDE7E0;
-  --void: #0D0B0A;
-  --char: #161210;
-  --blood: #A61B1B;
-  --amber: #C98A2C;
+  --bone: #F1E6C9;
+  --void: #0B1E22;
+  --char: #122A2E;
+  --gold: #D4AF37;
+  --gold-light: #F3D989;
+  --gold-dark: #9C7A24;
+  --amber: #B8863B;
   --moss: #7A9B5C;
+  --garnet: #8B2E2E;
 }
 
 html {
@@ -18,22 +21,53 @@ html {
 body {
   background-color: var(--void);
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(166,27,27,0.16), transparent 45%),
-    radial-gradient(circle at 90% 80%, rgba(166,27,27,0.10), transparent 40%);
+    radial-gradient(circle at 20% 0%, rgba(212,175,55,0.12), transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(212,175,55,0.08), transparent 40%);
   color: var(--bone);
 }
 
-.font-display { font-family: var(--font-rajdhani), sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
-.font-ui { font-family: var(--font-barlow-condensed), sans-serif; }
+.font-display { font-family: var(--font-cinzel), serif; text-transform: uppercase; letter-spacing: 0.04em; }
+.font-ui { font-family: var(--font-eb-garamond), serif; }
 
-/* Bordure anguleuse utilisée sur les cartes (personnages, raids) */
-.war-border {
-  border: 1px solid rgba(166,27,27,0.4);
-  border-left: 3px solid var(--blood);
+.gold-gradient-text {
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 45%, var(--gold-dark) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Cadre doré utilisé sur les cartes (personnages, raids) : bordure fine +
+   liseré supérieur marqué + petits coins ornementaux en pseudo-éléments */
+.gilt-frame {
+  position: relative;
+  border: 1px solid rgba(212,175,55,0.35);
+  border-top: 2px solid var(--gold);
+}
+
+.gilt-frame::before,
+.gilt-frame::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 2px solid var(--gold-light);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.gilt-frame::before {
+  left: -1px;
+  border-left: 2px solid var(--gold-light);
+}
+
+.gilt-frame::after {
+  right: -1px;
+  border-right: 2px solid var(--gold-light);
 }
 
 .focus-ring:focus-visible {
-  outline: 2px solid var(--blood);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 

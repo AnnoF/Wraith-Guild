@@ -62,7 +62,7 @@ export default function VacationMode() {
   if (!profile) return null;
 
   return (
-    <div className="war-border bg-char p-5">
+    <div className="gilt-frame rounded-sm bg-char p-5">
       <p className="font-display text-sm text-bone mb-2">Mode vacances</p>
       {isActive ? (
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -75,7 +75,7 @@ export default function VacationMode() {
           <button
             onClick={disable}
             disabled={saving}
-            className="font-ui text-xs text-blood/70 hover:text-blood focus-ring disabled:opacity-50"
+            className="font-ui text-xs text-garnet/70 hover:text-garnet focus-ring disabled:opacity-50"
           >
             Désactiver
           </button>
@@ -85,14 +85,14 @@ export default function VacationMode() {
           <p className="font-ui text-xs text-bone/50 basis-full">
             Vous serez inscrit·e automatiquement en absent sur les raids qui tombent dans cette période.
           </p>
-          {error && <p className="font-ui text-xs text-blood basis-full">{error}</p>}
+          {error && <p className="font-ui text-xs text-garnet basis-full">{error}</p>}
           <div>
             <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">Du</label>
             <input
               type="date"
               value={start}
               onChange={(e) => setStart(e.target.value)}
-              className="bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
           <div>
@@ -101,13 +101,13 @@ export default function VacationMode() {
               type="date"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
-              className="bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="font-display text-xs bg-blood text-void font-medium px-4 py-2.5 disabled:opacity-50 focus-ring"
+            className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2.5 disabled:opacity-50 focus-ring"
           >
             Activer
           </button>

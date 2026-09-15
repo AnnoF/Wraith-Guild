@@ -366,40 +366,62 @@ automatiquement (voir [Point d'attention Prisma](#point-dattention-prisma)).
 
 ## Design — identité visuelle
 
-Direction validée : **inspirée de la Horde**, pas médiévale/parchemin (une
-première direction parchemin/or a été essayée puis abandonnée).
+Direction validée le 2026-09-15 : **haute fantaisie / tome ancien**,
+inspirée explicitement de la page officielle
+https://worldofwarcraft.blizzard.com/fr-fr/forever (bleu/teal profond, or
+en accent principal, filigranes). C'est un second revirement : le thème
+précédent était sombre façon "Horde" (rouge sang, formes anguleuses/
+biseautées, camp de guerre), qui avait lui-même remplacé un tout premier
+essai parchemin/or abandonné. Ne pas "corriger" vers le style sombre/
+anguleux — cette direction dorée/ornementée est désormais celle à conserver.
 
-- Palette (variables CSS dans `src/app/globals.css`) : `--void #0D0B0A`
-  (fond), `--char #161210` (cartes), `--blood #A61B1B` (accent unique),
-  `--bone #EDE7E0` (texte), `--amber #C98A2C` et `--moss #7A9B5C` (réservées
-  aux badges de statut)
-- Typographie : classe utilitaire `.font-display` (**Rajdhani**, condensée,
-  majuscules) pour les titres/UI forte, `.font-ui` (**Barlow Condensed**)
-  pour le texte courant — chargées via `next/font/google` dans
-  `src/app/layout.tsx` (remplace Oswald/Inter, changement validé lors de la
-  refonte de la vitrine sur la base d'une maquette fournie par l'utilisateur)
-- Formes anguleuses plutôt qu'arrondies : bordure gauche épaisse (classe
-  `.war-border` dans `globals.css`, toujours utilisée sur les cartes hors
-  vitrine), sceau de rôle en biseau (`clip-path` polygon)
+- Palette (variables CSS dans `src/app/globals.css`, dupliquées dans
+  `tailwind.config.ts`) : `--void #0B1E22` (fond, bleu-teal profond),
+  `--char #122A2E` (cartes), `--gold #D4AF37` (accent principal — anciennement
+  `--blood`, renommé car ce n'est plus une couleur rouge), `--bone #F1E6C9`
+  (texte, crème chaud), `--amber #B8863B` (accent secondaire / statut
+  "FERME"), `--moss #7A9B5C` (statut "OUVERT", inchangé), `--garnet #8B2E2E`
+  (rouge dédié aux statuts "danger" : erreurs de formulaire, actions
+  destructives/annulation, candidature "Refusée", raid "Annulé", priorité de
+  recrutement "Bas", colonne "Déserteur" — bien distinct de l'accent `--gold`
+  qui lui reste réservé aux actions primaires/positives). Classe utilitaire
+  `.gold-gradient-text` pour les titres en dégradé doré (voir `--gold-light`/
+  `--gold-dark`).
+- Typographie : classe utilitaire `.font-display` (**Cinzel**, serif
+  capitale gravée) pour les titres/UI forte, `.font-ui` (**EB Garamond**,
+  serif de lecture) pour le texte courant — chargées via `next/font/google`
+  dans `src/app/layout.tsx` (remplace Rajdhani/Barlow Condensed).
+- Coins arrondis plutôt qu'angulaires (inversion du précédent "formes
+  anguleuses") : boutons/CTA et badges de statut/rôle en pilule
+  (`rounded-full`), cartes/champs de formulaire en coin adouci
+  (`rounded-sm`). Le cadre doré des cartes est la classe `.gilt-frame`
+  (`globals.css`, ex-`.war-border`) : bordure fine dorée + liseré supérieur
+  marqué + petits coins ornementaux en pseudo-éléments. Le sceau de rôle en
+  biseau (`clip-path` polygon) a été retiré au profit d'un badge pilule.
+- `src/components/Ornaments.tsx` fournit deux petits SVG originaux (pas
+  d'assets Blizzard) pour l'ambiance "tome ancien" : `GoldRule` (filet
+  doré sous les titres de section, utilisé par `SectionTitle` dans
+  `GuildShowcase.tsx` et par `HeroBanner.tsx`) et `CornerFlourish` (volute
+  décorative dans les coins des bandes plein écran, voir `FullBleedBand`
+  dans `GuildShowcase.tsx`).
 - `globals.css` pose `html { font-size: 120% }` : toutes les tailles Tailwind
   (`text-sm`, `text-4xl`…) sont donc agrandies de 20% par rapport au défaut.
   Choisir les tailles en regardant le rendu, pas l'échelle Tailwind
   habituelle — et ne pas « corriger » ce 120%, c'est un choix validé.
 - Accessibilité déjà en place, à réutiliser plutôt qu'à réinventer : classe
-  `.focus-ring` sur les éléments cliquables (contour rouge au clavier
+  `.focus-ring` sur les éléments cliquables (contour doré au clavier
   uniquement, `:focus-visible`), et un bloc
   `@media (prefers-reduced-motion: reduce)` qui coupe animations/transitions
 - Pour qu'une section de la vitrine déborde du conteneur `max-w-5xl` du
   parent (bande plein écran), reprendre la technique déjà utilisée dans
   `HeroBanner.tsx`/`GuildShowcase.tsx` :
   `relative left-1/2 w-screen -translate-x-1/2`
-- Ne pas réintroduire de courbes/dorures type parchemin médiéval — direction
-  tranchée volontairement plus "camp de guerre" que "taverne"
-- Attention copyright : ne jamais reproduire l'emblème officiel de la Horde
-  (propriété Blizzard), seulement s'inspirer de la palette/l'ambiance
+- Attention copyright : ne jamais reproduire les assets/logo officiels de
+  Blizzard (artwork, emblèmes), seulement s'inspirer de la palette/l'ambiance
+  de la page WoW: Forever
 - **Vitrine publique** (`/`, voir `HeroBanner.tsx` et `GuildShowcase.tsx`) :
   fond vidéo en tête de page (`public/video/hero.mp4`), sections regroupées
-  en bandes plein écran avec image de fond dégradée vers le noir
+  en bandes plein écran avec image de fond dégradée vers le fond teal
   (`public/vitrine/*.jpg` — recrutement, raids/progression, streams), et
   barre d'actions persistante en bas d'écran (`FloatingActionBar.tsx`,
   réductible/masquable). Ces fonds/vidéo sont spécifiques à la vitrine ; le

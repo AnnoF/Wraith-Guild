@@ -60,7 +60,7 @@ export default function RecruitmentEditor({
     <div className="space-y-4">
       {canEdit && (
         <div className="flex items-center justify-end gap-3">
-          {error && <p className="font-ui text-xs text-blood">{error}</p>}
+          {error && <p className="font-ui text-xs text-garnet">{error}</p>}
           {editing ? (
             <>
               <button onClick={cancelEditing} className="font-ui text-xs text-bone/50 hover:text-bone focus-ring">
@@ -69,7 +69,7 @@ export default function RecruitmentEditor({
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+                className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
               >
                 {saving ? "Enregistrement..." : "Enregistrer"}
               </button>
@@ -85,7 +85,7 @@ export default function RecruitmentEditor({
       {editing ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {WOW_CLASSES.map((wowClass) => (
-            <div key={wowClass} className="bg-char border border-bone/10 p-3 space-y-2">
+            <div key={wowClass} className="bg-char border border-bone/10 rounded-sm p-3 space-y-2">
               <p className="font-display text-xs text-bone/70 tracking-[0.08em]">{CLASS_LABELS[wowClass]}</p>
               {CLASS_SPECS[wowClass].map((spec) => {
                 const key = specKey(wowClass, spec);
@@ -97,7 +97,7 @@ export default function RecruitmentEditor({
                       onChange={(e) =>
                         setDraft((prev) => ({ ...prev, [key]: e.target.value as RecruitmentPriority }))
                       }
-                      className="bg-void border border-bone/15 focus-ring px-2 py-1 font-ui text-xs text-bone"
+                      className="bg-void border border-bone/15 rounded-sm focus-ring px-2 py-1 font-ui text-xs text-bone"
                     >
                       {RECRUITMENT_PRIORITIES.map((priority) => (
                         <option key={priority} value={priority}>

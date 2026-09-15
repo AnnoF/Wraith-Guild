@@ -37,7 +37,7 @@ export default function PersonnagesPage() {
         <p className="font-display text-lg text-bone">Mes personnages</p>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="font-display text-xs bg-blood text-void font-medium px-4 py-2 focus-ring"
+          className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 focus-ring"
         >
           {showForm ? "Fermer" : "+ Nouveau personnage"}
         </button>

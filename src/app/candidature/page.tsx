@@ -9,7 +9,7 @@ export default async function CandidaturePage() {
 
   return (
     <main className="min-h-screen">
-      <header className="border-b-2 border-blood bg-char">
+      <header className="border-b-2 border-gold bg-char">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -23,7 +23,7 @@ export default async function CandidaturePage() {
       </header>
 
       <div className="max-w-3xl mx-auto px-6 py-12 space-y-10">
-        <h1 className="font-display text-3xl text-blood uppercase tracking-wide">Candidature</h1>
+        <h1 className="font-display text-3xl gold-gradient-text uppercase tracking-wide">Candidature</h1>
 
         <div className="space-y-8">
           {APPLICATION_INFO_SECTIONS.map((section) => (
