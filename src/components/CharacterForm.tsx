@@ -10,6 +10,7 @@ interface ProfessionSelection {
 
 export default function CharacterForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState("");
+  const [secondaryName, setSecondaryName] = useState("");
   const [wowClass, setWowClass] = useState<WowClass | "">("");
   const [spec, setSpec] = useState("");
   const [professions, setProfessions] = useState<ProfessionSelection[]>([]);
@@ -49,7 +50,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, wowClass, spec, professions, canRaidLead })
+        body: JSON.stringify({ name, secondaryName, wowClass, spec, professions, canRaidLead })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -57,6 +58,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
         return;
       }
       setName("");
+      setSecondaryName("");
       setWowClass("");
       setSpec("");
       setProfessions([]);
@@ -75,17 +77,31 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
 
       {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
-      <div>
-        <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
-          Nom du personnage
-        </label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={24}
-          className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
-          placeholder="Ex. Thragosh"
-        />
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+            Nom primaire
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={24}
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            placeholder="Ex. Polecat"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+            Nom secondaire
+          </label>
+          <input
+            value={secondaryName}
+            onChange={(e) => setSecondaryName(e.target.value)}
+            maxLength={24}
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            placeholder="Ex. Pal"
+          />
+        </div>
       </div>
 
       <div>

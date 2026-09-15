@@ -57,6 +57,7 @@ enum Profession {
   ENGINEERING
   LEATHERWORKING
   TAILORING
+  CAMPING
 }
 
 enum SignupStatus {
@@ -97,7 +98,8 @@ model User {
 
 model Character {
   id            String   @id @default(cuid())
-  name          String
+  name          String   // nom primaire
+  secondaryName String?  // nom secondaire
   class         WowClass
   spec          String   // dépend de la classe, voir src/lib/classes.ts
   isActive      Boolean  @default(true)

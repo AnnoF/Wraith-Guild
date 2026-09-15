@@ -6,6 +6,7 @@ import { PROFESSIONS, PROFESSION_LABELS, MAX_PROFESSIONS_PER_CHARACTER, type Pro
 export interface CharacterData {
   id: string;
   name: string;
+  secondaryName: string | null;
   class: WowClass;
   spec: string;
   isActive: boolean;
@@ -29,6 +30,7 @@ export default function CharacterCard({
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(character.name);
+  const [secondaryName, setSecondaryName] = useState(character.secondaryName ?? "");
   const [spec, setSpec] = useState(character.spec);
   const [canRaidLead, setCanRaidLead] = useState(character.canRaidLead);
   const [professions, setProfessions] = useState<ProfessionSelection[]>(
@@ -41,6 +43,7 @@ export default function CharacterCard({
 
   function startEditing() {
     setName(character.name);
+    setSecondaryName(character.secondaryName ?? "");
     setSpec(character.spec);
     setCanRaidLead(character.canRaidLead);
     setProfessions(character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed })));
@@ -74,7 +77,7 @@ export default function CharacterCard({
     const res = await fetch(`/api/characters/${character.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), spec, professions, canRaidLead })
+      body: JSON.stringify({ name: name.trim(), secondaryName: secondaryName.trim(), spec, professions, canRaidLead })
     });
     setSaving(false);
     if (!res.ok) {
@@ -91,16 +94,29 @@ export default function CharacterCard({
       <div className="gilt-frame rounded-sm bg-char p-4 space-y-3">
         {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
-        <div>
-          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
-            Nom du personnage
-          </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={24}
-            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
-          />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+              Nom primaire
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={24}
+              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+              Nom secondaire
+            </label>
+            <input
+              value={secondaryName}
+              onChange={(e) => setSecondaryName(e.target.value)}
+              maxLength={24}
+              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            />
+          </div>
         </div>
 
         <div>
@@ -195,7 +211,12 @@ export default function CharacterCard({
   return (
     <div className={`gilt-frame rounded-sm bg-char p-4 flex items-center justify-between ${!character.isActive ? "opacity-50" : ""}`}>
       <div>
-        <p className="font-display text-sm text-bone">{character.name}</p>
+        <p className="font-display text-sm text-bone">
+          {character.name}
+          {character.secondaryName && (
+            <span className="text-bone/50"> · {character.secondaryName}</span>
+          )}
+        </p>
         <p className="font-ui text-xs text-bone/60 mt-0.5">
           {CLASS_LABELS[character.class]} · {character.spec}
           {character.canRaidLead && " · RL"}

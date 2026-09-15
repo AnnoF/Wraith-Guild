@@ -9,7 +9,7 @@ test("un RAIDEUR crée un personnage et le voit apparaître dans sa liste", asyn
   // Les labels "Classe"/"Spécialisation" ne sont pas associés à leur <select>
   // via for/id ou wrapping (voir CharacterForm.tsx) : getByLabel ne les
   // trouverait pas, on cible donc par ordre d'apparition dans le formulaire.
-  await page.getByPlaceholder("Ex. Thragosh").fill("Thragosh");
+  await page.getByPlaceholder("Ex. Polecat").fill("Thragosh");
   await page.getByRole("combobox").nth(0).selectOption("PRETRE");
   await page.getByRole("combobox").nth(1).selectOption("Holy");
   await page.getByLabel("Herbalism").check();
