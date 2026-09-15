@@ -10,7 +10,7 @@ import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
   ACCEPTEE: { label: "Acceptée", bg: "bg-moss", text: "text-void" },
-  REFUSEE: { label: "Refusée", bg: "bg-blood/30", text: "text-bone/70" }
+  REFUSEE: { label: "Refusée", bg: "bg-garnet/30", text: "text-bone/70" }
 };
 
 interface Comment {
@@ -79,7 +79,7 @@ export default function CandidatureForm({
 
   if (!loggedIn) {
     return (
-      <div className="war-border bg-char p-6 text-center">
+      <div className="gilt-frame rounded-sm bg-char p-6 text-center">
         <p className="font-ui text-sm text-bone/70 mb-4">
           Connectez-vous avec Discord pour déposer votre candidature.
         </p>
@@ -104,7 +104,7 @@ export default function CandidatureForm({
 
   if (!isGuildMember) {
     return (
-      <div className="war-border bg-char p-6 text-center">
+      <div className="gilt-frame rounded-sm bg-char p-6 text-center">
         <p className="font-ui text-sm text-bone/70 mb-4">
           Il faut d'abord rejoindre notre Discord pour pouvoir postuler (c'est
           par là que les officiers vous répondront).
@@ -114,7 +114,7 @@ export default function CandidatureForm({
             href={DISCORD_INVITE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 bg-[#5865F2] hover:bg-[#4752c4] transition-colors text-white font-medium focus-ring"
+            className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#5865F2] hover:bg-[#4752c4] transition-colors text-white font-medium focus-ring"
           >
             Rejoindre le Discord
           </a>
@@ -219,13 +219,13 @@ function ApplicationFormFields({
     onSubmitted(data);
   }
 
-  const inputClass = "w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone";
+  const inputClass = "w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone";
   const labelClass = "font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1";
 
   return (
-    <form onSubmit={handleSubmit} className="war-border bg-char p-6 space-y-5">
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-6 space-y-5">
       <p className="font-display text-lg text-bone">Formulaire de candidature</p>
-      {error && <p className="font-ui text-xs text-blood">{error}</p>}
+      {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
       <div>
         <label className={labelClass}>1. Contact Discord (Tag#xxxx)</label>
@@ -282,9 +282,9 @@ function ApplicationFormFields({
               key={p}
               type="button"
               onClick={() => toggleProfession(p)}
-              className={`font-ui text-xs px-3 py-1.5 border transition-colors focus-ring ${
+              className={`font-ui text-xs px-3 py-1.5 border rounded-full transition-colors focus-ring ${
                 professions.includes(p)
-                  ? "bg-blood border-blood text-void font-medium"
+                  ? "bg-gold border-gold text-void font-medium"
                   : "border-bone/15 text-bone/70 hover:border-bone/40"
               }`}
             >
@@ -345,9 +345,9 @@ function ApplicationFormFields({
               key={day}
               type="button"
               onClick={() => toggleNight(day)}
-              className={`font-ui text-xs px-3 py-1.5 border transition-colors focus-ring ${
+              className={`font-ui text-xs px-3 py-1.5 border rounded-full transition-colors focus-ring ${
                 availableNights.includes(day)
-                  ? "bg-blood border-blood text-void font-medium"
+                  ? "bg-gold border-gold text-void font-medium"
                   : "border-bone/15 text-bone/70 hover:border-bone/40"
               }`}
             >
@@ -381,7 +381,7 @@ function ApplicationFormFields({
       <button
         type="submit"
         disabled={submitting}
-        className="font-display text-sm bg-blood text-void font-medium px-5 py-2.5 disabled:opacity-50 focus-ring"
+        className="font-display text-sm bg-gold text-void font-medium rounded-full px-5 py-2.5 disabled:opacity-50 focus-ring"
       >
         {submitting ? "Envoi..." : "Envoyer ma candidature"}
       </button>
@@ -429,7 +429,7 @@ function ApplicationStatus({
 
   return (
     <div className="space-y-6">
-      <div className="war-border bg-char p-6">
+      <div className="gilt-frame rounded-sm bg-char p-6">
         <div className="flex items-center justify-between mb-4">
           <p className="font-display text-lg text-bone">Votre candidature</p>
           <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
@@ -458,7 +458,7 @@ function ApplicationStatus({
                 <button
                   type="button"
                   onClick={onStartReapply}
-                  className="font-display text-xs bg-blood text-void font-medium px-4 py-2 focus-ring"
+                  className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 focus-ring"
                 >
                   Déposer une nouvelle candidature
                 </button>
@@ -480,7 +480,7 @@ function ApplicationStatus({
         )}
       </div>
 
-      <div className="war-border bg-char p-6">
+      <div className="gilt-frame rounded-sm bg-char p-6">
         <p className="font-display text-sm text-bone mb-3">Échange avec les officiers</p>
         <div className="space-y-3 mb-4">
           {application.comments.length === 0 ? (
@@ -497,18 +497,18 @@ function ApplicationStatus({
             ))
           )}
         </div>
-        {replyError && <p className="font-ui text-xs text-blood mb-2">{replyError}</p>}
+        {replyError && <p className="font-ui text-xs text-garnet mb-2">{replyError}</p>}
         <form onSubmit={handleReply} className="flex gap-2">
           <input
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             placeholder="Votre message..."
-            className="flex-1 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
           <button
             type="submit"
             disabled={sending}
-            className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+            className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
           >
             Envoyer
           </button>

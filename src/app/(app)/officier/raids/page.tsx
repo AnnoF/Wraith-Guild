@@ -22,7 +22,7 @@ export default function GererRaidsPage() {
         <p className="font-display text-lg text-bone">Gérer les raids</p>
         <Link
           href="/officier/raids/nouveau"
-          className="font-display text-xs bg-blood text-void font-medium px-4 py-2 focus-ring"
+          className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 focus-ring"
         >
           + Nouveau raid
         </Link>

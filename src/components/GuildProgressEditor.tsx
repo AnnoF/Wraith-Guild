@@ -84,7 +84,7 @@ function ProgressCard({
   }
 
   return (
-    <div className="bg-char border border-bone/10 p-4">
+    <div className="bg-char border border-bone/10 rounded-sm p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="font-display text-sm text-bone">{entry.instance}</p>
         {isAdmin && (
@@ -92,7 +92,7 @@ function ProgressCard({
             <button onClick={() => setEditing(true)} className="font-ui text-xs text-bone/50 hover:text-bone focus-ring">
               Éditer
             </button>
-            <button onClick={handleDelete} className="font-ui text-xs text-blood/70 hover:text-blood focus-ring">
+            <button onClick={handleDelete} className="font-ui text-xs text-garnet/70 hover:text-garnet focus-ring">
               Retirer
             </button>
           </div>
@@ -100,7 +100,7 @@ function ProgressCard({
       </div>
       <div className="h-1.5 w-full bg-void mb-2">
         <div
-          className={`h-1.5 ${entry.killed >= entry.total ? "bg-amber" : "bg-blood"}`}
+          className={`h-1.5 ${entry.killed >= entry.total ? "bg-amber" : "bg-garnet"}`}
           style={{ width: `${(entry.killed / entry.total) * 100}%` }}
         />
       </div>
@@ -163,13 +163,13 @@ function ProgressForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="war-border bg-char p-4 space-y-2">
-      {error && <p className="font-ui text-xs text-blood">{error}</p>}
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-4 space-y-2">
+      {error && <p className="font-ui text-xs text-garnet">{error}</p>}
       <input
         value={instance}
         onChange={(e) => setInstance(e.target.value)}
         placeholder="Instance (ex: Molten Core)"
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <div className="flex gap-2">
         <input
@@ -178,7 +178,7 @@ function ProgressForm({
           value={killed}
           onChange={(e) => setKilled(e.target.value)}
           placeholder="Tués"
-          className="w-1/2 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+          className="w-1/2 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
         />
         <input
           type="number"
@@ -186,14 +186,14 @@ function ProgressForm({
           value={total}
           onChange={(e) => setTotal(e.target.value)}
           placeholder="Total"
-          className="w-1/2 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+          className="w-1/2 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
         />
       </div>
       <div className="flex gap-3">
         <button
           type="submit"
           disabled={saving}
-          className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+          className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
         >
           {saving ? "Enregistrement..." : "Enregistrer"}
         </button>

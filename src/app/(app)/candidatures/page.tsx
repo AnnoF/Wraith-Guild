@@ -6,7 +6,7 @@ import { CLASS_LABELS, type WowClass } from "@/lib/classes";
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
   ACCEPTEE: { label: "Acceptée", bg: "bg-moss", text: "text-void" },
-  REFUSEE: { label: "Refusée", bg: "bg-blood/30", text: "text-bone/70" }
+  REFUSEE: { label: "Refusée", bg: "bg-garnet/30", text: "text-bone/70" }
 };
 
 interface ApplicationListItem {
@@ -28,7 +28,7 @@ function ApplicationGrid({ applications }: { applications: ApplicationListItem[]
           <Link
             key={a.id}
             href={`/candidatures/${a.id}`}
-            className="war-border bg-char p-4 block hover:bg-char/70 transition-colors focus-ring"
+            className="gilt-frame rounded-sm bg-char p-4 block hover:bg-char/70 transition-colors focus-ring"
           >
             <div className="flex justify-between items-start mb-2">
               <span className="font-display text-sm text-bone">{a.characterName}</span>

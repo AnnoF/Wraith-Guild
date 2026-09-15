@@ -12,7 +12,7 @@ const FOOTER_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="border-t-2 border-blood mt-16">
+    <footer className="border-t-2 border-gold mt-16">
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col items-center gap-6 text-center">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}

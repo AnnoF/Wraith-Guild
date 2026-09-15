@@ -121,7 +121,7 @@ export default function RaidDetailPage() {
         )}
       </div>
 
-      <div className="war-border bg-char p-5">
+      <div className="gilt-frame rounded-sm bg-char p-5">
         <p className="font-display text-xl text-bone mb-1">{raidTitleLabel(raid.titles)}</p>
         <p className="font-ui text-sm text-bone/60">
           {new Date(raid.date).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}
@@ -137,7 +137,7 @@ export default function RaidDetailPage() {
       </div>
 
       {raid.status === "OUVERT" && canSignup && (
-        <form onSubmit={handleSignup} className="war-border bg-char p-5 flex flex-wrap items-end gap-3">
+        <form onSubmit={handleSignup} className="gilt-frame rounded-sm bg-char p-5 flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
               Commentaire (optionnel)
@@ -146,10 +146,10 @@ export default function RaidDetailPage() {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Ex. dispo après 21h"
-              className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
-          <button type="submit" className="font-display text-xs bg-blood text-void font-medium px-5 py-2.5 focus-ring">
+          <button type="submit" className="font-display text-xs bg-gold text-void font-medium rounded-full px-5 py-2.5 focus-ring">
             S'inscrire
           </button>
           <button
@@ -163,7 +163,7 @@ export default function RaidDetailPage() {
       )}
 
       {raid.status === "OUVERT" && isAbsent && (
-        <div className="war-border bg-char p-5 flex items-center justify-between flex-wrap gap-3">
+        <div className="gilt-frame rounded-sm bg-char p-5 flex items-center justify-between flex-wrap gap-3">
           <p className="font-ui text-sm text-bone/60">Vous vous êtes signalé absent pour ce raid.</p>
           <button
             onClick={() => submitSignup("INSCRIT")}
@@ -175,7 +175,7 @@ export default function RaidDetailPage() {
       )}
 
       {mySignup && !canSignup && !isAbsent && (
-        <div className="war-border bg-char p-5 flex items-center justify-between flex-wrap gap-3">
+        <div className="gilt-frame rounded-sm bg-char p-5 flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="font-ui text-sm text-bone">
               Vous êtes inscrit {mySignup.status === "RESERVE" ? "(réserve)" : ""}
@@ -195,14 +195,14 @@ export default function RaidDetailPage() {
             </button>
             <button
               onClick={handleWithdraw}
-              className="font-ui text-xs text-bone/40 hover:text-blood focus-ring underline"
+              className="font-ui text-xs text-bone/40 hover:text-garnet focus-ring underline"
             >
               Se désinscrire
             </button>
           </div>
         </div>
       )}
-      {error && <p className="font-ui text-xs text-blood">{error}</p>}
+      {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -220,7 +220,7 @@ export default function RaidDetailPage() {
             {groupRows(raid.size, numGroups).map((row, rowIdx) => (
               <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
                 {row.map((groupIndex) => (
-                  <div key={groupIndex} className="war-border bg-char p-3 min-w-0">
+                  <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
                     <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
                     <div className="space-y-1">
                       {Array.from({ length: GROUP_SIZE }, (_, i) => {

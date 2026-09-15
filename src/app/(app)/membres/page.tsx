@@ -58,7 +58,7 @@ export default function MembresPage() {
   }
 
   if (loading) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
-  if (error) return <p className="font-ui text-sm text-blood">{error}</p>;
+  if (error) return <p className="font-ui text-sm text-garnet">{error}</p>;
 
   const q = search.trim().toLowerCase();
   const filtered = members.filter((m) => {
@@ -75,7 +75,7 @@ export default function MembresPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Rechercher un membre ou un personnage..."
-        className="w-full max-w-md bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full max-w-md bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
 
       {filtered.length === 0 ? (
@@ -85,7 +85,7 @@ export default function MembresPage() {
           {filtered.map((m) => (
             <div
               key={m.id}
-              className={`war-border bg-char p-4 ${m.isArchived ? "opacity-50" : ""}`}
+              className={`gilt-frame rounded-sm bg-char p-4 ${m.isArchived ? "opacity-50" : ""}`}
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
@@ -98,7 +98,7 @@ export default function MembresPage() {
                 <button
                   onClick={() => toggleArchive(m)}
                   className={`font-ui text-[10px] shrink-0 focus-ring ${
-                    m.isArchived ? "text-moss hover:text-bone" : "text-bone/30 hover:text-blood"
+                    m.isArchived ? "text-moss hover:text-bone" : "text-bone/30 hover:text-garnet"
                   }`}
                 >
                   {m.isArchived ? "Réactiver" : "Archiver"}

@@ -107,7 +107,7 @@ function EntryCard({
   }
 
   return (
-    <div className="war-border bg-char p-4">
+    <div className="gilt-frame rounded-sm bg-char p-4">
       <div className="flex items-center justify-between mb-2 gap-2">
         <div>
           <p className="font-display text-sm text-bone">{entry.title}</p>
@@ -122,7 +122,7 @@ function EntryCard({
             <button onClick={() => setEditing(true)} className="font-ui text-xs text-bone/50 hover:text-bone focus-ring">
               Éditer
             </button>
-            <button onClick={handleDelete} className="font-ui text-xs text-blood/70 hover:text-blood focus-ring">
+            <button onClick={handleDelete} className="font-ui text-xs text-garnet/70 hover:text-garnet focus-ring">
               Retirer
             </button>
           </div>
@@ -222,32 +222,32 @@ function EntryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="war-border bg-char p-4 space-y-2">
-      {error && <p className="font-ui text-xs text-blood">{error}</p>}
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-4 space-y-2">
+      {error && <p className="font-ui text-xs text-garnet">{error}</p>}
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Titre (ex: Premier down Ragnaros)"
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <input
         type="date"
         value={eventDate}
         onChange={(e) => setEventDate(e.target.value)}
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Texte explicatif (optionnel)"
         rows={3}
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <input
         value={videoUrl}
         onChange={(e) => setVideoUrl(e.target.value)}
         placeholder="Lien vidéo (optionnel)"
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <div>
         <label className="block font-ui text-xs text-bone/50 mb-1">
@@ -266,7 +266,7 @@ function EntryForm({
       <button
         type="submit"
         disabled={saving}
-        className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+        className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
       >
         {saving ? "Enregistrement..." : "Enregistrer"}
       </button>

@@ -11,7 +11,7 @@ export default function GaleriePage() {
         ← Retour à l'accueil
       </Link>
 
-      <h1 className="font-display text-3xl text-blood uppercase tracking-wide mt-4 mb-10">
+      <h1 className="font-display text-3xl gold-gradient-text uppercase tracking-wide mt-4 mb-10">
         Galerie / Médiathèque
       </h1>
 

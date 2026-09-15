@@ -15,7 +15,7 @@ const STATUS_STYLE: Record<RaidData["status"], { label: string; bg: string; text
   OUVERT: { label: "Ouvert", bg: "bg-moss", text: "text-void" },
   FERME: { label: "Inscription terminée", bg: "bg-amber", text: "text-void" },
   TERMINE: { label: "Terminé", bg: "bg-bone/15", text: "text-bone/70" },
-  ANNULE: { label: "Annulé", bg: "bg-blood/30", text: "text-bone/70" }
+  ANNULE: { label: "Annulé", bg: "bg-garnet/30", text: "text-bone/70" }
 };
 
 // Compte à rebours affiché tant que le raid est ouvert aux inscriptions :
@@ -49,7 +49,7 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
       : null;
 
   return (
-    <Link href={href ?? `/raids/${raid.id}`} className="war-border bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
+    <Link href={href ?? `/raids/${raid.id}`} className="gilt-frame rounded-sm bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
       <div className="flex justify-between items-start mb-2">
         <span className="font-display text-sm text-bone">{raidTitleLabel(raid.titles)}</span>
         <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Rajdhani, Barlow_Condensed } from "next/font/google";
+import { Cinzel, EB_Garamond } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 
-const rajdhani = Rajdhani({ subsets: ["latin"], variable: "--font-rajdhani", weight: ["500", "600", "700"] });
-const barlowCondensed = Barlow_Condensed({ subsets: ["latin"], variable: "--font-barlow-condensed", weight: ["400", "500", "600"] });
+const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", weight: ["500", "600", "700"] });
+const ebGaramond = EB_Garamond({ subsets: ["latin"], variable: "--font-eb-garamond", weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
   title: "Wraith",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${rajdhani.variable} ${barlowCondensed.variable}`}>
+    <html lang="fr" className={`${cinzel.variable} ${ebGaramond.variable}`}>
       <body className="font-ui min-h-screen">
         <Providers>{children}</Providers>
       </body>

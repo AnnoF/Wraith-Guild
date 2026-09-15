@@ -13,10 +13,14 @@ import TwitchStreamEmbed from "./TwitchStreamEmbed";
 import LightboxImage from "./LightboxImage";
 import GuildProgressEditor from "./GuildProgressEditor";
 import RecruitmentEditor from "./RecruitmentEditor";
+import { CornerFlourish, GoldRule } from "./Ornaments";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-sm text-amber tracking-[0.1em] mb-5">{children}</h2>
+    <div className="mb-5">
+      <h2 className="font-display text-sm gold-gradient-text tracking-[0.1em] mb-2">{children}</h2>
+      <GoldRule />
+    </div>
   );
 }
 
@@ -30,8 +34,10 @@ function FullBleedBand({ image, children }: { image: string; children: React.Rea
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
       <div
         className="absolute inset-0"
-        style={{ background: "linear-gradient(to bottom, rgba(9,7,6,0.375) 0%, var(--void) 90%)" }}
+        style={{ background: "linear-gradient(to bottom, rgba(8,20,23,0.375) 0%, var(--void) 90%)" }}
       />
+      <CornerFlourish className="absolute top-4 left-4 z-10 opacity-50" />
+      <CornerFlourish className="absolute top-4 right-4 z-10 opacity-50 scale-x-[-1]" />
       <div className="relative max-w-6xl mx-auto px-6 md:px-12">{children}</div>
     </div>
   );
@@ -81,7 +87,7 @@ export default async function GuildShowcase() {
           </p>
           <Link
             href="/candidature"
-            className="inline-block font-display text-xs bg-blood text-bone font-medium px-6 py-3 hover:bg-amber transition-colors focus-ring"
+            className="inline-block font-display text-xs bg-gold text-void font-medium rounded-full px-6 py-3 hover:bg-amber transition-colors focus-ring"
           >
             Déposer une candidature →
           </Link>

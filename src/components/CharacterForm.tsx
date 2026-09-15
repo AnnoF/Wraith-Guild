@@ -70,10 +70,10 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="war-border bg-char p-5 space-y-4">
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-5 space-y-4">
       <p className="font-display text-sm text-bone">Nouveau personnage</p>
 
-      {error && <p className="font-ui text-xs text-blood">{error}</p>}
+      {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
       <div>
         <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
@@ -83,7 +83,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={24}
-          className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+          className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           placeholder="Ex. Thragosh"
         />
       </div>
@@ -98,7 +98,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
             setWowClass(e.target.value as WowClass);
             setSpec("");
           }}
-          className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+          className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
         >
           <option value="" className="bg-void text-bone">
             — Choisir —
@@ -119,7 +119,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
           value={spec}
           onChange={(e) => setSpec(e.target.value)}
           disabled={!wowClass}
-          className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone disabled:opacity-40"
+          className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone disabled:opacity-40"
         >
           <option value="" className="bg-void text-bone">
             — Choisir —
@@ -152,7 +152,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
                     checked={!!selection}
                     disabled={disabled}
                     onChange={() => toggleProfession(p)}
-                    className="accent-blood"
+                    className="accent-gold"
                   />
                   {PROFESSION_LABELS[p]}
                 </label>
@@ -162,7 +162,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
                       type="checkbox"
                       checked={selection.isMaxed}
                       onChange={() => toggleMaxed(p)}
-                      className="accent-blood"
+                      className="accent-gold"
                     />
                     Maxed
                   </label>
@@ -179,7 +179,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
             type="checkbox"
             checked={canRaidLead}
             onChange={(e) => setCanRaidLead(e.target.checked)}
-            className="accent-blood"
+            className="accent-gold"
           />
           Capable de raid lead (RL)
         </label>
@@ -188,7 +188,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       <button
         type="submit"
         disabled={loading}
-        className="font-display text-sm bg-blood text-void font-medium px-5 py-2.5 disabled:opacity-50 focus-ring"
+        className="font-display text-sm bg-gold text-void font-medium rounded-full px-5 py-2.5 disabled:opacity-50 focus-ring"
       >
         {loading ? "Création..." : "Créer le personnage"}
       </button>

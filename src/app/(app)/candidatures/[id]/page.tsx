@@ -9,7 +9,7 @@ import { PROFESSION_LABELS, type Profession } from "@/lib/professions";
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
   ACCEPTEE: { label: "Acceptée", bg: "bg-moss", text: "text-void" },
-  REFUSEE: { label: "Refusée", bg: "bg-blood/30", text: "text-bone/70" }
+  REFUSEE: { label: "Refusée", bg: "bg-garnet/30", text: "text-bone/70" }
 };
 
 interface Comment {
@@ -116,7 +116,7 @@ export default function CandidatureDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="war-border bg-char p-6">
+      <div className="gilt-frame rounded-sm bg-char p-6">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <ClassSpecIcon wowClass={application.wowClass} spec={application.spec} size="h-7 w-7" />
@@ -137,19 +137,19 @@ export default function CandidatureDetailPage() {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => changeStatus("ACCEPTEE")}
-              className="font-ui text-xs px-3 py-1.5 border border-moss text-moss focus-ring"
+              className="font-ui text-xs px-3 py-1.5 border border-moss text-moss rounded-full focus-ring"
             >
               Accepter
             </button>
             <button
               onClick={() => changeStatus("REFUSEE")}
-              className="font-ui text-xs px-3 py-1.5 border border-blood text-blood focus-ring"
+              className="font-ui text-xs px-3 py-1.5 border border-garnet text-garnet rounded-full focus-ring"
             >
               Refuser
             </button>
             <button
               onClick={() => changeStatus("EN_ATTENTE")}
-              className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/70 focus-ring"
+              className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/70 rounded-full focus-ring"
             >
               Remettre en attente
             </button>
@@ -202,9 +202,9 @@ export default function CandidatureDetailPage() {
         </div>
       </div>
 
-      {commentError && <p className="font-ui text-xs text-blood">{commentError}</p>}
+      {commentError && <p className="font-ui text-xs text-garnet">{commentError}</p>}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="war-border bg-char p-5">
+        <div className="gilt-frame rounded-sm bg-char p-5">
           <p className="font-display text-sm text-bone mb-3">Notes internes</p>
           <p className="font-ui text-[10px] text-bone/40 mb-3">Jamais visible du candidat.</p>
           <div className="space-y-3 mb-4">
@@ -227,19 +227,19 @@ export default function CandidatureDetailPage() {
               value={internalDraft}
               onChange={(e) => setInternalDraft(e.target.value)}
               placeholder="Note interne..."
-              className="flex-1 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
             <button
               onClick={() => postComment("INTERNE", internalDraft)}
               disabled={sending}
-              className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+              className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
             >
               Envoyer
             </button>
           </div>
         </div>
 
-        <div className="war-border bg-char p-5">
+        <div className="gilt-frame rounded-sm bg-char p-5">
           <p className="font-display text-sm text-bone mb-3">Échange avec le candidat</p>
           <p className="font-ui text-[10px] text-bone/40 mb-3">Visible et modifiable par le candidat.</p>
           <div className="space-y-3 mb-4">
@@ -263,12 +263,12 @@ export default function CandidatureDetailPage() {
                 value={sharedDraft}
                 onChange={(e) => setSharedDraft(e.target.value)}
                 placeholder="Message au candidat..."
-                className="flex-1 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+                className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
               />
               <button
                 onClick={() => postComment("PARTAGE", sharedDraft)}
                 disabled={sending}
-                className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+                className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
               >
                 Envoyer
               </button>

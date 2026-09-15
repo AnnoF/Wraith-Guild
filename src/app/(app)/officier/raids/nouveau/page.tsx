@@ -108,8 +108,8 @@ function NouveauRaidForm() {
     <div className="max-w-lg space-y-6">
       <p className="font-display text-lg text-bone">Configurer un nouveau raid</p>
 
-      <form onSubmit={handleSubmit} className="war-border bg-char p-5 space-y-4">
-        {error && <p className="font-ui text-xs text-blood">{error}</p>}
+      <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-5 space-y-4">
+        {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
         <div>
           <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-2">
@@ -125,9 +125,9 @@ function NouveauRaidForm() {
                   type="button"
                   disabled={disabled}
                   onClick={() => toggleTitle(r)}
-                  className={`font-ui text-xs px-3 py-2 text-left border transition-colors focus-ring ${
+                  className={`font-ui text-xs px-3 py-2 text-left border rounded-sm transition-colors focus-ring ${
                     selected
-                      ? "bg-blood border-blood text-void font-medium"
+                      ? "bg-gold border-gold text-void font-medium"
                       : disabled
                         ? "border-bone/5 text-bone/25 cursor-not-allowed"
                         : "border-bone/15 text-bone/70 hover:border-bone/40"
@@ -147,7 +147,7 @@ function NouveauRaidForm() {
             type="datetime-local"
             value={date}
             onChange={(e) => handleDateChange(e.target.value)}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
           {titles.length > 1 && (
             <p className="font-ui text-xs text-bone/40 mt-1">
@@ -167,7 +167,7 @@ function NouveauRaidForm() {
               setDeadlineTouched(true);
               setSignupDeadline(e.target.value);
             }}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
           <p className="font-ui text-xs text-bone/40 mt-1">
             Passé cette date, les inscriptions se ferment automatiquement. Par
@@ -175,7 +175,7 @@ function NouveauRaidForm() {
           </p>
         </div>
 
-        <div className="war-border bg-void/40 p-3 space-y-2">
+        <div className="gilt-frame rounded-sm bg-void/40 p-3 space-y-2">
           <label className="flex items-center gap-2 font-ui text-xs text-bone/80 cursor-pointer">
             <input
               type="checkbox"
@@ -196,7 +196,7 @@ function NouveauRaidForm() {
                 max={52}
                 value={occurrences}
                 onChange={(e) => setOccurrences(Number(e.target.value))}
-                className="w-24 bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+                className="w-24 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
               />
               <p className="font-ui text-xs text-bone/40 mt-1">
                 Crée {occurrences} raids, un chaque semaine à partir de la date ci-dessus. La date
@@ -214,14 +214,14 @@ function NouveauRaidForm() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="font-display text-sm bg-blood text-void font-medium px-5 py-2.5 disabled:opacity-50 focus-ring"
+          className="font-display text-sm bg-gold text-void font-medium rounded-full px-5 py-2.5 disabled:opacity-50 focus-ring"
         >
           {loading
             ? "Création..."

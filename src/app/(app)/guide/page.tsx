@@ -66,7 +66,7 @@ function GuideSection({
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <p className="font-display text-sm text-blood uppercase tracking-wide">{instance}</p>
+        <p className="font-display text-sm gold-gradient-text uppercase tracking-wide">{instance}</p>
         {isStaff && (
           <button
             onClick={() => setAdding((v) => !v)}
@@ -132,7 +132,7 @@ function GuideEntryCard({
   }
 
   return (
-    <div className="war-border bg-char p-4">
+    <div className="gilt-frame rounded-sm bg-char p-4">
       <div className="flex items-center justify-between mb-2">
         <p className="font-display text-sm text-bone">{entry.bossName}</p>
         {isStaff && (
@@ -140,7 +140,7 @@ function GuideEntryCard({
             <button onClick={() => setEditing(true)} className="font-ui text-xs text-bone/50 hover:text-bone focus-ring">
               Éditer
             </button>
-            <button onClick={handleDelete} className="font-ui text-xs text-blood/70 hover:text-blood focus-ring">
+            <button onClick={handleDelete} className="font-ui text-xs text-garnet/70 hover:text-garnet focus-ring">
               Retirer
             </button>
           </div>
@@ -213,31 +213,31 @@ function GuideEntryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="war-border bg-char p-4 space-y-2 mb-4">
-      {error && <p className="font-ui text-xs text-blood">{error}</p>}
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-4 space-y-2 mb-4">
+      {error && <p className="font-ui text-xs text-garnet">{error}</p>}
       <input
         value={bossName}
         onChange={(e) => setBossName(e.target.value)}
         placeholder="Nom du boss"
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <input
         value={videoUrl}
         onChange={(e) => setVideoUrl(e.target.value)}
         placeholder="Lien vidéo (optionnel)"
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <textarea
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Notes (optionnel)"
         rows={2}
-        className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <button
         type="submit"
         disabled={saving}
-        className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+        className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
       >
         {saving ? "Enregistrement..." : "Enregistrer"}
       </button>

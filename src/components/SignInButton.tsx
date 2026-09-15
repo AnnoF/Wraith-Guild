@@ -11,8 +11,8 @@ export default function SignInButton({
   return (
     <button
       onClick={() => signIn("discord", { callbackUrl })}
-      className="font-display text-sm inline-flex items-center gap-2 px-6 py-3
-                 bg-blood hover:bg-blood/85 transition-colors
+      className="font-display text-sm inline-flex items-center gap-2 px-6 py-3 rounded-full
+                 bg-gold hover:bg-gold/85 transition-colors
                  text-void font-medium focus-ring"
     >
       {label}

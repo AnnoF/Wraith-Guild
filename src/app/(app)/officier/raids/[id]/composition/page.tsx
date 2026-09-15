@@ -285,19 +285,19 @@ export default function CompositionPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setRaidStatus("OUVERT")}
-            className="font-ui text-xs px-3 py-1.5 border border-moss text-moss focus-ring"
+            className="font-ui text-xs px-3 py-1.5 border border-moss text-moss rounded-full focus-ring"
           >
             Ouvrir
           </button>
           <button
             onClick={() => setRaidStatus("FERME")}
-            className="font-ui text-xs px-3 py-1.5 border border-amber text-amber focus-ring"
+            className="font-ui text-xs px-3 py-1.5 border border-amber text-amber rounded-full focus-ring"
           >
             Fermer les inscriptions
           </button>
           <button
             onClick={() => setRaidStatus("TERMINE")}
-            className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 focus-ring"
+            className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 rounded-full focus-ring"
           >
             Marquer comme terminé
           </button>
@@ -305,13 +305,13 @@ export default function CompositionPage() {
             onClick={() => {
               if (confirm("Annuler ce raid ? Les inscriptions seront fermées.")) setRaidStatus("ANNULE");
             }}
-            className="font-ui text-xs px-3 py-1.5 border border-blood text-blood focus-ring"
+            className="font-ui text-xs px-3 py-1.5 border border-garnet text-garnet rounded-full focus-ring"
           >
             Annuler le raid
           </button>
           <Link
             href={`/officier/raids/nouveau?titles=${encodeURIComponent(raid.titles.join(","))}&notes=${encodeURIComponent(raid.notes ?? "")}`}
-            className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 hover:text-bone focus-ring"
+            className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 hover:text-bone rounded-full focus-ring"
           >
             Dupliquer ce raid
           </Link>
@@ -329,7 +329,7 @@ export default function CompositionPage() {
       </div>
 
       {error && (
-        <p className="font-ui text-xs text-blood war-border bg-char px-4 py-2.5">{error}</p>
+        <p className="font-ui text-xs text-garnet gilt-frame rounded-sm bg-char px-4 py-2.5">{error}</p>
       )}
 
       <div className="space-y-2">
@@ -338,16 +338,16 @@ export default function CompositionPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un joueur ou un personnage..."
-            className="bg-void border border-bone/15 focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
+            className="bg-void border border-bone/15 rounded-sm focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
           />
           <div className="flex gap-1">
             {ROLE_TAGS.map((r) => (
               <button
                 key={r.value}
                 onClick={() => toggleRoleFilter(r.value)}
-                className={`font-ui text-xs px-2.5 py-1.5 border focus-ring ${
+                className={`font-ui text-xs px-2.5 py-1.5 border rounded-full focus-ring ${
                   roleFilters.has(r.value)
-                    ? "bg-blood text-void border-blood"
+                    ? "bg-gold text-void border-gold"
                     : "border-bone/20 text-bone/60 hover:text-bone"
                 }`}
               >
@@ -358,7 +358,7 @@ export default function CompositionPage() {
           {filtersActive && (
             <button
               onClick={clearFilters}
-              className="font-ui text-xs text-bone/40 hover:text-blood focus-ring"
+              className="font-ui text-xs text-bone/40 hover:text-garnet focus-ring"
             >
               Réinitialiser les filtres
             </button>
@@ -402,7 +402,7 @@ export default function CompositionPage() {
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
             )}
             {filteredUnplaced.map((s) => (
-              <div key={s.id} className="war-border bg-char px-3 py-2.5">
+              <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                   <button
@@ -452,7 +452,7 @@ export default function CompositionPage() {
           {groupRows(raid.size, numGroups).map((row, rowIdx) => (
             <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
               {row.map((groupIndex) => (
-                <div key={groupIndex} className="war-border bg-char p-3 min-w-0">
+                <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
                   <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
                   <div className="space-y-1">
                     {Array.from({ length: GROUP_SIZE }, (_, i) => {
@@ -475,7 +475,7 @@ export default function CompositionPage() {
                           }
                           className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
                             dragOverSlot === slot
-                              ? "border-blood bg-blood/10"
+                              ? "border-gold bg-gold/10"
                               : occupant
                               ? ""
                               : "border-dashed border-bone/10 text-bone/20"
@@ -500,7 +500,7 @@ export default function CompositionPage() {
                               </span>
                               <button
                                 onClick={() => updateSignup(occupant.user.id, { slot: null })}
-                                className="text-bone/30 hover:text-blood focus-ring shrink-0"
+                                className="text-bone/30 hover:text-garnet focus-ring shrink-0"
                                 title="Retirer du groupe"
                               >
                                 ×
@@ -529,7 +529,7 @@ export default function CompositionPage() {
             {filteredPlaced.map((s) => {
               const otherCharacters = s.user.characters.filter((c) => c.id !== s.characterId);
               return (
-                <div key={s.id} className="war-border bg-char px-3 py-2.5">
+                <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                     <button
@@ -589,7 +589,7 @@ export default function CompositionPage() {
                   <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
                 )}
                 {filteredBenched.map((s) => (
-                  <div key={s.id} className="war-border bg-char px-3 py-2.5">
+                  <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-ui text-sm text-bone/80">{s.user.discordTag}</p>
                       <button
@@ -614,7 +614,7 @@ export default function CompositionPage() {
                   <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
                 )}
                 {filteredAbsent.map((s) => (
-                  <div key={s.id} className="war-border bg-char px-3 py-2.5 opacity-40">
+                  <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5 opacity-40">
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                       <button
@@ -637,7 +637,7 @@ export default function CompositionPage() {
       <div className="flex justify-center">
         <button
           onClick={() => setAdvancedMode((v) => !v)}
-          className="font-ui text-xs px-4 py-2 border border-bone/30 text-bone/60 hover:text-bone focus-ring"
+          className="font-ui text-xs px-4 py-2 border border-bone/30 text-bone/60 hover:text-bone rounded-full focus-ring"
         >
           {advancedMode ? "Masquer le mode avancé" : "Mode avancé — rôles par boss"}
         </button>
@@ -657,7 +657,7 @@ export default function CompositionPage() {
                   <button
                     key={`group-${groupIdx}`}
                     onClick={() => expandBosses(names)}
-                    className="w-full war-border bg-char px-4 py-2.5 flex items-center justify-between gap-3 text-left focus-ring"
+                    className="w-full gilt-frame rounded-sm bg-char px-4 py-2.5 flex items-center justify-between gap-3 text-left focus-ring"
                   >
                     <span className="font-ui text-xs text-bone/50 truncate">{names.join(", ")}</span>
                     <span className="font-ui text-[10px] uppercase tracking-wide text-bone/40 shrink-0">
@@ -670,7 +670,7 @@ export default function CompositionPage() {
               const { boss, roles } = group[0];
               const isCollapsed = collapsedBosses.has(boss);
               return (
-                <div key={boss} className="war-border bg-char p-4">
+                <div key={boss} className="gilt-frame rounded-sm bg-char p-4">
                   <button
                     onClick={() => toggleBossCollapsed(boss)}
                     className="flex items-center justify-between w-full font-display text-sm text-bone focus-ring"
@@ -704,7 +704,7 @@ export default function CompositionPage() {
                             onDrop={(e) => handleBossDrop(e, boss, role.label)}
                             className={`min-h-[44px] px-2 py-1.5 border font-ui text-xs flex flex-col justify-center gap-0.5 ${
                               dragOverBossRole === key
-                                ? "border-blood bg-blood/10"
+                                ? "border-gold bg-gold/10"
                                 : assignedChar
                                 ? ""
                                 : "border-dashed border-bone/10"
@@ -715,7 +715,7 @@ export default function CompositionPage() {
                               {assignedChar && (
                                 <button
                                   onClick={() => assignBossRole(boss, role.label, null)}
-                                  className="text-bone/30 hover:text-blood focus-ring shrink-0"
+                                  className="text-bone/30 hover:text-garnet focus-ring shrink-0"
                                   title="Retirer"
                                 >
                                   ×

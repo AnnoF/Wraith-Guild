@@ -88,8 +88,8 @@ export default function CharacterCard({
 
   if (editing) {
     return (
-      <div className="war-border bg-char p-4 space-y-3">
-        {error && <p className="font-ui text-xs text-blood">{error}</p>}
+      <div className="gilt-frame rounded-sm bg-char p-4 space-y-3">
+        {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
         <div>
           <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
@@ -99,7 +99,7 @@ export default function CharacterCard({
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={24}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function CharacterCard({
           <select
             value={spec}
             onChange={(e) => setSpec(e.target.value)}
-            className="w-full bg-void border border-bone/15 focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           >
             {availableSpecs.map((s) => (
               <option key={s} value={s} className="bg-void text-bone">
@@ -140,7 +140,7 @@ export default function CharacterCard({
                       checked={!!selection}
                       disabled={disabled}
                       onChange={() => toggleProfession(p)}
-                      className="accent-blood"
+                      className="accent-gold"
                     />
                     {PROFESSION_LABELS[p]}
                   </label>
@@ -150,7 +150,7 @@ export default function CharacterCard({
                         type="checkbox"
                         checked={selection.isMaxed}
                         onChange={() => toggleMaxed(p)}
-                        className="accent-blood"
+                        className="accent-gold"
                       />
                       Maxed
                     </label>
@@ -167,7 +167,7 @@ export default function CharacterCard({
               type="checkbox"
               checked={canRaidLead}
               onChange={(e) => setCanRaidLead(e.target.checked)}
-              className="accent-blood"
+              className="accent-gold"
             />
             Capable de raid lead (RL)
           </label>
@@ -177,7 +177,7 @@ export default function CharacterCard({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="font-display text-xs bg-blood text-void font-medium px-4 py-2 disabled:opacity-50 focus-ring"
+            className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
           >
             {saving ? "Enregistrement..." : "Enregistrer"}
           </button>
@@ -193,7 +193,7 @@ export default function CharacterCard({
   }
 
   return (
-    <div className={`war-border bg-char p-4 flex items-center justify-between ${!character.isActive ? "opacity-50" : ""}`}>
+    <div className={`gilt-frame rounded-sm bg-char p-4 flex items-center justify-between ${!character.isActive ? "opacity-50" : ""}`}>
       <div>
         <p className="font-display text-sm text-bone">{character.name}</p>
         <p className="font-ui text-xs text-bone/60 mt-0.5">
