@@ -37,6 +37,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.name = name;
   }
 
+  if (body.secondaryName !== undefined) {
+    const secondaryName = typeof body.secondaryName === "string" ? body.secondaryName.trim() : "";
+    data.secondaryName = secondaryName || null;
+  }
+
   if (body.canRaidLead !== undefined) {
     data.canRaidLead = Boolean(body.canRaidLead);
   }

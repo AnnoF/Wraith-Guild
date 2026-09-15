@@ -24,7 +24,7 @@ export async function GET() {
       isArchived: true,
       characters: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, name: true, class: true, spec: true, isActive: true, canRaidLead: true }
+        select: { id: true, name: true, secondaryName: true, class: true, spec: true, isActive: true, canRaidLead: true }
       }
     }
   });

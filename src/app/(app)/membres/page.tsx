@@ -5,6 +5,7 @@ import { CLASS_LABELS, type WowClass } from "@/lib/classes";
 interface MemberCharacter {
   id: string;
   name: string;
+  secondaryName: string | null;
   class: WowClass;
   spec: string;
   isActive: boolean;
@@ -64,7 +65,12 @@ export default function MembresPage() {
   const filtered = members.filter((m) => {
     if (!q) return true;
     const name = (m.displayName || m.discordTag).toLowerCase();
-    return name.includes(q) || m.characters.some((c) => c.name.toLowerCase().includes(q));
+    return (
+      name.includes(q) ||
+      m.characters.some(
+        (c) => c.name.toLowerCase().includes(q) || (c.secondaryName?.toLowerCase().includes(q) ?? false)
+      )
+    );
   });
 
   return (
@@ -111,7 +117,8 @@ export default function MembresPage() {
                 <ul className="space-y-0.5">
                   {m.characters.map((c) => (
                     <li key={c.id} className={`font-ui text-xs ${c.isActive ? "text-bone/70" : "text-bone/25"}`}>
-                      {c.name} — {CLASS_LABELS[c.class]} ({c.spec})
+                      {c.name}
+                      {c.secondaryName && ` / ${c.secondaryName}`} — {CLASS_LABELS[c.class]} ({c.spec})
                       {!c.isActive && " · archivé"}
                     </li>
                   ))}

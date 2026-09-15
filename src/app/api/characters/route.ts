@@ -30,10 +30,13 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, wowClass, spec, professions, canRaidLead } = body;
+  const { name, secondaryName, wowClass, spec, professions, canRaidLead } = body;
 
   if (!name || typeof name !== "string" || name.trim().length < 2) {
     return NextResponse.json({ error: "Nom de personnage invalide" }, { status: 400 });
+  }
+  if (secondaryName !== undefined && typeof secondaryName !== "string") {
+    return NextResponse.json({ error: "Nom secondaire invalide" }, { status: 400 });
   }
   if (!WOW_CLASSES.includes(wowClass)) {
     return NextResponse.json({ error: "Classe invalide" }, { status: 400 });
@@ -64,6 +67,7 @@ export async function POST(req: Request) {
     const character = await prisma.character.create({
       data: {
         name: name.trim(),
+        secondaryName: secondaryName && secondaryName.trim() ? secondaryName.trim() : null,
         class: wowClass,
         spec,
         canRaidLead: Boolean(canRaidLead),

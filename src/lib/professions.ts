@@ -7,7 +7,8 @@ export const PROFESSIONS = [
   "ENCHANTING",
   "ENGINEERING",
   "LEATHERWORKING",
-  "TAILORING"
+  "TAILORING",
+  "CAMPING"
 ] as const;
 
 export type Profession = (typeof PROFESSIONS)[number];
@@ -21,7 +22,8 @@ export const PROFESSION_LABELS: Record<Profession, string> = {
   ENCHANTING: "Enchanting",
   ENGINEERING: "Engineering",
   LEATHERWORKING: "Leatherworking",
-  TAILORING: "Tailoring"
+  TAILORING: "Tailoring",
+  CAMPING: "Camping"
 };
 
 export const MAX_PROFESSIONS_PER_CHARACTER = 2;
