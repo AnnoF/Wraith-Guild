@@ -112,6 +112,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // ça passe effectivement à FERME (pas de re-notification si déjà FERME).
   if (body.status === "FERME" && existing.status !== "FERME") {
     await notifyRaidLocked(raid);
+    // La composition est considérée terminée : tout inscrit encore
+    // disponible mais jamais placé dans aucune phase passe
+    // automatiquement en réserve (bench), qu'il l'ait souhaité ou non à
+    // l'inscription — voir POST /api/raids/[id]/signup pour la
+    // préférence `wantsBench`, qui elle ne fait jamais ce basculement
+    // toute seule.
+    await prisma.raidSignup.updateMany({
+      where: { raidId: id, status: "INSCRIT", placements: { none: {} } },
+      data: { status: "RESERVE" }
+    });
   }
 
   return NextResponse.json(raid);

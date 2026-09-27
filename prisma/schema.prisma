@@ -228,6 +228,11 @@ model RaidSignup {
   id            String       @id @default(cuid())
   status        SignupStatus @default(INSCRIT)
   comment       String?      // ex: "dispo après 21h"
+  // Préférence indiquée par le joueur lui-même à l'inscription ("Je peux
+  // être bench") — ne change jamais `status` automatiquement : seul un
+  // Officier décide du passage en RESERVE depuis la composition, voir
+  // POST /api/raids/[id]/signup.
+  wantsBench    Boolean      @default(false)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

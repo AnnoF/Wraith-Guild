@@ -36,6 +36,7 @@ interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
+  wantsBench: boolean;
   user: { id: string; discordTag: string; siteRole: string; characters: CharacterOption[] };
 }
 
@@ -298,7 +299,12 @@ export default function CompositionPage() {
 
   const filtersActive = search.trim() !== "" || roleFilters.size > 0 || classFilters.size > 0;
 
-  const filteredUnplaced = unplacedInPhase.filter(matchesFilters);
+  // Ceux qui ont indiqué préférer bench à l'inscription restent inscrits
+  // (status INSCRIT) : ce n'est qu'une préférence affichée à l'Officier,
+  // qui les liste après ceux qui veulent raid mais ne les bascule jamais
+  // en réserve automatiquement (voir wantsBench sur RaidSignup).
+  const filteredUnplaced = unplacedInPhase.filter(matchesFilters).filter((s) => !s.wantsBench);
+  const filteredUnplacedWantBench = unplacedInPhase.filter(matchesFilters).filter((s) => s.wantsBench);
   const filteredPlaced = placedInPhase.filter(matchesFilters);
   const filteredBenched = benched.filter(matchesFilters);
   const filteredAbsent = absentSignups.filter(matchesFilters);
@@ -461,7 +467,7 @@ export default function CompositionPage() {
             {players.length > 0 && unplacedInPhase.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Tous les inscrits sont placés pour cette phase.</p>
             )}
-            {unplacedInPhase.length > 0 && filteredUnplaced.length === 0 && (
+            {unplacedInPhase.length > 0 && filteredUnplaced.length === 0 && filteredUnplacedWantBench.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
             )}
             {filteredUnplaced.map((s) => (
@@ -502,6 +508,115 @@ export default function CompositionPage() {
                         <EnchantBadge character={c} />
                         {c.weekLocked && <WeekLockBadge />}
                         <MainAltBadge status={c.mainAltStatus} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Préférence indiquée à l'inscription, pas un statut : le
+                joueur reste INSCRIT (disponible, comptabilisé, plaçable)
+                tant qu'un Officier n'a pas cliqué "Bench" lui-même. Listé
+                après ceux qui veulent raid, personnages ratés en diagonale
+                (voir .bench-strike) pour repérer la préférence en un
+                coup d'œil. */}
+            {filteredUnplacedWantBench.length > 0 && (
+              <p className="col-span-4 lg:col-span-2 font-ui text-[10px] uppercase tracking-wide text-bone/40 mt-2">
+                Préférence bench
+              </p>
+            )}
+            {filteredUnplacedWantBench.map((s) => (
+              <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
+                  <button
+                    onClick={() => updateSignup(s.user.id, { status: "RESERVE" })}
+                    title="Confirmer la mise en réserve (bench)"
+                    className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
+                  >
+                    Bench
+                  </button>
+                </div>
+                {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
+                <div className="mt-1.5 space-y-1">
+                  {s.user.characters.length === 0 && (
+                    <p className="font-ui text-xs text-bone/30">Aucun personnage actif</p>
+                  )}
+                  {s.user.characters.map((c) => {
+                    const color = CLASS_COLORS[c.class];
+                    return (
+                      <div
+                        key={c.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                        onDoubleClick={() => {
+                          if (phase && phase.runs.length === 1) handleQuickAssign(phase.runs[0].id, phase.runs[0].size, s.user.id, c.id);
+                        }}
+                        title={phase && phase.runs.length === 1 ? "Double-clic pour placer automatiquement" : undefined}
+                        style={{ backgroundColor: `${color}66`, borderColor: `${color}B3` }}
+                        className="bench-strike relative flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
+                      >
+                        <RankBadge siteRole={s.user.siteRole} />
+                        <ClassSpecIcon wowClass={c.class} spec={c.spec} />
+                        <span>{c.name}</span>
+                        {c.canRaidLead && <RaidLeadBadge />}
+                        <EnchantBadge character={c} />
+                        {c.weekLocked && <WeekLockBadge />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Les joueurs réellement mis en réserve (par un Officier, ou
+                automatiquement à la fermeture des inscriptions) restent
+                toujours listés après ceux qui veulent raid, leurs
+                personnages affichés avec une rature diagonale (voir
+                .bench-strike) — ils restent glissables si un Officier veut
+                les placer. */}
+            {benched.length > 0 && (
+              <p className="col-span-4 lg:col-span-2 font-ui text-[10px] uppercase tracking-wide text-bone/40 mt-2">
+                Réserve
+              </p>
+            )}
+            {benched.length > 0 && filteredBenched.length === 0 && (
+              <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
+            )}
+            {filteredBenched.map((s) => (
+              <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-ui text-sm text-bone/80">{s.user.discordTag}</p>
+                  <button
+                    onClick={() => updateSignup(s.user.id, { status: "INSCRIT" })}
+                    title="Retirer de la réserve"
+                    className="font-ui text-[10px] text-bone/30 hover:text-moss focus-ring shrink-0"
+                  >
+                    Réinscrire
+                  </button>
+                </div>
+                {s.comment && <p className="font-ui text-xs text-bone/30 mt-0.5">{s.comment}</p>}
+                <div className="mt-1.5 space-y-1">
+                  {s.user.characters.length === 0 && (
+                    <p className="font-ui text-xs text-bone/30">Aucun personnage actif</p>
+                  )}
+                  {s.user.characters.map((c) => {
+                    const color = CLASS_COLORS[c.class];
+                    return (
+                      <div
+                        key={c.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
+                        style={{ backgroundColor: `${color}66`, borderColor: `${color}B3` }}
+                        className="bench-strike relative flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
+                      >
+                        <RankBadge siteRole={s.user.siteRole} />
+                        <ClassSpecIcon wowClass={c.class} spec={c.spec} />
+                        <span>{c.name}</span>
+                        {c.canRaidLead && <RaidLeadBadge />}
+                        <EnchantBadge character={c} />
+                        {c.weekLocked && <WeekLockBadge />}
                       </div>
                     );
                   })}
@@ -667,31 +782,6 @@ export default function CompositionPage() {
               );
             })}
           </div>
-
-          {benched.length > 0 && (
-            <>
-              <p className="font-display text-xs text-bone/50 mt-4 mb-2">Réserve</p>
-              <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
-                {filteredBenched.length === 0 && (
-                  <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
-                )}
-                {filteredBenched.map((s) => (
-                  <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-ui text-sm text-bone/80">{s.user.discordTag}</p>
-                      <button
-                        onClick={() => updateSignup(s.user.id, { status: "INSCRIT" })}
-                        title="Retirer de la réserve"
-                        className="font-ui text-[10px] text-bone/30 hover:text-moss focus-ring shrink-0"
-                      >
-                        Réinscrire
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
 
           {absentSignups.length > 0 && (
             <>
