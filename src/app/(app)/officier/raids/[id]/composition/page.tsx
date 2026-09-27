@@ -12,6 +12,8 @@ import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
 import WeekLockBadge from "@/components/WeekLockBadge";
 import RankBadge from "@/components/RankBadge";
+import MainAltBadge from "@/components/MainAltBadge";
+import type { MainAltStatus } from "@/lib/mainAlt";
 
 const ROLE_TAGS: { value: RaidRole; label: string }[] = [
   { value: "TANK", label: "Tank" },
@@ -26,6 +28,7 @@ interface CharacterOption {
   spec: string;
   professions: { profession: Profession; isMaxed: boolean }[];
   canRaidLead: boolean;
+  mainAltStatus: MainAltStatus;
   weekLocked?: boolean;
 }
 
@@ -498,6 +501,7 @@ export default function CompositionPage() {
                         {c.canRaidLead && <RaidLeadBadge />}
                         <EnchantBadge character={c} />
                         {c.weekLocked && <WeekLockBadge />}
+                        <MainAltBadge status={c.mainAltStatus} />
                       </div>
                     );
                   })}
@@ -567,6 +571,7 @@ export default function CompositionPage() {
                                         <span className="truncate">{occupant.character.name}</span>
                                         {occupant.character.canRaidLead && <RaidLeadBadge />}
                                         <EnchantBadge character={occupant.character} />
+                                        <MainAltBadge status={occupant.character.mainAltStatus} />
                                       </span>
                                       <button
                                         onClick={() =>
@@ -635,6 +640,7 @@ export default function CompositionPage() {
                       <span>{placement.character.name}</span>
                       {placement.character.canRaidLead && <RaidLeadBadge />}
                       <EnchantBadge character={placement.character} />
+                      <MainAltBadge status={placement.character.mainAltStatus} />
                     </div>
                     {otherCharacters.map((c) => {
                       const color = CLASS_COLORS[c.class];
@@ -652,6 +658,7 @@ export default function CompositionPage() {
                           {c.canRaidLead && <RaidLeadBadge />}
                           <EnchantBadge character={c} />
                           {c.weekLocked && <WeekLockBadge />}
+                          <MainAltBadge status={c.mainAltStatus} />
                         </div>
                       );
                     })}
@@ -837,6 +844,7 @@ export default function CompositionPage() {
                                 <span className="truncate">{assignedChar.name}</span>
                                 {assignedChar.canRaidLead && <RaidLeadBadge />}
                                 <EnchantBadge character={assignedChar} />
+                                <MainAltBadge status={assignedChar.mainAltStatus} />
                               </span>
                             )}
                           </div>

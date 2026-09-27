@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { CLASS_LABELS, CLASS_SPECS, type WowClass } from "@/lib/classes";
 import { PROFESSIONS, PROFESSION_LABELS, MAX_PROFESSIONS_PER_CHARACTER, type Profession } from "@/lib/professions";
+import { MAIN_ALT_LABELS, isMainAltStatusLocked, type MainAltStatus } from "@/lib/mainAlt";
+import MainAltStatusPicker from "@/components/MainAltStatusPicker";
 
 export interface CharacterData {
   id: string;
@@ -11,6 +13,7 @@ export interface CharacterData {
   spec: string;
   isActive: boolean;
   canRaidLead: boolean;
+  mainAltStatus: MainAltStatus;
   professions: { profession: Profession; isMaxed: boolean }[];
 }
 
@@ -21,10 +24,12 @@ interface ProfessionSelection {
 
 export default function CharacterCard({
   character,
+  siblingStatuses,
   onToggleActive,
   onUpdated
 }: {
   character: CharacterData;
+  siblingStatuses: MainAltStatus[];
   onToggleActive: (id: string, isActive: boolean) => void;
   onUpdated: () => void;
 }) {
@@ -33,6 +38,7 @@ export default function CharacterCard({
   const [secondaryName, setSecondaryName] = useState(character.secondaryName ?? "");
   const [spec, setSpec] = useState(character.spec);
   const [canRaidLead, setCanRaidLead] = useState(character.canRaidLead);
+  const [mainAltStatus, setMainAltStatus] = useState<MainAltStatus>(character.mainAltStatus);
   const [professions, setProfessions] = useState<ProfessionSelection[]>(
     character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed }))
   );
@@ -40,12 +46,14 @@ export default function CharacterCard({
   const [error, setError] = useState<string | null>(null);
 
   const availableSpecs = CLASS_SPECS[character.class];
+  const mainAltLocked = isMainAltStatusLocked(character.mainAltStatus);
 
   function startEditing() {
     setName(character.name);
     setSecondaryName(character.secondaryName ?? "");
     setSpec(character.spec);
     setCanRaidLead(character.canRaidLead);
+    setMainAltStatus(character.mainAltStatus);
     setProfessions(character.professions.map((p) => ({ profession: p.profession, isMaxed: p.isMaxed })));
     setError(null);
     setEditing(true);
@@ -77,7 +85,14 @@ export default function CharacterCard({
     const res = await fetch(`/api/characters/${character.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), secondaryName: secondaryName.trim(), spec, professions, canRaidLead })
+      body: JSON.stringify({
+        name: name.trim(),
+        secondaryName: secondaryName.trim(),
+        spec,
+        professions,
+        canRaidLead,
+        ...(mainAltLocked ? {} : { mainAltStatus })
+      })
     });
     setSaving(false);
     if (!res.ok) {
@@ -189,6 +204,18 @@ export default function CharacterCard({
           </label>
         </div>
 
+        {mainAltLocked ? (
+          <p className="font-ui text-xs text-bone/50">
+            Statut : {MAIN_ALT_LABELS[character.mainAltStatus]} (verrouillé, ne peut plus être modifié)
+          </p>
+        ) : (
+          <MainAltStatusPicker
+            value={mainAltStatus}
+            onChange={setMainAltStatus}
+            siblingStatuses={siblingStatuses}
+          />
+        )}
+
         <div className="flex gap-3">
           <button
             onClick={handleSave}
@@ -219,7 +246,7 @@ export default function CharacterCard({
         </p>
         <p className="font-ui text-xs text-bone/60 mt-0.5">
           {CLASS_LABELS[character.class]} · {character.spec}
-          {character.canRaidLead && " · RL"}
+          {character.canRaidLead && " · RL"} · {MAIN_ALT_LABELS[character.mainAltStatus]}
         </p>
         {character.professions.length > 0 && (
           <p className="font-ui text-xs text-bone/40 mt-0.5">

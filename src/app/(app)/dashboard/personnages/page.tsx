@@ -45,6 +45,7 @@ export default function PersonnagesPage() {
 
       {showForm && (
         <CharacterForm
+          existingStatuses={characters.map((c) => c.mainAltStatus)}
           onCreated={() => {
             setShowForm(false);
             loadCharacters();
@@ -64,6 +65,7 @@ export default function PersonnagesPage() {
             <CharacterCard
               key={c.id}
               character={c}
+              siblingStatuses={characters.filter((o) => o.id !== c.id).map((o) => o.mainAltStatus)}
               onToggleActive={handleToggleActive}
               onUpdated={loadCharacters}
             />
