@@ -66,6 +66,22 @@ body {
   border-right: 2px solid var(--gold-light);
 }
 
+/* Rature diagonale sur la carte d'un personnage dont le joueur a choisi
+   "Je peux être bench" à l'inscription — le dégradé corner-to-corner
+   s'adapte à la taille de la carte sans mesure JS. */
+.bench-strike::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 1px),
+    var(--garnet) calc(50% - 1px) calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+  pointer-events: none;
+}
+
 .focus-ring:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;

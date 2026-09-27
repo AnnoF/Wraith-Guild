@@ -6,12 +6,17 @@ import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
 
 // POST : un Raideur s'inscrit lui-même (disponibilité pour toute la
-// soirée), en choisissant s'il veut raid (status: "INSCRIT") ou s'il peut
-// être bench (status: "RESERVE"), sans choisir de personnage — c'est un
-// Officier qui placera un personnage dans une phase précise ensuite (voir
-// PATCH ci-dessous). Peut aussi se signaler absent (status: "ABSENT") pour
-// prévenir sans se désinscrire complètement (DESISTE) — reste visible,
-// grisé, en composition, contrairement à un désistement.
+// soirée), sans choisir de personnage — c'est un Officier qui placera un
+// personnage dans une phase précise ensuite (voir PATCH ci-dessous). Le
+// joueur indique aussi s'il préfère raid ou bench (wantsBench) — une
+// simple préférence affichée à l'Officier en composition, qui ne fait
+// jamais basculer `status` en RESERVE tout seul : ce passage en réserve
+// reste une décision manuelle de l'Officier (bouton "Bench" en
+// composition), ou automatique à la fermeture des inscriptions pour ceux
+// qui n'ont pas été placés (voir PATCH /api/raids/[id]). Peut aussi se
+// signaler absent (status: "ABSENT") pour prévenir sans se désinscrire
+// complètement (DESISTE) — reste visible, grisé, en composition,
+// contrairement à un désistement.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
@@ -22,25 +27,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = await req.json().catch(() => ({}));
   const comment = typeof body.comment === "string" ? body.comment.trim() || null : null;
-  const status = body.status === "ABSENT" || body.status === "RESERVE" ? body.status : "INSCRIT";
+  const status = body.status === "ABSENT" ? "ABSENT" : "INSCRIT";
+  const wantsBench = status === "INSCRIT" && body.wantsBench === true;
 
   const raid = await prisma.raid.findUnique({ where: { id } });
   if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
   // Se signaler absent reste possible même après la fermeture des
-  // inscriptions (utile en dernière minute) ; s'inscrire ou se déclarer
-  // disponible en réserve non.
-  if (status !== "ABSENT" && effectiveRaidStatus(raid) !== "OUVERT") {
+  // inscriptions (utile en dernière minute) ; s'inscrire non.
+  if (status === "INSCRIT" && effectiveRaidStatus(raid) !== "OUVERT") {
     return NextResponse.json({ error: "Les inscriptions ne sont pas ouvertes pour ce raid" }, { status: 409 });
   }
 
   const signup = await prisma.raidSignup.upsert({
     where: { raidId_userId: { raidId: id, userId: session.user.id } },
-    update: { status, comment },
-    create: { raidId: id, userId: session.user.id, comment, status }
+    update: { status, comment, wantsBench },
+    create: { raidId: id, userId: session.user.id, comment, status, wantsBench }
   });
-  // Se signaler absent ou passer en réserve libère les places qu'on
-  // occupait éventuellement, dans chaque phase où on avait été placé.
-  if (status !== "INSCRIT") {
+  // Se signaler absent libère les places qu'on occupait éventuellement,
+  // dans chaque phase où on avait été placé.
+  if (status === "ABSENT") {
     await prisma.raidPlacement.deleteMany({ where: { signupId: signup.id } });
   }
   return NextResponse.json(signup, { status: 201 });

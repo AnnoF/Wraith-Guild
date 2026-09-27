@@ -44,6 +44,7 @@ interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
+  wantsBench: boolean;
   user: { id: string; discordTag: string };
 }
 
@@ -84,12 +85,12 @@ export default function RaidDetailPage() {
     load();
   }, [id]);
 
-  async function submitSignup(status: "INSCRIT" | "RESERVE" | "ABSENT") {
+  async function submitSignup(status: "INSCRIT" | "ABSENT", wantsBench = false) {
     setError(null);
     const res = await fetch(`/api/raids/${id}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ comment: comment || undefined, status })
+      body: JSON.stringify({ comment: comment || undefined, status, wantsBench })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -104,7 +105,7 @@ export default function RaidDetailPage() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     if (!availability) return;
-    await submitSignup(availability);
+    await submitSignup("INSCRIT", availability === "RESERVE");
   }
 
   async function handleMarkAbsent() {
@@ -239,7 +240,12 @@ export default function RaidDetailPage() {
         <div className="gilt-frame rounded-sm bg-char p-5 flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="font-ui text-sm text-bone">
-              Vous êtes inscrit {mySignup.status === "RESERVE" ? "(réserve)" : ""}
+              Vous êtes inscrit
+              {mySignup.status === "RESERVE"
+                ? " (réserve)"
+                : mySignup.wantsBench
+                ? " (préférence : bench)"
+                : ""}
             </p>
             {mySignup.status === "INSCRIT" && (
               <p className="font-ui text-xs text-bone/50 mt-1">
