@@ -72,6 +72,7 @@ export default function RaidDetailPage() {
   const { data: session } = useSession();
   const [raid, setRaid] = useState<RaidDetail | null>(null);
   const [comment, setComment] = useState("");
+  const [availability, setAvailability] = useState<"INSCRIT" | "RESERVE" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -83,7 +84,7 @@ export default function RaidDetailPage() {
     load();
   }, [id]);
 
-  async function submitSignup(status: "INSCRIT" | "ABSENT") {
+  async function submitSignup(status: "INSCRIT" | "RESERVE" | "ABSENT") {
     setError(null);
     const res = await fetch(`/api/raids/${id}/signup`, {
       method: "POST",
@@ -96,12 +97,14 @@ export default function RaidDetailPage() {
       return;
     }
     setComment("");
+    setAvailability(null);
     load();
   }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    await submitSignup("INSCRIT");
+    if (!availability) return;
+    await submitSignup(availability);
   }
 
   async function handleMarkAbsent() {
@@ -159,6 +162,39 @@ export default function RaidDetailPage() {
 
       {raid.status === "OUVERT" && canSignup && (
         <form onSubmit={handleSignup} className="gilt-frame rounded-sm bg-char p-5 flex flex-wrap items-end gap-3">
+          <div>
+            <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+              Disponibilité
+            </label>
+            <div className="flex gap-2" role="radiogroup" aria-label="Disponibilité">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={availability === "INSCRIT"}
+                onClick={() => setAvailability("INSCRIT")}
+                className={`font-ui text-xs rounded-full px-4 py-2.5 border focus-ring ${
+                  availability === "INSCRIT"
+                    ? "bg-gold text-void border-gold font-medium"
+                    : "border-bone/15 text-bone/70 hover:text-bone"
+                }`}
+              >
+                Je veux raid
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={availability === "RESERVE"}
+                onClick={() => setAvailability("RESERVE")}
+                className={`font-ui text-xs rounded-full px-4 py-2.5 border focus-ring ${
+                  availability === "RESERVE"
+                    ? "bg-gold text-void border-gold font-medium"
+                    : "border-bone/15 text-bone/70 hover:text-bone"
+                }`}
+              >
+                Je peux être bench
+              </button>
+            </div>
+          </div>
           <div className="flex-1 min-w-[200px]">
             <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
               Commentaire (optionnel)
@@ -170,7 +206,11 @@ export default function RaidDetailPage() {
               className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
-          <button type="submit" className="font-display text-xs bg-gold text-void font-medium rounded-full px-5 py-2.5 focus-ring">
+          <button
+            type="submit"
+            disabled={!availability}
+            className="font-display text-xs bg-gold text-void font-medium rounded-full px-5 py-2.5 focus-ring disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             S'inscrire
           </button>
           <button
