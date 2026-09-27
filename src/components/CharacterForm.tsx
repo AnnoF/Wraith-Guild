@@ -148,57 +148,59 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
         </select>
       </div>
 
-      <div>
-        <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
-          Métiers ({professions.length}/{MAX_PROFESSIONS_PER_CHARACTER})
-        </label>
-        <div className="space-y-1">
-          {PROFESSIONS.map((p) => {
-            const selection = professions.find((x) => x.profession === p);
-            const disabled = !selection && professions.length >= MAX_PROFESSIONS_PER_CHARACTER;
-            return (
-              <div key={p}>
-                <label
-                  className={`flex items-center gap-2 font-ui text-sm ${
-                    disabled ? "text-bone/30" : "text-bone/80"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={!!selection}
-                    disabled={disabled}
-                    onChange={() => toggleProfession(p)}
-                    className="accent-gold"
-                  />
-                  {PROFESSION_LABELS[p]}
-                </label>
-                {selection && (
-                  <label className="flex items-center gap-1 font-ui text-xs text-bone/50 ml-6 mt-1">
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+            Métiers ({professions.length}/{MAX_PROFESSIONS_PER_CHARACTER})
+          </label>
+          <div className="space-y-1">
+            {PROFESSIONS.map((p) => {
+              const selection = professions.find((x) => x.profession === p);
+              const disabled = !selection && professions.length >= MAX_PROFESSIONS_PER_CHARACTER;
+              return (
+                <div key={p}>
+                  <label
+                    className={`flex items-center gap-2 font-ui text-sm ${
+                      disabled ? "text-bone/30" : "text-bone/80"
+                    }`}
+                  >
                     <input
                       type="checkbox"
-                      checked={selection.isMaxed}
-                      onChange={() => toggleMaxed(p)}
+                      checked={!!selection}
+                      disabled={disabled}
+                      onChange={() => toggleProfession(p)}
                       className="accent-gold"
                     />
-                    Maxed
+                    {PROFESSION_LABELS[p]}
                   </label>
-                )}
-              </div>
-            );
-          })}
+                  {selection && (
+                    <label className="flex items-center gap-1 font-ui text-xs text-bone/50 ml-6 mt-1">
+                      <input
+                        type="checkbox"
+                        checked={selection.isMaxed}
+                        onChange={() => toggleMaxed(p)}
+                        className="accent-gold"
+                      />
+                      Maxed
+                    </label>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className="flex items-center gap-2 font-ui text-sm text-bone/80">
-          <input
-            type="checkbox"
-            checked={canRaidLead}
-            onChange={(e) => setCanRaidLead(e.target.checked)}
-            className="accent-gold"
-          />
-          Capable de raid lead (RL)
-        </label>
+        <div className="flex-1">
+          <label className="flex items-center gap-2 font-ui text-sm text-bone/80">
+            <input
+              type="checkbox"
+              checked={canRaidLead}
+              onChange={(e) => setCanRaidLead(e.target.checked)}
+              className="accent-gold"
+            />
+            Capable de raid lead (RL)
+          </label>
+        </div>
       </div>
 
       <button
