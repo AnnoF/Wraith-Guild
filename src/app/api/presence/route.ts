@@ -17,7 +17,7 @@ export async function GET() {
 
   const [pastRaids, members] = await Promise.all([
     prisma.raid.findMany({
-      where: { status: { not: "ANNULE" }, date: { lt: new Date() } },
+      where: { status: { not: "ANNULE" }, endTime: { lt: new Date() } },
       select: { id: true, signups: { select: { userId: true, status: true } } }
     }),
     prisma.user.findMany({

@@ -5,8 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { RAID_BOSS_ROLES } from "@/lib/bossRoles";
 
 // PATCH : assigne (ou retire) un personnage à un rôle spécifique à un
-// boss, dans le "mode avancé" de la composition. Le personnage doit
-// déjà être placé dans la grille du raid (RaidSignup.slot renseigné).
+// boss, dans le "mode avancé" de la composition d'une instance (RaidRun).
+// Le personnage doit déjà être placé dans la grille de cette instance
+// (RaidPlacement).
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
@@ -15,38 +16,36 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
   }
 
-  const { boss, role, characterId } = await req.json();
-  if (!boss || !role) {
-    return NextResponse.json({ error: "boss/role manquant" }, { status: 400 });
+  const { runId, boss, role, characterId } = await req.json();
+  if (!runId || !boss || !role) {
+    return NextResponse.json({ error: "runId/boss/role manquant" }, { status: 400 });
   }
 
-  const raid = await prisma.raid.findUnique({ where: { id } });
-  if (!raid) return NextResponse.json({ error: "Raid introuvable" }, { status: 404 });
+  const run = await prisma.raidRun.findUnique({ where: { id: runId }, include: { phase: true } });
+  if (!run || run.phase.raidId !== id) {
+    return NextResponse.json({ error: "Instance introuvable" }, { status: 404 });
+  }
 
-  // L'événement peut couvrir plusieurs instances (même soirée) : on
-  // cherche le boss dans le template combiné de toutes les instances.
-  const template = raid.titles.flatMap((t) => RAID_BOSS_ROLES[t] ?? []);
+  const template = RAID_BOSS_ROLES[run.title] ?? [];
   const bossEntry = template.find((b) => b.boss === boss);
   if (!bossEntry || !bossEntry.roles.some((r) => r.label === role)) {
-    return NextResponse.json({ error: "Rôle inconnu pour ce raid" }, { status: 400 });
+    return NextResponse.json({ error: "Rôle inconnu pour cette instance" }, { status: 400 });
   }
 
   if (characterId) {
-    const placement = await prisma.raidSignup.findFirst({
-      where: { raidId: id, characterId, status: "INSCRIT", slot: { not: null } }
-    });
+    const placement = await prisma.raidPlacement.findFirst({ where: { runId, characterId } });
     if (!placement) {
       return NextResponse.json(
-        { error: "Ce personnage doit d'abord être placé dans un groupe du raid" },
+        { error: "Ce personnage doit d'abord être placé dans un groupe de cette instance" },
         { status: 400 }
       );
     }
   }
 
   const assignment = await prisma.bossRoleAssignment.upsert({
-    where: { raidId_boss_role: { raidId: id, boss, role } },
+    where: { runId_boss_role: { runId, boss, role } },
     update: { characterId: characterId || null },
-    create: { raidId: id, boss, role, characterId: characterId || null }
+    create: { runId, boss, role, characterId: characterId || null }
   });
   return NextResponse.json(assignment);
 }

@@ -5,8 +5,11 @@ test("un OFFICIER crée un raid puis y place un inscrit", async ({ page, signInA
   await signInAs("OFFICIER");
 
   await page.goto("/officier/raids/nouveau");
+  await page.getByPlaceholder("Ex. Soirée raid du mercredi").fill("Soirée Hyjal");
   await page.getByRole("button", { name: /Hyjal Summit/ }).click();
-  await page.locator('input[type="datetime-local"]').first().fill("2026-09-01T20:00");
+  const datetimeInputs = page.locator('input[type="datetime-local"]');
+  await datetimeInputs.nth(0).fill("2026-09-01T20:00");
+  await datetimeInputs.nth(1).fill("2026-09-01T23:00");
   await page.getByRole("button", { name: "Créer le raid" }).click();
 
   await page.waitForURL(/\/officier\/raids\/[^/]+\/composition$/);
@@ -25,9 +28,9 @@ test("un OFFICIER crée un raid puis y place un inscrit", async ({ page, signInA
 
   await page.reload();
 
-  await expect(page.getByText("Placés : 0 / 20")).toBeVisible();
+  await expect(page.getByText("Placés (phase) : 0 / 20")).toBeVisible();
   await page.getByText(character.name).dblclick();
 
-  await expect(page.getByText("Placés : 1 / 20")).toBeVisible();
-  await expect(page.getByText("Tous les inscrits sont placés.")).toBeVisible();
+  await expect(page.getByText("Placés (phase) : 1 / 20")).toBeVisible();
+  await expect(page.getByText("Tous les inscrits sont placés pour cette phase.")).toBeVisible();
 });

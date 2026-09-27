@@ -1,11 +1,13 @@
 "use client";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { RAID_INSTANCES, RAID_INSTANCE_SIZES, type RaidInstance } from "@/lib/raidInstances";
-
-function isRaidInstance(value: string): value is RaidInstance {
-  return (RAID_INSTANCES as string[]).includes(value);
-}
+import {
+  RAID_INSTANCES,
+  RAID_INSTANCE_SIZES,
+  instancesShareSize,
+  decodeProgram,
+  type RaidInstance
+} from "@/lib/raidInstances";
 
 // Calcule "date - jours" en restant en heure locale (pas de passage par
 // toISOString ici, pour ne pas réintroduire le décalage de fuseau déjà
@@ -21,6 +23,11 @@ function subtractDaysLocal(datetimeLocal: string, days: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+interface DragPayload {
+  title: RaidInstance;
+  fromPhase: number | null; // null = vient de la réserve
+}
+
 export default function NouveauRaidPage() {
   return (
     <Suspense fallback={<p className="font-ui text-sm text-bone/50">Chargement...</p>}>
@@ -32,30 +39,88 @@ export default function NouveauRaidPage() {
 function NouveauRaidForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const prefillTitles = (searchParams.get("titles") ?? "").split(",").filter(isRaidInstance);
-  const [titles, setTitles] = useState<string[]>(prefillTitles);
+  const prefillProgram = searchParams.get("program");
+  const [name, setName] = useState(searchParams.get("name") ?? "");
+  const [phases, setPhases] = useState<string[][]>(
+    prefillProgram ? decodeProgram(prefillProgram) : []
+  );
   const [date, setDate] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [signupDeadline, setSignupDeadline] = useState("");
   const [deadlineTouched, setDeadlineTouched] = useState(false);
   const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
   const [recurrent, setRecurrent] = useState(false);
   const [occurrences, setOccurrences] = useState(4);
   const [error, setError] = useState<string | null>(null);
+  const [dragOverPhase, setDragOverPhase] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // On ne mélange jamais deux tailles différentes le même soir (ex: pas de
-  // 40 et 20 en même temps) : une fois une instance choisie, les autres
-  // tailles deviennent indisponibles.
-  const selectedSize = titles.length > 0 ? RAID_INSTANCE_SIZES[titles[0]] : null;
-
-  function toggleTitle(title: string) {
-    setTitles((current) =>
-      current.includes(title) ? current.filter((t) => t !== title) : [...current, title]
-    );
+  function addPhase(title: string) {
+    setError(null);
+    setPhases((current) => [...current, [title]]);
   }
 
-  // Par défaut, la date limite d'inscription se cale 3 jours avant la date
-  // du raid — tant que l'officier n'a pas lui-même modifié ce champ.
+  function removeInstance(phaseIndex: number, instanceIndex: number) {
+    setPhases((current) => {
+      const next = current.map((phase, i) => (i === phaseIndex ? phase.filter((_, j) => j !== instanceIndex) : phase));
+      return next.filter((phase) => phase.length > 0);
+    });
+  }
+
+  function movePhase(phaseIndex: number, direction: -1 | 1) {
+    setPhases((current) => {
+      const target = phaseIndex + direction;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[phaseIndex], next[target]] = [next[target], next[phaseIndex]];
+      return next;
+    });
+  }
+
+  function handleDragStart(e: React.DragEvent, payload: DragPayload) {
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDropOnPhase(e: React.DragEvent, phaseIndex: number) {
+    e.preventDefault();
+    setDragOverPhase(null);
+    const raw = e.dataTransfer.getData("application/json");
+    if (!raw) return;
+    const payload: DragPayload = JSON.parse(raw);
+
+    setPhases((current) => {
+      const targetPhase = current[phaseIndex];
+      if (!instancesShareSize([...targetPhase, payload.title])) {
+        setError("Cette instance n'a pas la même taille que le reste de cette phase.");
+        return current;
+      }
+      setError(null);
+      let next = current.map((phase, i) => (i === phaseIndex ? [...phase, payload.title] : phase));
+      if (payload.fromPhase !== null) {
+        // Retire une occurrence de l'instance dans sa phase d'origine (sauf
+        // si on la dépose sur sa propre phase : elle vient d'y être
+        // rajoutée juste au-dessus, donc rien à faire de plus).
+        const originIndex = payload.fromPhase;
+        next = next.map((phase, i) => {
+          if (i !== originIndex) return phase;
+          const copy = [...phase];
+          const idx = copy.indexOf(payload.title);
+          if (idx !== -1 && (originIndex !== phaseIndex || copy.length > targetPhase.length)) {
+            copy.splice(idx, 1);
+          }
+          return copy;
+        });
+        next = next.filter((phase) => phase.length > 0);
+      }
+      return next;
+    });
+  }
+
+  const selectedSizes = phases.map((phase) => RAID_INSTANCE_SIZES[phase[0]]);
+
+  // Par défaut, la date limite d'inscription se cale 3 jours avant le
+  // début de la soirée — tant que l'officier n'a pas lui-même modifié ce champ.
   function handleDateChange(value: string) {
     setDate(value);
     if (!deadlineTouched) {
@@ -66,12 +131,20 @@ function NouveauRaidForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (titles.length === 0) {
-      setError("Sélectionnez au moins un raid.");
+    if (!name.trim()) {
+      setError("Le nom de l'évent est obligatoire.");
       return;
     }
-    if (!date) {
-      setError("La date est obligatoire.");
+    if (phases.length === 0) {
+      setError("Programmez au moins une phase.");
+      return;
+    }
+    if (!date || !endTime) {
+      setError("La date de début et l'heure de fin sont obligatoires.");
+      return;
+    }
+    if (new Date(endTime) <= new Date(date)) {
+      setError("L'heure de fin doit être après l'heure de début.");
       return;
     }
     if (recurrent && (!Number.isInteger(occurrences) || occurrences < 2 || occurrences > 52)) {
@@ -88,11 +161,13 @@ function NouveauRaidForm() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        titles,
+        name: name.trim(),
         date: new Date(date).toISOString(),
+        endTime: new Date(endTime).toISOString(),
         signupDeadline: signupDeadline ? new Date(signupDeadline).toISOString() : null,
         notes,
-        recurrenceCount: recurrent ? occurrences : undefined
+        recurrenceCount: recurrent ? occurrences : undefined,
+        phases: phases.map((titles) => ({ titles }))
       })
     });
     const data = await res.json();
@@ -112,48 +187,40 @@ function NouveauRaidForm() {
         {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
         <div>
-          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-2">
-            Raid(s) — plusieurs instances possibles pour un même soir, même taille uniquement
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+            Nom de l'évent
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {RAID_INSTANCES.map((r) => {
-              const selected = titles.includes(r);
-              const disabled = !selected && selectedSize !== null && RAID_INSTANCE_SIZES[r] !== selectedSize;
-              return (
-                <button
-                  key={r}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => toggleTitle(r)}
-                  className={`font-ui text-xs px-3 py-2 text-left border rounded-sm transition-colors focus-ring ${
-                    selected
-                      ? "bg-gold border-gold text-void font-medium"
-                      : disabled
-                        ? "border-bone/5 text-bone/25 cursor-not-allowed"
-                        : "border-bone/15 text-bone/70 hover:border-bone/40"
-                  }`}
-                >
-                  {r}
-                  <span className="block text-[10px] opacity-70">{RAID_INSTANCE_SIZES[r]} joueurs</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">Date et heure</label>
           <input
-            type="datetime-local"
-            value={date}
-            onChange={(e) => handleDateChange(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex. Soirée raid du mercredi"
             className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
-          {titles.length > 1 && (
-            <p className="font-ui text-xs text-bone/40 mt-1">
-              Un seul événement, avec {titles.length} instances à la suite, à cette date.
-            </p>
-          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+              Début
+            </label>
+            <input
+              type="datetime-local"
+              value={date}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            />
+          </div>
+          <div>
+            <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1">
+              Fin
+            </label>
+            <input
+              type="datetime-local"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            />
+          </div>
         </div>
 
         <div>
@@ -171,8 +238,96 @@ function NouveauRaidForm() {
           />
           <p className="font-ui text-xs text-bone/40 mt-1">
             Passé cette date, les inscriptions se ferment automatiquement. Par
-            défaut, 3 jours avant le raid — modifiable librement.
+            défaut, 3 jours avant le début — modifiable librement.
           </p>
+        </div>
+
+        <div>
+          <label className="font-ui text-xs uppercase tracking-wide text-bone/60 block mb-2">
+            Programme de la soirée
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {RAID_INSTANCES.map((r) => (
+              <button
+                key={r}
+                type="button"
+                draggable
+                onDragStart={(e) => handleDragStart(e, { title: r, fromPhase: null })}
+                onClick={() => addPhase(r)}
+                className="font-ui text-xs px-3 py-2 text-left border rounded-sm transition-colors focus-ring border-bone/15 text-bone/70 hover:border-gold hover:text-bone cursor-grab active:cursor-grabbing"
+              >
+                {r}
+                <span className="block text-[10px] opacity-70">{RAID_INSTANCE_SIZES[r]} joueurs</span>
+              </button>
+            ))}
+          </div>
+          <p className="font-ui text-[11px] text-bone/40 mt-1.5">
+            Clic : ajoute une nouvelle phase. Glisser sur une phase existante :
+            programme une instance concurrente (même taille uniquement).
+          </p>
+
+          {phases.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {phases.map((phase, phaseIndex) => (
+                <div
+                  key={phaseIndex}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverPhase(phaseIndex);
+                  }}
+                  onDragLeave={() => setDragOverPhase((cur) => (cur === phaseIndex ? null : cur))}
+                  onDrop={(e) => handleDropOnPhase(e, phaseIndex)}
+                  className={`gilt-frame rounded-sm bg-void/40 p-2.5 flex items-center gap-2 ${
+                    dragOverPhase === phaseIndex ? "border-gold" : ""
+                  }`}
+                >
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      disabled={phaseIndex === 0}
+                      onClick={() => movePhase(phaseIndex, -1)}
+                      className="font-ui text-[10px] text-bone/40 hover:text-bone disabled:opacity-20 focus-ring"
+                      title="Monter"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      disabled={phaseIndex === phases.length - 1}
+                      onClick={() => movePhase(phaseIndex, 1)}
+                      className="font-ui text-[10px] text-bone/40 hover:text-bone disabled:opacity-20 focus-ring"
+                      title="Descendre"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <p className="font-ui text-[10px] uppercase tracking-wide text-bone/40 shrink-0">
+                    Phase {phaseIndex + 1}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 flex-1">
+                    {phase.map((title, instanceIndex) => (
+                      <span
+                        key={`${title}-${instanceIndex}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, { title: title as RaidInstance, fromPhase: phaseIndex })}
+                        className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border border-gold/60 bg-gold/10 text-bone cursor-grab active:cursor-grabbing"
+                      >
+                        {title}
+                        <button
+                          type="button"
+                          onClick={() => removeInstance(phaseIndex, instanceIndex)}
+                          className="text-bone/40 hover:text-garnet focus-ring"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <span className="font-ui text-[10px] text-bone/40 shrink-0">{selectedSizes[phaseIndex]} joueurs</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="gilt-frame rounded-sm bg-void/40 p-3 space-y-2">
@@ -227,9 +382,7 @@ function NouveauRaidForm() {
             ? "Création..."
             : recurrent
               ? `Créer les ${occurrences} raids`
-              : titles.length > 1
-                ? "Créer l'événement"
-                : "Créer le raid"}
+              : "Créer le raid"}
         </button>
       </form>
     </div>

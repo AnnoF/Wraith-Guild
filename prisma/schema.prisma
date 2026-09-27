@@ -109,7 +109,7 @@ model Character {
   userId        String
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  signups       RaidSignup[]
+  placements    RaidPlacement[]
   professions   CharacterProfession[]
   bossRoleAssignments BossRoleAssignment[]
 
@@ -128,11 +128,15 @@ model CharacterProfession {
   @@unique([characterId, profession])
 }
 
+// Une soirée de raid : un nom, un créneau (début/fin), et un déroulement
+// en une ou plusieurs phases successives (voir RaidPhase). L'inscription
+// (RaidSignup) reste globale à toute la soirée — c'est un Officier qui
+// place ensuite chaque inscrit dans une phase/instance précise.
 model Raid {
   id             String     @id @default(cuid())
-  titles         String[]   // plusieurs instances possibles le même soir (toujours de même taille, voir POST /api/raids) — une seule composition/liste d'inscrits pour tout l'événement
-  date           DateTime
-  size           Int        // 10, 20, 25, 40...
+  name           String
+  date           DateTime   // début de soirée
+  endTime        DateTime   // fin de soirée
   status         RaidStatus @default(OUVERT)
   notes          String?
   signupDeadline DateTime?  // au-delà, les inscriptions sont closes même si status reste OUVERT
@@ -141,13 +145,48 @@ model Raid {
   createdById   String
   createdBy     User       @relation("RaidCreatedBy", fields: [createdById], references: [id])
 
+  phases        RaidPhase[]
   signups       RaidSignup[]
-  bossRoleAssignments BossRoleAssignment[]
 }
 
-// Un joueur s'inscrit lui-même (disponibilité) ; le personnage n'est
-// assigné qu'ensuite par un Officier lors de la construction de la
-// composition (voir /officier/raids/[id]/composition).
+// Un bloc du déroulement de la soirée (ex: "phase 1", "phase 2"), ordonné
+// par `order`. Les phases sont séquentielles ; les runs d'une même phase
+// se déroulent en parallèle (voir RaidRun).
+model RaidPhase {
+  id      String  @id @default(cuid())
+  order   Int
+
+  raidId  String
+  raid    Raid    @relation(fields: [raidId], references: [id], onDelete: Cascade)
+
+  runs    RaidRun[]
+
+  @@unique([raidId, order])
+}
+
+// Une instance concrète programmée dans une phase (ex: "Onyxia's Lair").
+// Plusieurs runs dans la même phase tournent en même temps et doivent
+// partager la même taille (voir instancesShareSize) — un joueur ne peut
+// être placé (RaidPlacement) que dans une seule run par phase.
+model RaidRun {
+  id        String   @id @default(cuid())
+  title     String   // clé de RAID_INSTANCE_SIZES
+  size      Int      // dénormalisé depuis RAID_INSTANCE_SIZES à la création
+  order     Int      // position d'affichage au sein de la phase
+
+  phaseId   String
+  phase     RaidPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  placements          RaidPlacement[]
+  bossRoleAssignments BossRoleAssignment[]
+
+  @@unique([phaseId, order])
+}
+
+// Un joueur s'inscrit lui-même (disponibilité pour la soirée entière) ;
+// le personnage n'est assigné qu'ensuite par un Officier, phase par
+// phase, lors de la construction de la composition (voir
+// /officier/raids/[id]/composition) — voir RaidPlacement.
 model RaidSignup {
   id            String       @id @default(cuid())
   status        SignupStatus @default(INSCRIT)
@@ -161,31 +200,47 @@ model RaidSignup {
   userId        String
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  characterId   String?
-  character     Character?   @relation(fields: [characterId], references: [id], onDelete: SetNull)
-
-  slot          Int?         // position dans la grille de composition (0 à size-1) ; null = pas encore placé
+  placements    RaidPlacement[]
 
   @@unique([raidId, userId])
-  @@unique([raidId, slot])
+}
+
+// Le placement d'un personnage précis dans une instance précise, à un
+// slot de sa grille de composition. Au plus un placement par (signup,
+// phase) — vérifié côté application, voir PATCH /api/raids/[id]/signup.
+model RaidPlacement {
+  id            String     @id @default(cuid())
+  slot          Int        // position dans la grille de la run (0 à size-1)
+
+  runId         String
+  run           RaidRun    @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  signupId      String
+  signup        RaidSignup @relation(fields: [signupId], references: [id], onDelete: Cascade)
+
+  characterId   String
+  character     Character  @relation(fields: [characterId], references: [id])
+
+  @@unique([runId, slot])
+  @@unique([signupId, runId])
 }
 
 // "Mode avancé" de la composition : assignation d'un personnage déjà
-// placé dans le raid (voir RaidSignup.slot) à un rôle spécifique à un
-// boss (ex: Off Tank 2 sur Garr). Rôles définis dans lib/bossRoles.ts,
-// par titre de raid.
+// placé dans une run (voir RaidPlacement) à un rôle spécifique à un boss
+// (ex: Off Tank 2 sur Garr). Rôles définis dans lib/bossRoles.ts, par
+// titre de raid.
 model BossRoleAssignment {
   id            String     @id @default(cuid())
   boss          String
   role          String
 
-  raidId        String
-  raid          Raid       @relation(fields: [raidId], references: [id], onDelete: Cascade)
+  runId         String
+  run           RaidRun    @relation(fields: [runId], references: [id], onDelete: Cascade)
 
   characterId   String?
   character     Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
 
-  @@unique([raidId, boss, role])
+  @@unique([runId, boss, role])
 }
 
 // Candidature de recrutement, déposée depuis /candidature par un compte

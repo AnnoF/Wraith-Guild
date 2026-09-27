@@ -6,7 +6,7 @@ import { WOW_CLASSES, CLASS_LABELS, CLASS_COLORS, guessRaidRole, type WowClass, 
 import type { Profession } from "@/lib/professions";
 import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import { RAID_BOSS_ROLES, type BossRoles } from "@/lib/bossRoles";
-import { raidTitleLabel } from "@/lib/raidInstances";
+import { encodeProgram } from "@/lib/raidInstances";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
@@ -32,10 +32,15 @@ interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
-  characterId: string | null;
-  slot: number | null;
   user: { id: string; discordTag: string; characters: CharacterOption[] };
-  character: CharacterOption | null;
+}
+
+interface PlacementData {
+  id: string;
+  slot: number;
+  signupId: string;
+  characterId: string;
+  character: CharacterOption;
 }
 
 interface BossRoleAssignmentData {
@@ -46,14 +51,28 @@ interface BossRoleAssignmentData {
   character: CharacterOption | null;
 }
 
+interface RunData {
+  id: string;
+  title: string;
+  size: number;
+  order: number;
+  placements: PlacementData[];
+  bossRoleAssignments: BossRoleAssignmentData[];
+}
+
+interface PhaseData {
+  id: string;
+  order: number;
+  runs: RunData[];
+}
+
 interface RaidDetail {
   id: string;
-  titles: string[];
-  size: number;
+  name: string;
   status: string;
   notes: string | null;
   signups: Signup[];
-  bossRoleAssignments: BossRoleAssignmentData[];
+  phases: PhaseData[];
 }
 
 interface DragPayload {
@@ -62,13 +81,17 @@ interface DragPayload {
 }
 
 // Constructeur de composition : le joueur s'est inscrit sans choisir de
-// personnage. À gauche, la liste des inscrits avec leurs personnages
-// (glissables) ; à droite, la grille de groupes de 5 où l'Officier
-// dépose le personnage retenu pour chaque joueur.
+// personnage, pour toute la soirée. À gauche, la liste des inscrits avec
+// leurs personnages (glissables) ; au centre, une grille de groupes de 5
+// par instance de la phase sélectionnée, où l'Officier dépose le
+// personnage retenu pour chaque joueur. Un joueur ne peut être placé que
+// dans une seule instance par phase (elles se déroulent en même temps).
 export default function CompositionPage() {
   const { id } = useParams<{ id: string }>();
   const [raid, setRaid] = useState<RaidDetail | null>(null);
-  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [advancedRunId, setAdvancedRunId] = useState<string | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<string | null>(null); // `${runId}:${slot}`
   const [search, setSearch] = useState("");
   const [roleFilters, setRoleFilters] = useState<Set<RaidRole>>(new Set());
   const [classFilters, setClassFilters] = useState<Set<WowClass>>(new Set());
@@ -126,7 +149,7 @@ export default function CompositionPage() {
 
   async function updateSignup(
     userId: string,
-    data: { characterId?: string | null; slot?: number | null; status?: string }
+    data: { runId?: string; slot?: number | null; characterId?: string | null; status?: string }
   ) {
     const res = await fetch(`/api/raids/${id}/signup`, {
       method: "PATCH",
@@ -180,20 +203,20 @@ export default function CompositionPage() {
     e.dataTransfer.effectAllowed = "move";
   }
 
-  function handleDrop(e: React.DragEvent, slot: number) {
+  function handleDrop(e: React.DragEvent, runId: string, slot: number) {
     e.preventDefault();
     setDragOverSlot(null);
     const raw = e.dataTransfer.getData("application/json");
     if (!raw) return;
     const payload: DragPayload = JSON.parse(raw);
-    updateSignup(payload.userId, { characterId: payload.characterId, slot });
+    updateSignup(payload.userId, { runId, characterId: payload.characterId, slot });
   }
 
-  async function assignBossRole(boss: string, role: string, characterId: string | null) {
+  async function assignBossRole(runId: string, boss: string, role: string, characterId: string | null) {
     const res = await fetch(`/api/raids/${id}/boss-roles`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ boss, role, characterId })
+      body: JSON.stringify({ runId, boss, role, characterId })
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -204,40 +227,47 @@ export default function CompositionPage() {
     load();
   }
 
-  function handleBossDrop(e: React.DragEvent, boss: string, role: string) {
+  function handleBossDrop(e: React.DragEvent, runId: string, boss: string, role: string) {
     e.preventDefault();
     setDragOverBossRole(null);
     const raw = e.dataTransfer.getData("application/json");
     if (!raw) return;
     const payload: DragPayload = JSON.parse(raw);
-    assignBossRole(boss, role, payload.characterId);
+    assignBossRole(runId, boss, role, payload.characterId);
   }
 
   if (!raid) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
   const players = raid.signups.filter((s) => s.status === "INSCRIT");
-  const placed = players.filter((s) => s.slot !== null && s.character);
-  const unplaced = players.filter((s) => s.slot === null);
-  // Mis en réserve par un Officier (bench) ou signalés absents par
-  // eux-mêmes : affichés à droite, sans personnage, toujours après les
-  // inscrits placés — les absents en grisé.
   const benched = raid.signups.filter((s) => s.status === "RESERVE");
   const absentSignups = raid.signups.filter((s) => s.status === "ABSENT");
+
+  const phase = raid.phases[phaseIndex] as PhaseData | undefined;
+
+  // Placement de chaque inscrit au sein de la phase sélectionnée (au plus
+  // un, dans une seule des instances concurrentes de cette phase).
+  const placementBySignup = new Map<string, { run: RunData; placement: PlacementData }>();
+  phase?.runs.forEach((run) => {
+    run.placements.forEach((p) => placementBySignup.set(p.signupId, { run, placement: p }));
+  });
+  const placedInPhase = players.filter((s) => placementBySignup.has(s.id));
+  const unplacedInPhase = players.filter((s) => !placementBySignup.has(s.id));
+
   const roleGroups = { TANK: 0, SOIGNEUR: 0, DPS: 0 };
-  placed.forEach((s) => {
-    const role = guessRaidRole(s.character!.class, s.character!.spec);
+  placedInPhase.forEach((s) => {
+    const character = placementBySignup.get(s.id)!.placement.character;
+    const role = guessRaidRole(character.class, character.spec);
     roleGroups[role]++;
   });
 
-  const slotMap = new Map<number, Signup>();
-  placed.forEach((s) => slotMap.set(s.slot!, s));
+  const phaseCapacity = phase?.runs.reduce((sum, r) => sum + r.size, 0) ?? 0;
 
-  const numGroups = Math.ceil(raid.size / GROUP_SIZE);
-
-  function handleQuickAssign(userId: string, characterId: string) {
-    for (let slot = 0; slot < raid!.size; slot++) {
-      if (!slotMap.has(slot)) {
-        updateSignup(userId, { characterId, slot });
+  function handleQuickAssign(runId: string, runSize: number, userId: string, characterId: string) {
+    const run = phase?.runs.find((r) => r.id === runId);
+    const occupiedSlots = new Set(run?.placements.map((p) => p.slot));
+    for (let slot = 0; slot < runSize; slot++) {
+      if (!occupiedSlots.has(slot)) {
+        updateSignup(userId, { runId, characterId, slot });
         return;
       }
     }
@@ -264,24 +294,30 @@ export default function CompositionPage() {
 
   const filtersActive = search.trim() !== "" || roleFilters.size > 0 || classFilters.size > 0;
 
-  const filteredUnplaced = unplaced.filter(matchesFilters);
-  const filteredPlaced = placed.filter(matchesFilters);
+  const filteredUnplaced = unplacedInPhase.filter(matchesFilters);
+  const filteredPlaced = placedInPhase.filter(matchesFilters);
   const filteredBenched = benched.filter(matchesFilters);
   const filteredAbsent = absentSignups.filter(matchesFilters);
 
-  const bossTemplate = raid.titles.flatMap((t) => RAID_BOSS_ROLES[t] ?? []);
+  const activeRun = phase?.runs.find((r) => r.id === advancedRunId) ?? phase?.runs[0] ?? null;
+  const bossTemplate = activeRun ? RAID_BOSS_ROLES[activeRun.title] ?? [] : [];
   const bossAssignmentMap = new Map<string, BossRoleAssignmentData>();
-  raid.bossRoleAssignments.forEach((a) => bossAssignmentMap.set(`${a.boss}|${a.role}`, a));
+  activeRun?.bossRoleAssignments.forEach((a) => bossAssignmentMap.set(`${a.boss}|${a.role}`, a));
   const characterOwnerMap = new Map<string, string>();
-  placed.forEach((s) => {
-    if (s.character) characterOwnerMap.set(s.character.id, s.user.id);
+  phase?.runs.forEach((run) => {
+    run.placements.forEach((p) => characterOwnerMap.set(p.characterId, p.signupId));
   });
+  const signupUserMap = new Map(raid.signups.map((s) => [s.id, s.user.id]));
+
+  const duplicateHref = `/officier/raids/nouveau?name=${encodeURIComponent(raid.name)}&notes=${encodeURIComponent(
+    raid.notes ?? ""
+  )}&program=${encodeURIComponent(encodeProgram(raid.phases.map((p) => p.runs.map((r) => r.title))))}`;
 
   return (
     <div className="relative left-1/2 w-screen -translate-x-1/2 px-6">
     <div className="max-w-[1600px] mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <p className="font-display text-lg text-bone">Composition — {raidTitleLabel(raid.titles)}</p>
+        <p className="font-display text-lg text-bone">Composition — {raid.name}</p>
         <div className="flex gap-2">
           <button
             onClick={() => setRaidStatus("OUVERT")}
@@ -310,7 +346,7 @@ export default function CompositionPage() {
             Annuler le raid
           </button>
           <Link
-            href={`/officier/raids/nouveau?titles=${encodeURIComponent(raid.titles.join(","))}&notes=${encodeURIComponent(raid.notes ?? "")}`}
+            href={duplicateHref}
             className="font-ui text-xs px-3 py-1.5 border border-bone/30 text-bone/60 hover:text-bone rounded-full focus-ring"
           >
             Dupliquer ce raid
@@ -318,12 +354,31 @@ export default function CompositionPage() {
         </div>
       </div>
 
+      {raid.phases.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {raid.phases.map((p, i) => (
+            <button
+              key={p.id}
+              onClick={() => {
+                setPhaseIndex(i);
+                setAdvancedRunId(null);
+              }}
+              className={`font-ui text-xs px-3 py-1.5 border rounded-full focus-ring ${
+                i === phaseIndex ? "bg-gold text-void border-gold font-medium" : "border-bone/20 text-bone/60 hover:text-bone"
+              }`}
+            >
+              Phase {i + 1} — {p.runs.map((r) => r.title).join(" + ")}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex gap-4 font-ui text-xs text-bone/60">
         <span>Tanks : {roleGroups.TANK}</span>
         <span>Healers : {roleGroups.SOIGNEUR}</span>
         <span>DPS : {roleGroups.DPS}</span>
         <span>Inscrits : {players.length}</span>
-        <span>Placés : {placed.length} / {raid.size}</span>
+        <span>Placés (phase) : {placedInPhase.length} / {phaseCapacity}</span>
         {benched.length > 0 && <span>Réserve : {benched.length}</span>}
         {absentSignups.length > 0 && <span>Absents : {absentSignups.length}</span>}
       </div>
@@ -395,10 +450,10 @@ export default function CompositionPage() {
             {players.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun inscrit pour l'instant.</p>
             )}
-            {players.length > 0 && unplaced.length === 0 && (
-              <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Tous les inscrits sont placés.</p>
+            {players.length > 0 && unplacedInPhase.length === 0 && (
+              <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Tous les inscrits sont placés pour cette phase.</p>
             )}
-            {unplaced.length > 0 && filteredUnplaced.length === 0 && (
+            {unplacedInPhase.length > 0 && filteredUnplaced.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
             )}
             {filteredUnplaced.map((s) => (
@@ -406,7 +461,7 @@ export default function CompositionPage() {
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                   <button
-                    onClick={() => updateSignup(s.user.id, { status: "RESERVE", characterId: null, slot: null })}
+                    onClick={() => updateSignup(s.user.id, { status: "RESERVE" })}
                     title="Mettre en réserve (bench)"
                     className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
                   >
@@ -419,19 +474,17 @@ export default function CompositionPage() {
                     <p className="font-ui text-xs text-bone/30">Aucun personnage actif</p>
                   )}
                   {s.user.characters.map((c) => {
-                    const isSelected = s.characterId === c.id;
                     const color = CLASS_COLORS[c.class];
                     return (
                       <div
                         key={c.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
-                        onDoubleClick={() => handleQuickAssign(s.user.id, c.id)}
-                        title="Double-clic pour placer automatiquement"
-                        style={{
-                          backgroundColor: `${color}66`,
-                          borderColor: isSelected ? "var(--amber)" : `${color}B3`
+                        onDoubleClick={() => {
+                          if (phase && phase.runs.length === 1) handleQuickAssign(phase.runs[0].id, phase.runs[0].size, s.user.id, c.id);
                         }}
+                        title={phase && phase.runs.length === 1 ? "Double-clic pour placer automatiquement" : undefined}
+                        style={{ backgroundColor: `${color}66`, borderColor: `${color}B3` }}
                         className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                       >
                         <ClassSpecIcon wowClass={c.class} spec={c.spec} />
@@ -448,112 +501,132 @@ export default function CompositionPage() {
           </div>
         </div>
 
-        <div className="lg:w-1/2 space-y-3">
-          {groupRows(raid.size, numGroups).map((row, rowIdx) => (
-            <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
-              {row.map((groupIndex) => (
-                <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
-                  <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
-                  <div className="space-y-1">
-                    {Array.from({ length: GROUP_SIZE }, (_, i) => {
-                      const slot = groupIndex * GROUP_SIZE + i;
-                      const occupant = slotMap.get(slot);
-                      const classColor = occupant?.character ? CLASS_COLORS[occupant.character.class] : null;
-                      return (
-                        <div
-                          key={slot}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            setDragOverSlot(slot);
-                          }}
-                          onDragLeave={() => setDragOverSlot((cur) => (cur === slot ? null : cur))}
-                          onDrop={(e) => handleDrop(e, slot)}
-                          style={
-                            classColor && dragOverSlot !== slot
-                              ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` }
-                              : undefined
-                          }
-                          className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
-                            dragOverSlot === slot
-                              ? "border-gold bg-gold/10"
-                              : occupant
-                              ? ""
-                              : "border-dashed border-bone/10 text-bone/20"
-                          }`}
-                        >
-                          {occupant && occupant.character ? (
-                            <>
-                              <span
-                                draggable
-                                onDragStart={(e) =>
-                                  handleDragStart(e, {
-                                    userId: occupant.user.id,
-                                    characterId: occupant.character!.id
-                                  })
-                                }
-                                className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
-                              >
-                                <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
-                                <span className="truncate">{occupant.character.name}</span>
-                                {occupant.character.canRaidLead && <RaidLeadBadge />}
-                                <EnchantBadge character={occupant.character} />
-                              </span>
-                              <button
-                                onClick={() => updateSignup(occupant.user.id, { slot: null })}
-                                className="text-bone/30 hover:text-garnet focus-ring shrink-0"
-                                title="Retirer du groupe"
-                              >
-                                ×
-                              </button>
-                            </>
-                          ) : null}
+        <div className="lg:w-1/2 flex flex-wrap gap-4">
+          {!phase && <p className="font-ui text-sm text-bone/50">Aucune phase programmée.</p>}
+          {phase?.runs.map((run) => {
+            const slotMap = new Map<number, PlacementData>();
+            run.placements.forEach((p) => slotMap.set(p.slot, p));
+            const numGroups = Math.ceil(run.size / GROUP_SIZE);
+            return (
+              <div key={run.id} className="flex-1 min-w-[280px] space-y-2">
+                <p className="font-display text-xs text-bone/60">{run.title} <span className="text-bone/30">({run.size} joueurs)</span></p>
+                <div className="space-y-3">
+                  {groupRows(run.size, numGroups).map((row, rowIdx) => (
+                    <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
+                      {row.map((groupIndex) => (
+                        <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
+                          <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
+                          <div className="space-y-1">
+                            {Array.from({ length: GROUP_SIZE }, (_, i) => {
+                              const slot = groupIndex * GROUP_SIZE + i;
+                              const occupant = slotMap.get(slot);
+                              const classColor = occupant ? CLASS_COLORS[occupant.character.class] : null;
+                              const key = `${run.id}:${slot}`;
+                              return (
+                                <div
+                                  key={key}
+                                  onDragOver={(e) => {
+                                    e.preventDefault();
+                                    setDragOverSlot(key);
+                                  }}
+                                  onDragLeave={() => setDragOverSlot((cur) => (cur === key ? null : cur))}
+                                  onDrop={(e) => handleDrop(e, run.id, slot)}
+                                  style={
+                                    classColor && dragOverSlot !== key
+                                      ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` }
+                                      : undefined
+                                  }
+                                  className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center justify-between gap-1 ${
+                                    dragOverSlot === key
+                                      ? "border-gold bg-gold/10"
+                                      : occupant
+                                      ? ""
+                                      : "border-dashed border-bone/10 text-bone/20"
+                                  }`}
+                                >
+                                  {occupant ? (
+                                    <>
+                                      <span
+                                        draggable
+                                        onDragStart={(e) =>
+                                          handleDragStart(e, {
+                                            userId: signupUserMap.get(occupant.signupId) ?? "",
+                                            characterId: occupant.characterId
+                                          })
+                                        }
+                                        className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
+                                      >
+                                        <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
+                                        <span className="truncate">{occupant.character.name}</span>
+                                        {occupant.character.canRaidLead && <RaidLeadBadge />}
+                                        <EnchantBadge character={occupant.character} />
+                                      </span>
+                                      <button
+                                        onClick={() =>
+                                          updateSignup(signupUserMap.get(occupant.signupId) ?? "", { runId: run.id, slot: null })
+                                        }
+                                        className="text-bone/30 hover:text-garnet focus-ring shrink-0"
+                                        title="Retirer du groupe"
+                                      >
+                                        ×
+                                      </button>
+                                    </>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         <div className="lg:w-1/4">
-          <p className="font-display text-xs text-bone/50 mb-2">Placés</p>
+          <p className="font-display text-xs text-bone/50 mb-2">Placés (phase)</p>
           <div className="grid grid-cols-4 lg:grid-cols-2 gap-2">
-            {placed.length === 0 && (
+            {placedInPhase.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Personne de placé pour l'instant.</p>
             )}
-            {placed.length > 0 && filteredPlaced.length === 0 && (
+            {placedInPhase.length > 0 && filteredPlaced.length === 0 && (
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
             )}
             {filteredPlaced.map((s) => {
-              const otherCharacters = s.user.characters.filter((c) => c.id !== s.characterId);
+              const { run, placement } = placementBySignup.get(s.id)!;
+              const otherCharacters = s.user.characters.filter((c) => c.id !== placement.characterId);
               return (
                 <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                     <button
-                      onClick={() => updateSignup(s.user.id, { status: "RESERVE", characterId: null, slot: null })}
+                      onClick={() => updateSignup(s.user.id, { status: "RESERVE" })}
                       title="Mettre en réserve (bench)"
                       className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
                     >
                       Bench
                     </button>
                   </div>
+                  {phase && phase.runs.length > 1 && (
+                    <p className="font-ui text-[10px] text-bone/40 mt-0.5">{run.title}</p>
+                  )}
                   <div className="mt-1.5 space-y-1">
                     <div
                       draggable
-                      onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: s.character!.id })}
+                      onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: placement.characterId })}
                       style={{
-                        backgroundColor: `${CLASS_COLORS[s.character!.class]}66`,
+                        backgroundColor: `${CLASS_COLORS[placement.character.class]}66`,
                         borderColor: "var(--amber)"
                       }}
                       className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                     >
-                      <ClassSpecIcon wowClass={s.character!.class} spec={s.character!.spec} />
-                      <span>{s.character!.name}</span>
-                      {s.character!.canRaidLead && <RaidLeadBadge />}
-                      <EnchantBadge character={s.character!} />
+                      <ClassSpecIcon wowClass={placement.character.class} spec={placement.character.spec} />
+                      <span>{placement.character.name}</span>
+                      {placement.character.canRaidLead && <RaidLeadBadge />}
+                      <EnchantBadge character={placement.character} />
                     </div>
                     {otherCharacters.map((c) => {
                       const color = CLASS_COLORS[c.class];
@@ -562,8 +635,6 @@ export default function CompositionPage() {
                           key={c.id}
                           draggable
                           onDragStart={(e) => handleDragStart(e, { userId: s.user.id, characterId: c.id })}
-                          onDoubleClick={() => handleQuickAssign(s.user.id, c.id)}
-                          title="Double-clic pour placer automatiquement"
                           style={{ backgroundColor: `${color}33`, borderColor: `${color}66` }}
                           className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone/70 cursor-grab active:cursor-grabbing"
                         >
@@ -634,20 +705,37 @@ export default function CompositionPage() {
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <button
-          onClick={() => setAdvancedMode((v) => !v)}
-          className="font-ui text-xs px-4 py-2 border border-bone/30 text-bone/60 hover:text-bone rounded-full focus-ring"
-        >
-          {advancedMode ? "Masquer le mode avancé" : "Mode avancé — rôles par boss"}
-        </button>
-      </div>
+      {phase && phase.runs.length > 0 && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => setAdvancedMode((v) => !v)}
+            className="font-ui text-xs px-4 py-2 border border-bone/30 text-bone/60 hover:text-bone rounded-full focus-ring"
+          >
+            {advancedMode ? "Masquer le mode avancé" : "Mode avancé — rôles par boss"}
+          </button>
+        </div>
+      )}
 
-      {advancedMode && (
+      {advancedMode && phase && (
         <div className="lg:w-1/2 mx-auto space-y-3">
+          {phase.runs.length > 1 && (
+            <div className="flex justify-center gap-2">
+              {phase.runs.map((run) => (
+                <button
+                  key={run.id}
+                  onClick={() => setAdvancedRunId(run.id)}
+                  className={`font-ui text-xs px-3 py-1.5 border rounded-full focus-ring ${
+                    activeRun?.id === run.id ? "bg-gold text-void border-gold" : "border-bone/20 text-bone/60 hover:text-bone"
+                  }`}
+                >
+                  {run.title}
+                </button>
+              ))}
+            </div>
+          )}
           {bossTemplate.length === 0 ? (
             <p className="font-ui text-sm text-bone/50 text-center">
-              Pas encore de rôles définis pour {raidTitleLabel(raid.titles)}.
+              Pas encore de rôles définis pour {activeRun?.title}.
             </p>
           ) : (
             groupCollapsedRuns(bossTemplate, collapsedBosses).map((group, groupIdx) => {
@@ -701,7 +789,7 @@ export default function CompositionPage() {
                               setDragOverBossRole(key);
                             }}
                             onDragLeave={() => setDragOverBossRole((cur) => (cur === key ? null : cur))}
-                            onDrop={(e) => handleBossDrop(e, boss, role.label)}
+                            onDrop={(e) => activeRun && handleBossDrop(e, activeRun.id, boss, role.label)}
                             className={`min-h-[44px] px-2 py-1.5 border font-ui text-xs flex flex-col justify-center gap-0.5 ${
                               dragOverBossRole === key
                                 ? "border-gold bg-gold/10"
@@ -712,9 +800,9 @@ export default function CompositionPage() {
                           >
                             <div className="flex items-center justify-between gap-1">
                               <span className={assignedChar ? "text-bone/50" : "text-bone/30"}>{role.label}</span>
-                              {assignedChar && (
+                              {assignedChar && activeRun && (
                                 <button
-                                  onClick={() => assignBossRole(boss, role.label, null)}
+                                  onClick={() => assignBossRole(activeRun.id, boss, role.label, null)}
                                   className="text-bone/30 hover:text-garnet focus-ring shrink-0"
                                   title="Retirer"
                                 >
@@ -727,7 +815,7 @@ export default function CompositionPage() {
                                 draggable
                                 onDragStart={(e) =>
                                   handleDragStart(e, {
-                                    userId: characterOwnerMap.get(assignedChar.id) ?? "",
+                                    userId: signupUserMap.get(characterOwnerMap.get(assignedChar.id) ?? "") ?? "",
                                     characterId: assignedChar.id
                                   })
                                 }

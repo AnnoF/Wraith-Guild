@@ -9,7 +9,6 @@ import { GROUP_SIZE, GRID_COLS, groupRows } from "@/lib/raidGroups";
 import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
-import { raidTitleLabel } from "@/lib/raidInstances";
 
 interface AssignedCharacter {
   id: string;
@@ -20,24 +19,52 @@ interface AssignedCharacter {
   canRaidLead: boolean;
 }
 
+interface PlacementData {
+  id: string;
+  slot: number;
+  signupId: string;
+  character: AssignedCharacter;
+}
+
+interface RunData {
+  id: string;
+  title: string;
+  size: number;
+  order: number;
+  placements: PlacementData[];
+}
+
+interface PhaseData {
+  id: string;
+  order: number;
+  runs: RunData[];
+}
+
 interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
-  slot: number | null;
   user: { id: string; discordTag: string };
-  character: AssignedCharacter | null;
 }
 
 interface RaidDetail {
   id: string;
-  titles: string[];
+  name: string;
   date: string;
-  size: number;
+  endTime: string;
   status: string;
   notes: string | null;
   signupDeadline: string | null;
+  phases: PhaseData[];
   signups: Signup[];
+}
+
+function findPlacement(phase: PhaseData, signupId: string): { run: RunData; placement: PlacementData } | null {
+  for (const run of phase.runs) {
+    const placement = run.placements.find((p) => p.signupId === signupId);
+    if (placement) return { run, placement };
+  }
+  return null;
 }
 
 export default function RaidDetailPage() {
@@ -92,18 +119,11 @@ export default function RaidDetailPage() {
 
   if (!raid) return <p className="font-ui text-sm text-bone/50">Chargement...</p>;
 
-  const activeSignups = raid.signups.filter((s) => s.status === "INSCRIT" || s.status === "RESERVE");
   const mySignup = raid.signups.find((s) => s.user.id === session?.user.id);
   const canSignup = !mySignup || mySignup.status === "DESISTE";
   const isAbsent = mySignup?.status === "ABSENT";
 
   const canConfigure = session?.user.siteRole === "OFFICIER" || session?.user.siteRole === "ADMINISTRATEUR";
-
-  const placed = activeSignups.filter((s) => s.slot !== null && s.character);
-  const unplacedCount = activeSignups.filter((s) => s.slot === null).length;
-  const slotMap = new Map<number, Signup>();
-  placed.forEach((s) => slotMap.set(s.slot!, s));
-  const numGroups = Math.ceil(raid.size / GROUP_SIZE);
 
   return (
     <div className="space-y-6">
@@ -122,11 +142,12 @@ export default function RaidDetailPage() {
       </div>
 
       <div className="gilt-frame rounded-sm bg-char p-5">
-        <p className="font-display text-xl text-bone mb-1">{raidTitleLabel(raid.titles)}</p>
+        <p className="font-display text-xl text-bone mb-1">{raid.name}</p>
         <p className="font-ui text-sm text-bone/60">
           {new Date(raid.date).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })}
+          {" – "}
+          {new Date(raid.endTime).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
         </p>
-        <p className="font-ui text-sm text-bone/60 mt-1">Taille : {raid.size} joueurs</p>
         {raid.signupDeadline && (
           <p className="font-ui text-xs text-bone/40 mt-1">
             Inscriptions jusqu'au{" "}
@@ -180,11 +201,21 @@ export default function RaidDetailPage() {
             <p className="font-ui text-sm text-bone">
               Vous êtes inscrit {mySignup.status === "RESERVE" ? "(réserve)" : ""}
             </p>
-            <p className="font-ui text-xs text-bone/50 mt-1">
-              {mySignup.character
-                ? `Personnage assigné : ${mySignup.character.name} (${CLASS_LABELS[mySignup.character.class]} · ${mySignup.character.spec})`
-                : "En attente d'assignation d'un personnage par un Officier."}
-            </p>
+            {mySignup.status === "INSCRIT" && (
+              <p className="font-ui text-xs text-bone/50 mt-1">
+                {raid.phases.map((p, i) => {
+                  const found = findPlacement(p, mySignup.id);
+                  return (
+                    <span key={p.id} className="block">
+                      Phase {i + 1} :{" "}
+                      {found
+                        ? `${found.placement.character.name} (${found.run.title})`
+                        : "en attente d'assignation"}
+                    </span>
+                  );
+                })}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -204,55 +235,69 @@ export default function RaidDetailPage() {
       )}
       {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-display text-sm text-bone">
-            Groupes ({placed.length}/{raid.size})
-          </p>
-          {unplacedCount > 0 && (
-            <p className="font-ui text-xs text-bone/40">{unplacedCount} joueur(s) pas encore placé(s)</p>
-          )}
-        </div>
-        {activeSignups.length === 0 ? (
-          <p className="font-ui text-sm text-bone/50">Personne d'inscrit pour l'instant.</p>
-        ) : (
-          <div className="space-y-3">
-            {groupRows(raid.size, numGroups).map((row, rowIdx) => (
-              <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
-                {row.map((groupIndex) => (
-                  <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
-                    <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
-                    <div className="space-y-1">
-                      {Array.from({ length: GROUP_SIZE }, (_, i) => {
-                        const slot = groupIndex * GROUP_SIZE + i;
-                        const occupant = slotMap.get(slot);
-                        const classColor = occupant?.character ? CLASS_COLORS[occupant.character.class] : null;
-                        return (
-                          <div
-                            key={slot}
-                            style={classColor ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` } : undefined}
-                            className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center gap-1.5 ${
-                              occupant ? "text-bone" : "border-dashed border-bone/10"
-                            }`}
-                          >
-                            {occupant && occupant.character && (
-                              <>
-                                <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
-                                <span className="truncate">{occupant.character.name}</span>
-                                {occupant.character.canRaidLead && <RaidLeadBadge />}
-                                <EnchantBadge character={occupant.character} />
-                              </>
-                            )}
-                          </div>
-                        );
-                      })}
+      <div className="space-y-6">
+        {raid.phases.map((phase, phaseIndex) => (
+          <div key={phase.id}>
+            {raid.phases.length > 1 && (
+              <p className="font-display text-sm text-bone mb-3">Phase {phaseIndex + 1}</p>
+            )}
+            <div className="flex flex-wrap gap-4">
+              {phase.runs.map((run) => {
+                const slotMap = new Map<number, PlacementData>();
+                run.placements.forEach((p) => slotMap.set(p.slot, p));
+                const numGroups = Math.ceil(run.size / GROUP_SIZE);
+                return (
+                  <div key={run.id} className="flex-1 min-w-[280px] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-display text-xs text-bone/60">{run.title}</p>
+                      <p className="font-ui text-xs text-bone/40">{run.placements.length}/{run.size}</p>
                     </div>
+                    {run.placements.length === 0 ? (
+                      <p className="font-ui text-sm text-bone/50">Personne de placé pour l'instant.</p>
+                    ) : (
+                      <div className="space-y-1">
+                        {groupRows(run.size, numGroups).map((row, rowIdx) => (
+                          <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
+                            {row.map((groupIndex) => (
+                              <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
+                                <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
+                                <div className="space-y-1">
+                                  {Array.from({ length: GROUP_SIZE }, (_, i) => {
+                                    const slot = groupIndex * GROUP_SIZE + i;
+                                    const occupant = slotMap.get(slot);
+                                    const classColor = occupant ? CLASS_COLORS[occupant.character.class] : null;
+                                    return (
+                                      <div
+                                        key={slot}
+                                        style={classColor ? { backgroundColor: `${classColor}66`, borderColor: `${classColor}80` } : undefined}
+                                        className={`min-h-[28px] px-2 py-1 border font-ui text-xs flex items-center gap-1.5 ${
+                                          occupant ? "text-bone" : "border-dashed border-bone/10"
+                                        }`}
+                                      >
+                                        {occupant && (
+                                          <>
+                                            <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
+                                            <span className="truncate">{occupant.character.name}</span>
+                                            {occupant.character.canRaidLead && <RaidLeadBadge />}
+                                            <EnchantBadge character={occupant.character} />
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

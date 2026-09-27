@@ -6,7 +6,6 @@ import { getGuildProgress } from "@/lib/guildProgress";
 import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
 import { prisma } from "@/lib/prisma";
-import { raidTitleLabel } from "@/lib/raidInstances";
 import Footer from "./Footer";
 import TwitchClips from "./TwitchClips";
 import TwitchStreamEmbed from "./TwitchStreamEmbed";
@@ -45,10 +44,10 @@ function FullBleedBand({ image, children }: { image: string; children: React.Rea
 
 async function getUpcomingRaids() {
   return prisma.raid.findMany({
-    where: { date: { gte: new Date() } },
+    where: { endTime: { gte: new Date() } },
     orderBy: { date: "asc" },
     take: 3,
-    select: { id: true, titles: true, date: true }
+    select: { id: true, name: true, date: true }
   });
 }
 
@@ -117,7 +116,7 @@ export default async function GuildShowcase() {
                   });
                   return (
                     <div key={r.id} className="bg-char flex items-center justify-between gap-4 px-5 py-4">
-                      <p className="font-display text-sm text-bone">{raidTitleLabel(r.titles)}</p>
+                      <p className="font-display text-sm text-bone">{r.name}</p>
                       <p className="font-ui text-xs text-bone/55 shrink-0">{dateLabel}, {timeLabel}</p>
                     </div>
                   );

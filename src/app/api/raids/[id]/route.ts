@@ -6,7 +6,8 @@ import { effectiveRaidStatus } from "@/lib/raidStatus";
 import { getWowWeekRange } from "@/lib/wowWeek";
 import { notifyRaidLocked } from "@/lib/raidNotify";
 
-// GET : détail d'un raid + inscriptions (avec personnage et propriétaire)
+// GET : détail d'un raid — son déroulement (phases -> runs -> placements)
+// et ses inscriptions (disponibilité globale de la soirée).
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
@@ -18,41 +19,54 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const raid = await prisma.raid.findUnique({
     where: { id },
     include: {
+      phases: {
+        orderBy: { order: "asc" },
+        include: {
+          runs: {
+            orderBy: { order: "asc" },
+            include: {
+              placements: {
+                include: { character: { include: { professions: true } } }
+              },
+              bossRoleAssignments: {
+                include: { character: { include: { professions: true } } }
+              }
+            }
+          }
+        }
+      },
       signups: {
         include: {
           user: {
             include: {
               characters: { where: { isActive: true }, include: { professions: true } }
             }
-          },
-          character: { include: { professions: true } }
+          }
         },
         orderBy: { createdAt: "asc" }
-      },
-      bossRoleAssignments: {
-        include: { character: { include: { professions: true } } }
       },
       createdBy: true
     }
   });
   if (!raid) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
-  // Personnages déjà engagés sur un raid de même titre cette semaine WoW
-  // (mercredi -> mardi) — affiché en puce "interdit" côté composition
+  // Personnages déjà engagés sur une instance de même titre cette semaine
+  // WoW (mercredi -> mardi) — affiché en puce "interdit" côté composition
   // pour éviter un aller-retour inutile en glisser-déposer.
+  const titles = Array.from(new Set(raid.phases.flatMap((p) => p.runs.map((r) => r.title))));
   const { start, end } = getWowWeekRange(raid.date);
-  const conflictingSignups = await prisma.raidSignup.findMany({
-    where: {
-      status: "INSCRIT",
-      slot: { not: null },
-      raidId: { not: id },
-      raid: { titles: { hasSome: raid.titles }, date: { gte: start, lte: end } }
-    },
-    select: { characterId: true }
-  });
-  const lockedCharacterIds = new Set(
-    conflictingSignups.map((s) => s.characterId).filter((cid): cid is string => !!cid)
-  );
+  const conflictingPlacements = titles.length
+    ? await prisma.raidPlacement.findMany({
+        where: {
+          run: {
+            title: { in: titles },
+            phase: { raidId: { not: id }, raid: { date: { gte: start, lte: end } } }
+          }
+        },
+        select: { characterId: true }
+      })
+    : [];
+  const lockedCharacterIds = new Set(conflictingPlacements.map((p) => p.characterId));
 
   return NextResponse.json({
     ...raid,
@@ -68,7 +82,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   });
 }
 
-// PATCH : modifier statut/infos du raid (Officier/Admin)
+// PATCH : modifier statut/infos de l'événement (Officier/Admin)
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
@@ -85,9 +99,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const raid = await prisma.raid.update({
     where: { id },
     data: {
-      titles: body.titles ?? undefined,
+      name: body.name ?? undefined,
       date: body.date ? new Date(body.date) : undefined,
-      size: body.size ?? undefined,
+      endTime: body.endTime ? new Date(body.endTime) : undefined,
       signupDeadline: body.signupDeadline !== undefined ? (body.signupDeadline ? new Date(body.signupDeadline) : null) : undefined,
       notes: body.notes ?? undefined,
       status: body.status ?? undefined

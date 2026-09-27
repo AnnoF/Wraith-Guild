@@ -4,14 +4,13 @@
 // Raideur/Officier configurés. N'échoue jamais bruyamment : une panne ne
 // doit pas empêcher le changement de statut d'être enregistré.
 import { getRoleIdByName } from "./discord";
-import { raidTitleLabel } from "./raidInstances";
 
 function raidUrl(id: string) {
   const base = process.env.NEXTAUTH_URL || "";
   return `${base}/raids/${id}`;
 }
 
-export async function notifyRaidLocked(raid: { id: string; titles: string[]; date: Date | string }) {
+export async function notifyRaidLocked(raid: { id: string; name: string; date: Date | string }) {
   const url = process.env.DISCORD_RAID_WEBHOOK_URL;
   if (!url) return;
 
@@ -37,7 +36,7 @@ export async function notifyRaidLocked(raid: { id: string; titles: string[]; dat
     timeZone: "Europe/Paris"
   });
 
-  const content = `🔒 ${mentions ? mentions + " — " : ""}Les inscriptions pour **${raidTitleLabel(raid.titles)}** (${dateLabel}) sont closes, la composition est prête.\n${raidUrl(raid.id)}`;
+  const content = `🔒 ${mentions ? mentions + " — " : ""}Les inscriptions pour **${raid.name}** (${dateLabel}) sont closes, la composition est prête.\n${raidUrl(raid.id)}`;
 
   try {
     await fetch(url, {
