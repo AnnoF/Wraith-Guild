@@ -19,8 +19,8 @@ test.describe("Accès et rôles", () => {
     await expect(page).toHaveURL(/\/candidature$/);
   });
 
-  test("un RAIDEUR accède au dashboard mais pas au menu Administration", async ({ page, signInAs }) => {
-    const user = await signInAs("RAIDEUR", "E2E Raideur Accès");
+  test("un MEMBER accède au dashboard mais pas au menu Administration", async ({ page, signInAs }) => {
+    const user = await signInAs("MEMBER", "E2E Member Accès");
 
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/dashboard$/);
@@ -28,8 +28,8 @@ test.describe("Accès et rôles", () => {
     await expect(page.getByRole("link", { name: "Administration" })).toHaveCount(0);
   });
 
-  test("un RAIDEUR se voit refuser l'accès à la page Administration", async ({ page, signInAs }) => {
-    await signInAs("RAIDEUR");
+  test("un MEMBER se voit refuser l'accès à la page Administration", async ({ page, signInAs }) => {
+    await signInAs("MEMBER");
 
     await page.goto("/admin");
     await expect(page.getByText(/réservée aux Administrateurs/i)).toBeVisible();

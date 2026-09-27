@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures";
 
-test("un RAIDEUR crée un personnage et le voit apparaître dans sa liste", async ({ page, signInAs }) => {
-  await signInAs("RAIDEUR");
+test("un MEMBER crée un personnage et le voit apparaître dans sa liste", async ({ page, signInAs }) => {
+  await signInAs("MEMBER");
   await page.goto("/dashboard/personnages");
 
   await page.getByRole("button", { name: "+ Nouveau personnage" }).click();
@@ -16,7 +16,7 @@ test("un RAIDEUR crée un personnage et le voit apparaître dans sa liste", asyn
 
   await page.getByRole("button", { name: "Créer le personnage" }).click();
 
-  const card = page.locator(".war-border", { hasText: "Thragosh" });
+  const card = page.locator(".gilt-frame", { hasText: "Thragosh" });
   await expect(card).toBeVisible();
   await expect(card).toContainText("Priest");
   await expect(card).toContainText("Holy");

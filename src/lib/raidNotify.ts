@@ -1,7 +1,7 @@
 // Alerte Discord quand un Officier ferme les inscriptions d'un raid (la
 // composition est considérée figée à ce moment). Envoyée via un webhook
 // de canal dédié (DISCORD_RAID_WEBHOOK_URL) avec un ping des rôles
-// Raideur/Officier configurés. N'échoue jamais bruyamment : une panne ne
+// Member/Officier configurés. N'échoue jamais bruyamment : une panne ne
 // doit pas empêcher le changement de statut d'être enregistré.
 import { getRoleIdByName } from "./discord";
 
@@ -16,11 +16,11 @@ export async function notifyRaidLocked(raid: { id: string; name: string; date: D
 
   const roleIds: string[] = [];
   try {
-    const [raideurId, officierId] = await Promise.all([
-      getRoleIdByName(process.env.DISCORD_ROLE_RAIDEUR || "Raideur"),
+    const [memberId, officierId] = await Promise.all([
+      getRoleIdByName(process.env.DISCORD_ROLE_MEMBER || "Member"),
       getRoleIdByName(process.env.DISCORD_ROLE_OFFICIER || "Officier")
     ]);
-    if (raideurId) roleIds.push(raideurId);
+    if (memberId) roleIds.push(memberId);
     if (officierId) roleIds.push(officierId);
   } catch (err) {
     console.error("Erreur résolution rôles Discord (alerte raid) :", err);

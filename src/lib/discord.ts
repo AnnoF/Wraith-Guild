@@ -58,6 +58,35 @@ export async function memberHasRole(member: DiscordMember, roleName: string): Pr
   return member.roles.includes(roleId);
 }
 
+export interface DiscordRoleFlags {
+  isOfficier: boolean;
+  isMember: boolean;
+  isSocial: boolean;
+}
+
+// Calcule les trois drapeaux de rôle Discord qui déterminent le rôle site
+// (voir resolveDiscordSiteRole dans src/lib/roleSync.ts) : utilisé à la
+// création de compte (src/lib/auth.ts) ET par le job quotidien de
+// resynchronisation (POST /api/cron/sync-roles). Officier est accordé par
+// l'un OU l'autre des deux rôles Discord configurés (ex: "Officiers" ou
+// "Guild Leader").
+export async function fetchDiscordRoleFlags(member: DiscordMember | null): Promise<DiscordRoleFlags> {
+  if (!member) return { isOfficier: false, isMember: false, isSocial: false };
+
+  const [isOfficierRole, isGuildLeader, isMemberRole, isSocialRole] = await Promise.all([
+    memberHasRole(member, process.env.DISCORD_ROLE_OFFICIER || "Officier"),
+    memberHasRole(member, process.env.DISCORD_ROLE_GUILD_LEADER || "Guild Leader"),
+    memberHasRole(member, process.env.DISCORD_ROLE_MEMBER || "Member"),
+    memberHasRole(member, process.env.DISCORD_ROLE_SOCIAL || "Social / Casual")
+  ]);
+
+  return {
+    isOfficier: isOfficierRole || isGuildLeader,
+    isMember: isMemberRole,
+    isSocial: isSocialRole
+  };
+}
+
 // Envoie un message privé Discord via le bot (utilisé pour prévenir un
 // candidat qu'un officier lui a répondu, voir POST
 // /api/applications/[id]/comments). Limite Discord : un bot ne peut ouvrir

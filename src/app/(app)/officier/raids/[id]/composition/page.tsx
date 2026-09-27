@@ -11,6 +11,7 @@ import ClassSpecIcon from "@/components/ClassSpecIcon";
 import EnchantBadge from "@/components/EnchantBadge";
 import RaidLeadBadge from "@/components/RaidLeadBadge";
 import WeekLockBadge from "@/components/WeekLockBadge";
+import RankBadge from "@/components/RankBadge";
 
 const ROLE_TAGS: { value: RaidRole; label: string }[] = [
   { value: "TANK", label: "Tank" },
@@ -32,7 +33,7 @@ interface Signup {
   id: string;
   status: "INSCRIT" | "RESERVE" | "ABSENT" | "DESISTE";
   comment: string | null;
-  user: { id: string; discordTag: string; characters: CharacterOption[] };
+  user: { id: string; discordTag: string; siteRole: string; characters: CharacterOption[] };
 }
 
 interface PlacementData {
@@ -308,6 +309,10 @@ export default function CompositionPage() {
     run.placements.forEach((p) => characterOwnerMap.set(p.characterId, p.signupId));
   });
   const signupUserMap = new Map(raid.signups.map((s) => [s.id, s.user.id]));
+  // Rôle site du joueur derrière chaque inscription, pour le badge S/A
+  // (Social/Apply) affiché devant le nom d'un personnage placé, voir
+  // RankBadge.
+  const signupRoleMap = new Map(raid.signups.map((s) => [s.id, s.user.siteRole]));
 
   const duplicateHref = `/officier/raids/nouveau?name=${encodeURIComponent(raid.name)}&notes=${encodeURIComponent(
     raid.notes ?? ""
@@ -487,6 +492,7 @@ export default function CompositionPage() {
                         style={{ backgroundColor: `${color}66`, borderColor: `${color}B3` }}
                         className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                       >
+                        <RankBadge siteRole={s.user.siteRole} />
                         <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                         <span>{c.name}</span>
                         {c.canRaidLead && <RaidLeadBadge />}
@@ -556,6 +562,7 @@ export default function CompositionPage() {
                                         }
                                         className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
                                       >
+                                        <RankBadge siteRole={signupRoleMap.get(occupant.signupId)} />
                                         <ClassSpecIcon wowClass={occupant.character.class} spec={occupant.character.spec} />
                                         <span className="truncate">{occupant.character.name}</span>
                                         {occupant.character.canRaidLead && <RaidLeadBadge />}
@@ -623,6 +630,7 @@ export default function CompositionPage() {
                       }}
                       className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone cursor-grab active:cursor-grabbing"
                     >
+                      <RankBadge siteRole={s.user.siteRole} />
                       <ClassSpecIcon wowClass={placement.character.class} spec={placement.character.spec} />
                       <span>{placement.character.name}</span>
                       {placement.character.canRaidLead && <RaidLeadBadge />}
@@ -638,6 +646,7 @@ export default function CompositionPage() {
                           style={{ backgroundColor: `${color}33`, borderColor: `${color}66` }}
                           className="flex items-center gap-1.5 font-ui text-xs px-2 py-1 border text-bone/70 cursor-grab active:cursor-grabbing"
                         >
+                          <RankBadge siteRole={s.user.siteRole} />
                           <ClassSpecIcon wowClass={c.class} spec={c.spec} />
                           <span>{c.name}</span>
                           {c.canRaidLead && <RaidLeadBadge />}
@@ -821,6 +830,9 @@ export default function CompositionPage() {
                                 }
                                 className="flex items-center gap-1.5 text-bone cursor-grab active:cursor-grabbing truncate"
                               >
+                                <RankBadge
+                                  siteRole={signupRoleMap.get(characterOwnerMap.get(assignedChar.id) ?? "")}
+                                />
                                 <ClassSpecIcon wowClass={assignedChar.class} spec={assignedChar.spec} />
                                 <span className="truncate">{assignedChar.name}</span>
                                 {assignedChar.canRaidLead && <RaidLeadBadge />}

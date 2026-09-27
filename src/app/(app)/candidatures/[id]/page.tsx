@@ -8,6 +8,7 @@ import { PROFESSION_LABELS, type Profession } from "@/lib/professions";
 
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
+  APPLY: { label: "Apply", bg: "bg-gold", text: "text-void" },
   ACCEPTEE: { label: "Acceptée", bg: "bg-moss", text: "text-void" },
   REFUSEE: { label: "Refusée", bg: "bg-garnet/30", text: "text-bone/70" }
 };
@@ -135,6 +136,12 @@ export default function CandidatureDetailPage() {
 
         {isStaff && (
           <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => changeStatus("APPLY")}
+              className="font-ui text-xs px-3 py-1.5 border border-gold text-gold rounded-full focus-ring"
+            >
+              Passer en Apply
+            </button>
             <button
               onClick={() => changeStatus("ACCEPTEE")}
               className="font-ui text-xs px-3 py-1.5 border border-moss text-moss rounded-full focus-ring"

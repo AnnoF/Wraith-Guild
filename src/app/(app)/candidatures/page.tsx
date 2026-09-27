@@ -5,6 +5,7 @@ import { CLASS_LABELS, type WowClass } from "@/lib/classes";
 
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
+  APPLY: { label: "Apply", bg: "bg-gold", text: "text-void" },
   ACCEPTEE: { label: "Acceptée", bg: "bg-moss", text: "text-void" },
   REFUSEE: { label: "Refusée", bg: "bg-garnet/30", text: "text-bone/70" }
 };
@@ -61,7 +62,9 @@ export default function CandidaturesPage() {
   }, []);
 
   const pending = applications.filter((a) => a.status === "EN_ATTENTE");
-  const decided = applications.filter((a) => a.status === "ACCEPTEE" || a.status === "REFUSEE");
+  const applying = applications.filter((a) => a.status === "APPLY");
+  const accepted = applications.filter((a) => a.status === "ACCEPTEE");
+  const refused = applications.filter((a) => a.status === "REFUSEE");
 
   return (
     <div className="space-y-10">
@@ -83,11 +86,29 @@ export default function CandidaturesPage() {
           </section>
 
           <section>
-            <p className="font-display text-sm text-bone mb-3">Candidatures acceptées ou refusées</p>
-            {decided.length === 0 ? (
-              <p className="font-ui text-sm text-bone/50">Aucune candidature traitée pour l'instant.</p>
+            <p className="font-display text-sm text-bone mb-3">En Apply (test en raid)</p>
+            {applying.length === 0 ? (
+              <p className="font-ui text-sm text-bone/50">Aucun candidat en Apply pour l'instant.</p>
             ) : (
-              <ApplicationGrid applications={decided} />
+              <ApplicationGrid applications={applying} />
+            )}
+          </section>
+
+          <section>
+            <p className="font-display text-sm text-bone mb-3">Acceptées</p>
+            {accepted.length === 0 ? (
+              <p className="font-ui text-sm text-bone/50">Aucune candidature acceptée pour l'instant.</p>
+            ) : (
+              <ApplicationGrid applications={accepted} />
+            )}
+          </section>
+
+          <section>
+            <p className="font-display text-sm text-bone mb-3">Refusées</p>
+            {refused.length === 0 ? (
+              <p className="font-ui text-sm text-bone/50">Aucune candidature refusée pour l'instant.</p>
+            ) : (
+              <ApplicationGrid applications={refused} />
             )}
           </section>
         </>

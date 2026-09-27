@@ -1,0 +1,30 @@
+name: Sync Discord roles
+
+# Resynchronise chaque jour le rôle site des membres (Officier/Member/
+# Social/Candidat) avec leurs rôles Discord actuels, en appelant la route
+# protégée POST /api/cron/sync-roles (voir src/app/api/cron/sync-roles).
+# N'a aucun effet sur ADMINISTRATEUR (site uniquement) ni APPLY (décidé
+# manuellement par un Officier sur une candidature).
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-roles:
+    name: Appeler /api/cron/sync-roles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appel de la route de resynchronisation
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          status=$(curl -sS -o /tmp/sync-roles-response.json -w "%{http_code}" -X POST \
+            "https://wraith-guild.fr/api/cron/sync-roles" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "Réponse HTTP $status :"
+          cat /tmp/sync-roles-response.json
+          if [ "$status" -ge 300 ]; then
+            echo "La resynchronisation a échoué (HTTP $status)"
+            exit 1
+          fi

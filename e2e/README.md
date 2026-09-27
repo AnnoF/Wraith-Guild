@@ -66,7 +66,7 @@ place, `e2e/helpers/session.ts` signe directement un cookie de session
 NextAuth (JWT/JWE) avec `NEXTAUTH_SECRET`, pour un utilisateur créé en base
 via `e2e/helpers/db.ts`. Aucun code de `src/lib/auth.ts` n'est modifié pour
 ça — voir la fixture `signInAs` dans `e2e/fixtures.ts`, utilisée par chaque
-test : `await signInAs("RAIDEUR")`.
+test : `await signInAs("MEMBER")`.
 
 Conséquence : le dépôt initial d'une candidature (qui vérifie
 l'appartenance Discord réelle via le bot, voir

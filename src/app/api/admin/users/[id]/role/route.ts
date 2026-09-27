@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, canManageRoles } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const VALID_ROLES = ["RAIDEUR", "OFFICIER", "ADMINISTRATEUR"];
+const VALID_ROLES = ["SOCIAL", "APPLY", "MEMBER", "OFFICIER", "ADMINISTRATEUR"];
 
 // PATCH : changer le rôle site d'un utilisateur (Administrateur uniquement)
 // Chaque changement est journalisé dans RoleAudit pour la traçabilité.

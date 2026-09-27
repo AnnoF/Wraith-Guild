@@ -49,9 +49,15 @@ schéma est appliqué avec `prisma db push`, en local comme en production.
 
 ### Variables d'environnement
 
-Voir `.env.example`. Les noms de rôles Discord (`DISCORD_ROLE_RAIDEUR`,
-`DISCORD_ROLE_OFFICIER`) sont sensibles à la casse et doivent correspondre
-exactement aux rôles du serveur Discord de la guilde.
+Voir `.env.example`. Les noms de rôles Discord (`DISCORD_ROLE_OFFICIER`,
+`DISCORD_ROLE_GUILD_LEADER`, `DISCORD_ROLE_MEMBER`, `DISCORD_ROLE_SOCIAL`)
+sont sensibles à la casse et doivent correspondre exactement aux rôles du
+serveur Discord de la guilde. Officier est accordé par l'un OU l'autre des
+deux rôles Discord Officier/Guild Leader.
+
+`CRON_SECRET` protège la route `POST /api/cron/sync-roles` appelée chaque
+jour par `.github/workflows/sync-roles.yml` (même valeur que le secret
+GitHub `CRON_SECRET` du dépôt).
 
 Deux variables sont optionnelles : `DISCORD_APPLICATIONS_WEBHOOK_URL` et
 `DISCORD_RAID_WEBHOOK_URL`. Sans elles, les notifications Discord
@@ -117,6 +123,12 @@ l'exécution de ce seul script. Les secrets GitHub `DEPLOY_HOST`,
 `DEPLOY_USER` et `DEPLOY_SSH_KEY` doivent être renseignés dans les settings
 du dépôt.
 
+Un second workflow, `.github/workflows/sync-roles.yml`, tourne chaque jour
+(indépendamment de tout push) et appelle `POST /api/cron/sync-roles` pour
+resynchroniser les rôles Officier/Member/Social/Candidat depuis Discord. Il
+nécessite le secret GitHub `CRON_SECRET`, qui doit avoir la même valeur que
+la variable `CRON_SECRET` du `.env` de production.
+
 ### Installation initiale du VPS
 
 ```bash
@@ -143,15 +155,25 @@ Note : les images ajoutées depuis le site (Hall of Fame) sont écrites dans
 
 - **Candidat** : rôle par défaut à la première connexion ; accès limité à
   son espace de candidature
-- **Raideur** : peut créer ses personnages et s'inscrire aux raids ouverts
+- **Social** : peut créer ses personnages et s'inscrire aux raids ouverts,
+  comme un Member — affiché avec un badge "S" en composition de raid
+- **Apply** : posé manuellement par un Officier quand une candidature passe
+  au statut "Apply" (le candidat est testé en raid) ; mêmes droits d'
+  inscription que Member/Social, badge "A" en composition
+- **Member** : peut créer ses personnages et s'inscrire aux raids ouverts
 - **Officier** : peut en plus configurer les raids, gérer les compositions,
-  traiter les candidatures et consulter membres/présence
+  traiter les candidatures (dont le statut Apply) et consulter
+  membres/présence
 - **Administrateur** : peut en plus attribuer les rôles des autres membres
 
 N'importe quel compte Discord peut se connecter, mais il reste Candidat tant
-qu'il n'a pas le rôle Discord `Raideur` ou `Officier` sur le serveur de la
-guilde. Le rôle site n'est déterminé depuis Discord qu'à la création du
-compte : il est ensuite géré manuellement depuis la page d'administration.
+qu'il n'a pas l'un des rôles Discord reconnus (voir `.env.example`). Le rôle
+site suit le rôle Discord le plus élevé détecté (Officier > Member >
+Social) à la création du compte, puis chaque jour via le job de
+resynchronisation (`.github/workflows/sync-roles.yml` ->
+`POST /api/cron/sync-roles`) — il reste aussi modifiable manuellement depuis
+la page d'administration. Le rôle Apply n'est jamais dérivé de Discord :
+c'est uniquement une action manuelle d'un Officier sur une candidature.
 
 ## Structure
 
