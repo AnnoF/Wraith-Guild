@@ -13,6 +13,7 @@ test("un MEMBER crée un personnage et le voit apparaître dans sa liste", async
   await page.getByRole("combobox").nth(0).selectOption("PRETRE");
   await page.getByRole("combobox").nth(1).selectOption("Holy");
   await page.getByLabel("Herbalism").check();
+  await page.getByLabel("Main", { exact: true }).check();
 
   await page.getByRole("button", { name: "Créer le personnage" }).click();
 
@@ -20,4 +21,5 @@ test("un MEMBER crée un personnage et le voit apparaître dans sa liste", async
   await expect(card).toBeVisible();
   await expect(card).toContainText("Priest");
   await expect(card).toContainText("Holy");
+  await expect(card).toContainText("Main");
 });

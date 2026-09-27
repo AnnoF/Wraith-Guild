@@ -4,6 +4,7 @@ import { authOptions, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CLASS_SPECS, type WowClass } from "@/lib/classes";
 import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
+import { MAIN_ALT_STATUSES, isMainAltStatusLocked, canSetMainAltStatus, type MainAltStatus } from "@/lib/mainAlt";
 
 // PATCH : archiver/réactiver un personnage, et/ou éditer son nom, sa
 // spécialisation et ses métiers (pas de suppression dure, pour ne pas
@@ -44,6 +45,40 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (body.canRaidLead !== undefined) {
     data.canRaidLead = Boolean(body.canRaidLead);
+  }
+
+  if (body.mainAltStatus !== undefined) {
+    if (isMainAltStatusLocked(character.mainAltStatus as MainAltStatus)) {
+      return NextResponse.json(
+        { error: "Le statut Main/Main Alt de ce personnage ne peut plus être modifié" },
+        { status: 400 }
+      );
+    }
+    if (!MAIN_ALT_STATUSES.includes(body.mainAltStatus)) {
+      return NextResponse.json(
+        { error: "Merci de choisir un statut Main, Main Alt ou Alt" },
+        { status: 400 }
+      );
+    }
+    if (body.mainAltStatus !== "ALT") {
+      const siblings = await prisma.character.findMany({
+        where: { userId: session.user.id, id: { not: id } },
+        select: { mainAltStatus: true }
+      });
+      const siblingStatuses = siblings.map((s) => s.mainAltStatus);
+      if (!canSetMainAltStatus(body.mainAltStatus as MainAltStatus, siblingStatuses)) {
+        return NextResponse.json(
+          {
+            error:
+              body.mainAltStatus === "MAIN"
+                ? "Vous avez déjà un personnage Main"
+                : "Vous avez déjà un personnage Main Alt"
+          },
+          { status: 409 }
+        );
+      }
+    }
+    data.mainAltStatus = body.mainAltStatus;
   }
 
   if (body.spec !== undefined) {

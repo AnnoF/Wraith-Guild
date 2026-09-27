@@ -2,19 +2,28 @@
 import { useState } from "react";
 import { WOW_CLASSES, CLASS_LABELS, CLASS_SPECS, type WowClass } from "@/lib/classes";
 import { PROFESSIONS, PROFESSION_LABELS, MAX_PROFESSIONS_PER_CHARACTER, type Profession } from "@/lib/professions";
+import { type MainAltStatus } from "@/lib/mainAlt";
+import MainAltStatusPicker from "@/components/MainAltStatusPicker";
 
 interface ProfessionSelection {
   profession: Profession;
   isMaxed: boolean;
 }
 
-export default function CharacterForm({ onCreated }: { onCreated: () => void }) {
+export default function CharacterForm({
+  existingStatuses,
+  onCreated
+}: {
+  existingStatuses: MainAltStatus[];
+  onCreated: () => void;
+}) {
   const [name, setName] = useState("");
   const [secondaryName, setSecondaryName] = useState("");
   const [wowClass, setWowClass] = useState<WowClass | "">("");
   const [spec, setSpec] = useState("");
   const [professions, setProfessions] = useState<ProfessionSelection[]>([]);
   const [canRaidLead, setCanRaidLead] = useState(false);
+  const [mainAltStatus, setMainAltStatus] = useState<MainAltStatus | "">("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -44,13 +53,17 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       setError("Merci de remplir tous les champs.");
       return;
     }
+    if (!mainAltStatus) {
+      setError("Merci de choisir un statut Main, Main Alt ou Alt.");
+      return;
+    }
 
     setLoading(true);
     try {
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, secondaryName, wowClass, spec, professions, canRaidLead })
+        body: JSON.stringify({ name, secondaryName, wowClass, spec, professions, canRaidLead, mainAltStatus })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -63,6 +76,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
       setSpec("");
       setProfessions([]);
       setCanRaidLead(false);
+      setMainAltStatus("");
       onCreated();
     } catch {
       setError("Impossible de contacter le serveur.");
@@ -190,7 +204,7 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
           </div>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 space-y-3">
           <label className="flex items-center gap-2 font-ui text-sm text-bone/80">
             <input
               type="checkbox"
@@ -200,6 +214,12 @@ export default function CharacterForm({ onCreated }: { onCreated: () => void }) 
             />
             Capable de raid lead (RL)
           </label>
+
+          <MainAltStatusPicker
+            value={mainAltStatus}
+            onChange={setMainAltStatus}
+            siblingStatuses={existingStatuses}
+          />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { authOptions, isMember } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WOW_CLASSES, CLASS_SPECS } from "@/lib/classes";
 import { PROFESSIONS, MAX_PROFESSIONS_PER_CHARACTER } from "@/lib/professions";
+import { MAIN_ALT_STATUSES, canSetMainAltStatus, type MainAltStatus } from "@/lib/mainAlt";
 
 // GET : liste des personnages de l'utilisateur connecté
 export async function GET() {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, secondaryName, wowClass, spec, professions, canRaidLead } = body;
+  const { name, secondaryName, wowClass, spec, professions, canRaidLead, mainAltStatus } = body;
 
   if (!name || typeof name !== "string" || name.trim().length < 2) {
     return NextResponse.json({ error: "Nom de personnage invalide" }, { status: 400 });
@@ -43,6 +44,30 @@ export async function POST(req: Request) {
   }
   if (!CLASS_SPECS[wowClass as keyof typeof CLASS_SPECS].includes(spec)) {
     return NextResponse.json({ error: "Spécialisation invalide pour cette classe" }, { status: 400 });
+  }
+  if (!MAIN_ALT_STATUSES.includes(mainAltStatus)) {
+    return NextResponse.json(
+      { error: "Merci de choisir un statut Main, Main Alt ou Alt" },
+      { status: 400 }
+    );
+  }
+  if (mainAltStatus !== "ALT") {
+    const siblings = await prisma.character.findMany({
+      where: { userId: session.user.id },
+      select: { mainAltStatus: true }
+    });
+    const siblingStatuses = siblings.map((s) => s.mainAltStatus);
+    if (!canSetMainAltStatus(mainAltStatus as MainAltStatus, siblingStatuses)) {
+      return NextResponse.json(
+        {
+          error:
+            mainAltStatus === "MAIN"
+              ? "Vous avez déjà un personnage Main"
+              : "Vous avez déjà un personnage Main Alt"
+        },
+        { status: 409 }
+      );
+    }
   }
 
   const professionsInput = Array.isArray(professions) ? professions : [];
@@ -71,6 +96,7 @@ export async function POST(req: Request) {
         class: wowClass,
         spec,
         canRaidLead: Boolean(canRaidLead),
+        mainAltStatus: mainAltStatus as MainAltStatus,
         userId: session.user.id,
         professions: {
           create: professionsInput.map((p: { profession: string; isMaxed?: boolean }) => ({
