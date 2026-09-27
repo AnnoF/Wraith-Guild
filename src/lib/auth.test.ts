@@ -16,8 +16,10 @@ describe("canConfigureRaids", () => {
     expect(canConfigureRaids("ADMINISTRATEUR")).toBe(true);
   });
 
-  it("refuse RAIDEUR, CANDIDAT et l'absence de rôle", () => {
-    expect(canConfigureRaids("RAIDEUR")).toBe(false);
+  it("refuse MEMBER, SOCIAL, APPLY, CANDIDAT et l'absence de rôle", () => {
+    expect(canConfigureRaids("MEMBER")).toBe(false);
+    expect(canConfigureRaids("SOCIAL")).toBe(false);
+    expect(canConfigureRaids("APPLY")).toBe(false);
     expect(canConfigureRaids("CANDIDAT")).toBe(false);
     expect(canConfigureRaids(undefined)).toBe(false);
   });
@@ -27,7 +29,7 @@ describe("canManageRoles", () => {
   it("autorise uniquement ADMINISTRATEUR", () => {
     expect(canManageRoles("ADMINISTRATEUR")).toBe(true);
     expect(canManageRoles("OFFICIER")).toBe(false);
-    expect(canManageRoles("RAIDEUR")).toBe(false);
+    expect(canManageRoles("MEMBER")).toBe(false);
     expect(canManageRoles("CANDIDAT")).toBe(false);
     expect(canManageRoles(undefined)).toBe(false);
   });
@@ -39,8 +41,10 @@ describe("isMember", () => {
     expect(isMember(undefined)).toBe(false);
   });
 
-  it("autorise RAIDEUR, OFFICIER et ADMINISTRATEUR", () => {
-    expect(isMember("RAIDEUR")).toBe(true);
+  it("autorise MEMBER, SOCIAL, APPLY, OFFICIER et ADMINISTRATEUR", () => {
+    expect(isMember("MEMBER")).toBe(true);
+    expect(isMember("SOCIAL")).toBe(true);
+    expect(isMember("APPLY")).toBe(true);
     expect(isMember("OFFICIER")).toBe(true);
     expect(isMember("ADMINISTRATEUR")).toBe(true);
   });

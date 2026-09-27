@@ -18,7 +18,7 @@ test("un OFFICIER crée un raid puis y place un inscrit", async ({ page, signInA
   // Un joueur inscrit sans personnage assigné : c'est ce que le
   // constructeur de composition est censé permettre de placer (voir
   // src/app/(app)/officier/raids/[id]/composition/page.tsx).
-  const raider = await createUser("RAIDEUR", "E2E Raideur Compo");
+  const raider = await createUser("MEMBER", "E2E Member Compo");
   const character = await prisma.character.create({
     data: { name: "Grognemitaine", class: "GUERRIER", spec: "Protection", userId: raider.id }
   });

@@ -10,15 +10,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Hiérarchie (voir src/lib/roleSync.ts pour la résolution depuis Discord,
+// et src/lib/auth.ts pour les helpers de droits) :
+//   ADMINISTRATEUR — site uniquement, jamais dérivé de Discord ni du job
+//                    quotidien de resynchronisation
+//   OFFICIER       — rôle Discord DISCORD_ROLE_OFFICIER ou
+//                    DISCORD_ROLE_GUILD_LEADER
+//   MEMBER         — rôle Discord DISCORD_ROLE_MEMBER (remplace l'ancien
+//                    RAIDEUR, mêmes droits)
+//   SOCIAL         — rôle Discord DISCORD_ROLE_SOCIAL ; peut s'inscrire aux
+//                    raids comme un Member, affiché avec un badge "S" en
+//                    composition (voir src/components/RankBadge.tsx)
+//   APPLY          — jamais depuis Discord : posé manuellement par un
+//                    Officier quand une candidature passe au statut APPLY
+//                    (voir PATCH /api/applications/[id]) ; mêmes droits
+//                    d'inscription que Member/Social, badge "A"
+//   CANDIDAT       — par défaut à la première connexion, sans rôle Discord
+//                    reconnu ; cantonné à /candidature
 enum SiteRole {
-  CANDIDAT       // compte créé via connexion Discord sans rôle Member/Officers ; cantonné à /candidature
-  RAIDEUR
+  CANDIDAT
+  SOCIAL
+  APPLY
+  MEMBER
   OFFICIER
   ADMINISTRATEUR
 }
 
 enum ApplicationStatus {
   EN_ATTENTE
+  APPLY     // un Officier teste le candidat en raid avant décision finale
   ACCEPTEE
   REFUSEE
 }
@@ -246,9 +266,11 @@ model BossRoleAssignment {
 // Candidature de recrutement, déposée depuis /candidature par un compte
 // CANDIDAT (ou tout autre rôle, mais dans les faits surtout des CANDIDAT).
 // Un compte peut avoir plusieurs candidatures dans le temps (historique) :
-// une seule "active" à la fois (EN_ATTENTE/ACCEPTEE, ou REFUSEE depuis
-// moins de REAPPLY_COOLDOWN_DAYS), imposé côté application dans
-// POST /api/applications, pas par une contrainte unique en base.
+// une seule "active" à la fois (EN_ATTENTE/APPLY/ACCEPTEE, ou REFUSEE
+// depuis moins de REAPPLY_COOLDOWN_DAYS), imposé côté application dans
+// POST /api/applications, pas par une contrainte unique en base. Le
+// passage à APPLY bascule aussi le siteRole du candidat en APPLY (voir
+// PATCH /api/applications/[id]).
 model Application {
   id              String            @id @default(cuid())
   status          ApplicationStatus @default(EN_ATTENTE)
@@ -349,7 +371,10 @@ model RecruitmentStatus {
   @@id([wowClass, spec])
 }
 
-// Historique des changements de rôle site (traçabilité pour les admins)
+// Historique des changements de rôle site (traçabilité pour les admins).
+// grantedById est nullable : le job quotidien de resynchronisation Discord
+// (POST /api/cron/sync-roles) journalise aussi ses changements, sans
+// auteur humain.
 model RoleAudit {
   id            String   @id @default(cuid())
   previousRole  SiteRole
@@ -359,6 +384,6 @@ model RoleAudit {
   targetUserId  String
   targetUser    User     @relation("GrantedTo", fields: [targetUserId], references: [id], onDelete: Cascade)
 
-  grantedById   String
-  grantedBy     User     @relation("GrantedBy", fields: [grantedById], references: [id])
+  grantedById   String?
+  grantedBy     User?    @relation("GrantedBy", fields: [grantedById], references: [id])
 }

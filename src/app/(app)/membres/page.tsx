@@ -16,13 +16,15 @@ interface Member {
   id: string;
   discordTag: string;
   displayName: string | null;
-  siteRole: "RAIDEUR" | "OFFICIER" | "ADMINISTRATEUR";
+  siteRole: "SOCIAL" | "APPLY" | "MEMBER" | "OFFICIER" | "ADMINISTRATEUR";
   isArchived: boolean;
   characters: MemberCharacter[];
 }
 
 const ROLE_LABELS: Record<Member["siteRole"], string> = {
-  RAIDEUR: "Raideur",
+  SOCIAL: "Social",
+  APPLY: "Apply",
+  MEMBER: "Member",
   OFFICIER: "Officier",
   ADMINISTRATEUR: "Administrateur"
 };

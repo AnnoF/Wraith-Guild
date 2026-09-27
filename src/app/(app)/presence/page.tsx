@@ -5,7 +5,7 @@ interface MemberPresence {
   id: string;
   discordTag: string;
   displayName: string | null;
-  siteRole: "RAIDEUR" | "OFFICIER" | "ADMINISTRATEUR";
+  siteRole: "SOCIAL" | "APPLY" | "MEMBER" | "OFFICIER" | "ADMINISTRATEUR";
   isArchived: boolean;
   present: number;
   absent: number;
@@ -15,7 +15,9 @@ interface MemberPresence {
 }
 
 const ROLE_LABELS: Record<MemberPresence["siteRole"], string> = {
-  RAIDEUR: "Raideur",
+  SOCIAL: "Social",
+  APPLY: "Apply",
+  MEMBER: "Member",
   OFFICIER: "Officier",
   ADMINISTRATEUR: "Administrateur"
 };

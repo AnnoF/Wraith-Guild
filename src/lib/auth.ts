@@ -1,7 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import { prisma } from "./prisma";
-import { fetchGuildMember, memberHasRole } from "./discord";
+import { fetchGuildMember, fetchDiscordRoleFlags } from "./discord";
+import { resolveDiscordSiteRole } from "./roleSync";
 import type { SiteRole } from "@prisma/client";
 
 export const authOptions: NextAuthOptions = {
@@ -18,10 +19,11 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     // Autorise la connexion de tout compte Discord : les membres de guilde
-    // (rôle Discord Member/Officers) obtiennent le rôle site correspondant,
-    // tous les autres deviennent CANDIDAT (cantonné à /candidature par le
-    // garde-fou de src/app/(app)/layout.tsx). Seule une vraie erreur d'appel
-    // à l'API Discord bloque encore la connexion.
+    // (rôle Discord Officier/Guild Leader/Member/Social) obtiennent le rôle
+    // site correspondant (voir resolveDiscordSiteRole), tous les autres
+    // deviennent CANDIDAT (cantonné à /candidature par le garde-fou de
+    // src/app/(app)/layout.tsx). Seule une vraie erreur d'appel à l'API
+    // Discord bloque encore la connexion.
     async signIn({ user, account }) {
       if (!account?.providerAccountId) return false;
 
@@ -33,22 +35,19 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
 
-      let defaultRole: SiteRole = "CANDIDAT";
-      if (member) {
-        const [isRaideur, isOfficier] = await Promise.all([
-          memberHasRole(member, process.env.DISCORD_ROLE_RAIDEUR || "Raideur"),
-          memberHasRole(member, process.env.DISCORD_ROLE_OFFICIER || "Officier")
-        ]);
-        if (isOfficier) defaultRole = "OFFICIER";
-        else if (isRaideur) defaultRole = "RAIDEUR";
-      }
+      const flags = await fetchDiscordRoleFlags(member);
+      const defaultRole: SiteRole = resolveDiscordSiteRole(flags);
 
       // Crée ou met à jour l'utilisateur en base.
       // Le rôle "site" par défaut suit le rôle Discord le plus élevé détecté,
-      // mais reste ensuite géré manuellement par un Administrateur (cf. /admin) :
-      // un Officier rétrogradé sur Discord ne perd pas automatiquement ses droits
-      // au moindre décalage de synchronisation, et un CANDIDAT accepté n'est
-      // promu Raideur que manuellement une fois invité sur le Discord.
+      // mais reste ensuite géré manuellement par un Administrateur (cf. /admin)
+      // OU par le job quotidien de resynchronisation (voir
+      // POST /api/cron/sync-roles) : un Officier rétrogradé sur Discord ne
+      // perd pas ses droits au moindre décalage ponctuel de synchronisation,
+      // et un CANDIDAT accepté n'est promu Member que manuellement une fois
+      // invité sur le Discord (ou automatiquement au prochain passage du job
+      // quotidien, une fois le rôle Discord attribué). Le rôle APPLY n'est
+      // jamais posé ici : uniquement via PATCH /api/applications/[id].
       const existing = await prisma.user.findUnique({
         where: { discordId: account.providerAccountId }
       });

@@ -7,7 +7,9 @@ import type { SiteRole } from "@prisma/client";
 
 const ROLE_LABELS: Record<SiteRole, string> = {
   CANDIDAT: "Candidat",
-  RAIDEUR: "Raideur",
+  SOCIAL: "Social",
+  APPLY: "Apply",
+  MEMBER: "Member",
   OFFICIER: "Officier",
   ADMINISTRATEUR: "Administrateur"
 };

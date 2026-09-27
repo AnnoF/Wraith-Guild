@@ -4,10 +4,18 @@ import { useEffect, useState } from "react";
 interface UserRow {
   id: string;
   discordTag: string;
-  siteRole: "RAIDEUR" | "OFFICIER" | "ADMINISTRATEUR";
+  siteRole: "SOCIAL" | "APPLY" | "MEMBER" | "OFFICIER" | "ADMINISTRATEUR";
 }
 
-const ROLES: UserRow["siteRole"][] = ["RAIDEUR", "OFFICIER", "ADMINISTRATEUR"];
+const ROLE_LABELS: Record<UserRow["siteRole"], string> = {
+  SOCIAL: "Social",
+  APPLY: "Apply",
+  MEMBER: "Member",
+  OFFICIER: "Officier",
+  ADMINISTRATEUR: "Administrateur"
+};
+
+const ROLES: UserRow["siteRole"][] = ["SOCIAL", "APPLY", "MEMBER", "OFFICIER", "ADMINISTRATEUR"];
 
 // Page réservée aux Administrateurs : attribution des rôles du site.
 // Le contrôle d'accès réel se fait côté API (canManageRoles) — cette page
@@ -61,7 +69,7 @@ export default function AdminPage() {
                     u.siteRole === r ? "bg-gold text-void font-medium" : "border border-bone/20 text-bone/60 hover:text-bone"
                   }`}
                 >
-                  {r === "RAIDEUR" ? "Raideur" : r === "OFFICIER" ? "Officier" : "Administrateur"}
+                  {ROLE_LABELS[r]}
                 </button>
               ))}
             </div>

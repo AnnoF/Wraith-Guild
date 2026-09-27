@@ -1,7 +1,7 @@
 import { test, expect, prisma } from "../fixtures";
 import { createUser } from "../helpers/db";
 
-test("un RAIDEUR s'inscrit à un raid ouvert", async ({ page, signInAs }) => {
+test("un MEMBER s'inscrit à un raid ouvert", async ({ page, signInAs }) => {
   // Le raid est semé directement en base : ce parcours teste l'inscription
   // d'un joueur, pas la création du raid par un Officier (couverte dans
   // raid-composition.spec.ts).
@@ -20,7 +20,7 @@ test("un RAIDEUR s'inscrit à un raid ouvert", async ({ page, signInAs }) => {
     }
   });
 
-  await signInAs("RAIDEUR");
+  await signInAs("MEMBER");
   await page.goto(`/raids/${raid.id}`);
 
   await page.getByPlaceholder("Ex. dispo après 21h").fill("Dispo dès 20h");

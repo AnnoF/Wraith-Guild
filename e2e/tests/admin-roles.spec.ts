@@ -2,7 +2,7 @@ import { test, expect } from "../fixtures";
 import { createUser } from "../helpers/db";
 
 test("un ADMINISTRATEUR change le rôle d'un membre", async ({ page, signInAs }) => {
-  const member = await createUser("RAIDEUR", "E2E À Promouvoir");
+  const member = await createUser("MEMBER", "E2E À Promouvoir");
   await signInAs("ADMINISTRATEUR");
 
   await page.goto("/admin");
@@ -12,5 +12,5 @@ test("un ADMINISTRATEUR change le rôle d'un membre", async ({ page, signInAs })
 
   // La ligne se reconstruit après le PATCH (re-fetch de la liste) : le
   // bouton "Officier" doit passer en état sélectionné (fond plein).
-  await expect(row.getByRole("button", { name: "Officier" })).toHaveClass(/bg-blood/);
+  await expect(row.getByRole("button", { name: "Officier" })).toHaveClass(/bg-gold/);
 });

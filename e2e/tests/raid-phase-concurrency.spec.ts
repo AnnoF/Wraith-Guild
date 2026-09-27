@@ -37,7 +37,7 @@ test("un joueur ne peut pas être placé dans deux instances concurrentes de la 
   });
   const [runA, runB] = raid.phases[0].runs;
 
-  const raider = await createUser("RAIDEUR", "E2E Raideur Concurrence");
+  const raider = await createUser("MEMBER", "E2E Member Concurrence");
   const character = await prisma.character.create({
     data: { name: "Doublemploi", class: "CHASSEUR", spec: "Précision", userId: raider.id }
   });
