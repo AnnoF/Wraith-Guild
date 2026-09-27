@@ -71,6 +71,18 @@ enum RecruitmentPriority {
   FERME
 }
 
+// Statut Main / Main Alt / Alt d'un personnage, voir src/lib/mainAlt.ts.
+// MAIN et MAIN_ALT sont chacun limités à un seul personnage par joueur et,
+// une fois posés, ne sont plus modifiables ; contrainte appliquée côté
+// application (POST/PATCH /api/characters), pas par une contrainte unique
+// en base. ALT reste libre. Défaut ALT pour ne rien casser sur les
+// personnages existants au moment de l'introduction de ce champ.
+enum MainAltStatus {
+  MAIN
+  MAIN_ALT
+  ALT
+}
+
 enum Profession {
   HERBALISM
   MINING
@@ -128,6 +140,7 @@ model Character {
   spec          String   // dépend de la classe, voir src/lib/classes.ts
   isActive      Boolean  @default(true)
   canRaidLead   Boolean  @default(false) // le joueur se déclare capable de RL ce personnage
+  mainAltStatus MainAltStatus @default(ALT) // voir enum MainAltStatus
   createdAt     DateTime @default(now())
 
   userId        String
