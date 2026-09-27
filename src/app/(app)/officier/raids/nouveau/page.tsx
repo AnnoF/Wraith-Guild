@@ -353,41 +353,48 @@ function NouveauRaidForm() {
                     ))}
                   </div>
                   <span className="font-ui text-[10px] text-bone/40 shrink-0">{selectedSizes[phaseIndex]} joueurs</span>
-                  <div className="relative shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setOpenPicker((cur) => (cur === phaseIndex ? null : phaseIndex))}
-                      title="Ajouter une instance concurrente à cette phase"
-                      className="font-ui text-sm w-5 h-5 flex items-center justify-center border border-bone/20 text-bone/50 hover:border-gold hover:text-gold rounded-sm focus-ring"
-                    >
-                      +
-                    </button>
-                    {openPicker === phaseIndex && (
-                      <div className="absolute right-0 top-full mt-1 z-10 gilt-frame rounded-sm bg-char p-1.5 flex flex-col gap-0.5 w-44">
-                        {RAID_INSTANCES.map((r) => {
-                          const disabled = !instancesShareSize([...phase, r]);
-                          return (
-                            <button
-                              key={r}
-                              type="button"
-                              disabled={disabled}
-                              onClick={() => {
-                                addInstanceToPhase(phaseIndex, r, null);
-                                setOpenPicker(null);
-                              }}
-                              className={`font-ui text-xs px-2 py-1 text-left rounded-sm focus-ring ${
-                                disabled
-                                  ? "text-bone/20 cursor-not-allowed"
-                                  : "text-bone/80 hover:bg-gold/10 hover:text-bone"
-                              }`}
-                            >
-                              {r}
-                            </button>
-                          );
-                        })}
+                  {(() => {
+                    // Seules les instances de même taille sont proposables sur
+                    // cette phase. S'il n'y en a qu'une (le cas courant, vu que
+                    // les 3 instances ont aujourd'hui des tailles distinctes),
+                    // le "+" l'ajoute directement sans passer par un choix.
+                    const compatible = RAID_INSTANCES.filter((r) => instancesShareSize([...phase, r]));
+                    return (
+                      <div className="relative shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (compatible.length <= 1) {
+                              if (compatible.length === 1) addInstanceToPhase(phaseIndex, compatible[0], null);
+                              return;
+                            }
+                            setOpenPicker((cur) => (cur === phaseIndex ? null : phaseIndex));
+                          }}
+                          title="Ajouter une instance concurrente à cette phase"
+                          className="font-ui text-sm w-5 h-5 flex items-center justify-center border border-bone/20 text-bone/50 hover:border-gold hover:text-gold rounded-sm focus-ring"
+                        >
+                          +
+                        </button>
+                        {openPicker === phaseIndex && compatible.length > 1 && (
+                          <div className="absolute right-0 top-full mt-1 z-10 gilt-frame rounded-sm bg-char p-1.5 flex flex-col gap-0.5 w-44">
+                            {compatible.map((r) => (
+                              <button
+                                key={r}
+                                type="button"
+                                onClick={() => {
+                                  addInstanceToPhase(phaseIndex, r, null);
+                                  setOpenPicker(null);
+                                }}
+                                className="font-ui text-xs px-2 py-1 text-left rounded-sm focus-ring text-bone/80 hover:bg-gold/10 hover:text-bone"
+                              >
+                                {r}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
