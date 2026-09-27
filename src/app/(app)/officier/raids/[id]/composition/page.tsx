@@ -501,14 +501,14 @@ export default function CompositionPage() {
           </div>
         </div>
 
-        <div className="lg:w-1/2 flex flex-wrap gap-4">
+        <div className="lg:w-1/2 space-y-4">
           {!phase && <p className="font-ui text-sm text-bone/50">Aucune phase programmée.</p>}
           {phase?.runs.map((run) => {
             const slotMap = new Map<number, PlacementData>();
             run.placements.forEach((p) => slotMap.set(p.slot, p));
             const numGroups = Math.ceil(run.size / GROUP_SIZE);
             return (
-              <div key={run.id} className="flex-1 min-w-[280px] space-y-2">
+              <div key={run.id} className="space-y-2">
                 <p className="font-display text-xs text-bone/60">{run.title} <span className="text-bone/30">({run.size} joueurs)</span></p>
                 <div className="space-y-3">
                   {groupRows(run.size, numGroups).map((row, rowIdx) => (
