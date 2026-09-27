@@ -23,6 +23,18 @@ function subtractDaysLocal(datetimeLocal: string, days: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+// Même logique que subtractDaysLocal, mais en ajoutant des heures (utilisé
+// pour la fin de soirée par défaut).
+function addHoursLocal(datetimeLocal: string, hours: number): string {
+  const [datePart, timePart] = datetimeLocal.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  const d = new Date(year, month - 1, day, hour, minute);
+  d.setHours(d.getHours() + hours);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 interface DragPayload {
   title: RaidInstance;
   fromPhase: number | null; // null = vient de la réserve
@@ -46,6 +58,7 @@ function NouveauRaidForm() {
   );
   const [date, setDate] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [endTimeTouched, setEndTimeTouched] = useState(false);
   const [signupDeadline, setSignupDeadline] = useState("");
   const [deadlineTouched, setDeadlineTouched] = useState(false);
   const [notes, setNotes] = useState(searchParams.get("notes") ?? "");
@@ -53,6 +66,7 @@ function NouveauRaidForm() {
   const [occurrences, setOccurrences] = useState(4);
   const [error, setError] = useState<string | null>(null);
   const [dragOverPhase, setDragOverPhase] = useState<number | null>(null);
+  const [openPicker, setOpenPicker] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   function addPhase(title: string) {
@@ -82,30 +96,28 @@ function NouveauRaidForm() {
     e.dataTransfer.effectAllowed = "move";
   }
 
-  function handleDropOnPhase(e: React.DragEvent, phaseIndex: number) {
-    e.preventDefault();
-    setDragOverPhase(null);
-    const raw = e.dataTransfer.getData("application/json");
-    if (!raw) return;
-    const payload: DragPayload = JSON.parse(raw);
-
+  // Ajoute `title` à la phase `phaseIndex` (même taille exigée). Si
+  // `fromPhase` est renseigné, retire aussi l'instance de sa phase
+  // d'origine (déplacement par glisser-déposer) ; sinon c'est un simple
+  // ajout (bouton "+" ou dépose depuis la réserve).
+  function addInstanceToPhase(phaseIndex: number, title: string, fromPhase: number | null) {
     setPhases((current) => {
       const targetPhase = current[phaseIndex];
-      if (!instancesShareSize([...targetPhase, payload.title])) {
+      if (!instancesShareSize([...targetPhase, title])) {
         setError("Cette instance n'a pas la même taille que le reste de cette phase.");
         return current;
       }
       setError(null);
-      let next = current.map((phase, i) => (i === phaseIndex ? [...phase, payload.title] : phase));
-      if (payload.fromPhase !== null) {
+      let next = current.map((phase, i) => (i === phaseIndex ? [...phase, title] : phase));
+      if (fromPhase !== null) {
         // Retire une occurrence de l'instance dans sa phase d'origine (sauf
         // si on la dépose sur sa propre phase : elle vient d'y être
         // rajoutée juste au-dessus, donc rien à faire de plus).
-        const originIndex = payload.fromPhase;
+        const originIndex = fromPhase;
         next = next.map((phase, i) => {
           if (i !== originIndex) return phase;
           const copy = [...phase];
-          const idx = copy.indexOf(payload.title);
+          const idx = copy.indexOf(title);
           if (idx !== -1 && (originIndex !== phaseIndex || copy.length > targetPhase.length)) {
             copy.splice(idx, 1);
           }
@@ -117,12 +129,25 @@ function NouveauRaidForm() {
     });
   }
 
+  function handleDropOnPhase(e: React.DragEvent, phaseIndex: number) {
+    e.preventDefault();
+    setDragOverPhase(null);
+    const raw = e.dataTransfer.getData("application/json");
+    if (!raw) return;
+    const payload: DragPayload = JSON.parse(raw);
+    addInstanceToPhase(phaseIndex, payload.title, payload.fromPhase);
+  }
+
   const selectedSizes = phases.map((phase) => RAID_INSTANCE_SIZES[phase[0]]);
 
-  // Par défaut, la date limite d'inscription se cale 3 jours avant le
-  // début de la soirée — tant que l'officier n'a pas lui-même modifié ce champ.
+  // Par défaut, la fin de soirée se cale 4 heures après le début, et la
+  // date limite d'inscription 3 jours avant — tant que l'officier n'a pas
+  // lui-même modifié ces champs.
   function handleDateChange(value: string) {
     setDate(value);
+    if (!endTimeTouched) {
+      setEndTime(value ? addHoursLocal(value, 4) : "");
+    }
     if (!deadlineTouched) {
       setSignupDeadline(value ? subtractDaysLocal(value, 3) : "");
     }
@@ -217,7 +242,10 @@ function NouveauRaidForm() {
             <input
               type="datetime-local"
               value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
+              onChange={(e) => {
+                setEndTimeTouched(true);
+                setEndTime(e.target.value);
+              }}
               className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
@@ -262,8 +290,9 @@ function NouveauRaidForm() {
             ))}
           </div>
           <p className="font-ui text-[11px] text-bone/40 mt-1.5">
-            Clic : ajoute une nouvelle phase. Glisser sur une phase existante :
-            programme une instance concurrente (même taille uniquement).
+            Clic sur une carte : ajoute une nouvelle phase. Le "+" sur une
+            phase (ou un glisser-déposer) : programme une instance
+            concurrente sur cette phase (même taille uniquement).
           </p>
 
           {phases.length > 0 && (
@@ -324,6 +353,41 @@ function NouveauRaidForm() {
                     ))}
                   </div>
                   <span className="font-ui text-[10px] text-bone/40 shrink-0">{selectedSizes[phaseIndex]} joueurs</span>
+                  <div className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setOpenPicker((cur) => (cur === phaseIndex ? null : phaseIndex))}
+                      title="Ajouter une instance concurrente à cette phase"
+                      className="font-ui text-sm w-5 h-5 flex items-center justify-center border border-bone/20 text-bone/50 hover:border-gold hover:text-gold rounded-sm focus-ring"
+                    >
+                      +
+                    </button>
+                    {openPicker === phaseIndex && (
+                      <div className="absolute right-0 top-full mt-1 z-10 gilt-frame rounded-sm bg-char p-1.5 flex flex-col gap-0.5 w-44">
+                        {RAID_INSTANCES.map((r) => {
+                          const disabled = !instancesShareSize([...phase, r]);
+                          return (
+                            <button
+                              key={r}
+                              type="button"
+                              disabled={disabled}
+                              onClick={() => {
+                                addInstanceToPhase(phaseIndex, r, null);
+                                setOpenPicker(null);
+                              }}
+                              className={`font-ui text-xs px-2 py-1 text-left rounded-sm focus-ring ${
+                                disabled
+                                  ? "text-bone/20 cursor-not-allowed"
+                                  : "text-bone/80 hover:bg-gold/10 hover:text-bone"
+                              }`}
+                            >
+                              {r}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
