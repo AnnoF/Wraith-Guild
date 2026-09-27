@@ -25,6 +25,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   });
   if (!application) return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
 
+  // Une candidature acceptée n'a plus d'espace commentaire (les deux ont
+  // été supprimés, voir PATCH /api/applications/[id]).
+  if (application.status === "ACCEPTEE") {
+    return NextResponse.json({ error: "Candidature déjà acceptée" }, { status: 403 });
+  }
+
   const isOwner = application.userId === session.user.id;
   const isStaff = canConfigureRaids(session.user.siteRole);
   const isMember = session.user.siteRole !== "CANDIDAT";

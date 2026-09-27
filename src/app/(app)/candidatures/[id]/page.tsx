@@ -210,81 +210,87 @@ export default function CandidatureDetailPage() {
       </div>
 
       {commentError && <p className="font-ui text-xs text-garnet">{commentError}</p>}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="gilt-frame rounded-sm bg-char p-5">
-          <p className="font-display text-sm text-bone mb-3">Notes internes</p>
-          <p className="font-ui text-[10px] text-bone/40 mb-3">Jamais visible du candidat.</p>
-          <div className="space-y-3 mb-4">
-            {internalComments.length === 0 ? (
-              <p className="font-ui text-xs text-bone/40">Aucune note pour le moment.</p>
-            ) : (
-              internalComments.map((c) => (
-                <div key={c.id} className="border-l-2 border-bone/15 pl-3">
-                  <p className="font-ui text-xs text-bone/50">
-                    {c.author.displayName || c.author.discordTag} ·{" "}
-                    {new Date(c.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                  <p className="font-ui text-sm text-bone whitespace-pre-line">{c.body}</p>
-                </div>
-              ))
-            )}
-          </div>
-          <div className="flex gap-2">
-            <input
-              value={internalDraft}
-              onChange={(e) => setInternalDraft(e.target.value)}
-              placeholder="Note interne..."
-              className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
-            />
-            <button
-              onClick={() => postComment("INTERNE", internalDraft)}
-              disabled={sending}
-              className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
-            >
-              Envoyer
-            </button>
-          </div>
-        </div>
-
-        <div className="gilt-frame rounded-sm bg-char p-5">
-          <p className="font-display text-sm text-bone mb-3">Échange avec le candidat</p>
-          <p className="font-ui text-[10px] text-bone/40 mb-3">Visible et modifiable par le candidat.</p>
-          <div className="space-y-3 mb-4">
-            {sharedComments.length === 0 ? (
-              <p className="font-ui text-xs text-bone/40">Aucun message pour le moment.</p>
-            ) : (
-              sharedComments.map((c) => (
-                <div key={c.id} className="border-l-2 border-bone/15 pl-3">
-                  <p className="font-ui text-xs text-bone/50">
-                    {c.author.displayName || c.author.discordTag} ·{" "}
-                    {new Date(c.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                  <p className="font-ui text-sm text-bone whitespace-pre-line">{c.body}</p>
-                </div>
-              ))
-            )}
-          </div>
-          {isStaff ? (
+      {application.status === "ACCEPTEE" ? (
+        <p className="font-ui text-xs text-bone/40">
+          Candidature acceptée : les espaces de commentaires ont été supprimés.
+        </p>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="gilt-frame rounded-sm bg-char p-5">
+            <p className="font-display text-sm text-bone mb-3">Notes internes</p>
+            <p className="font-ui text-[10px] text-bone/40 mb-3">Jamais visible du candidat.</p>
+            <div className="space-y-3 mb-4">
+              {internalComments.length === 0 ? (
+                <p className="font-ui text-xs text-bone/40">Aucune note pour le moment.</p>
+              ) : (
+                internalComments.map((c) => (
+                  <div key={c.id} className="border-l-2 border-bone/15 pl-3">
+                    <p className="font-ui text-xs text-bone/50">
+                      {c.author.displayName || c.author.discordTag} ·{" "}
+                      {new Date(c.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    <p className="font-ui text-sm text-bone whitespace-pre-line">{c.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
             <div className="flex gap-2">
               <input
-                value={sharedDraft}
-                onChange={(e) => setSharedDraft(e.target.value)}
-                placeholder="Message au candidat..."
+                value={internalDraft}
+                onChange={(e) => setInternalDraft(e.target.value)}
+                placeholder="Note interne..."
                 className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
               />
               <button
-                onClick={() => postComment("PARTAGE", sharedDraft)}
+                onClick={() => postComment("INTERNE", internalDraft)}
                 disabled={sending}
                 className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
               >
                 Envoyer
               </button>
             </div>
-          ) : (
-            <p className="font-ui text-xs text-bone/40">Seuls les officiers peuvent répondre ici.</p>
-          )}
+          </div>
+
+          <div className="gilt-frame rounded-sm bg-char p-5">
+            <p className="font-display text-sm text-bone mb-3">Échange avec le candidat</p>
+            <p className="font-ui text-[10px] text-bone/40 mb-3">Visible et modifiable par le candidat.</p>
+            <div className="space-y-3 mb-4">
+              {sharedComments.length === 0 ? (
+                <p className="font-ui text-xs text-bone/40">Aucun message pour le moment.</p>
+              ) : (
+                sharedComments.map((c) => (
+                  <div key={c.id} className="border-l-2 border-bone/15 pl-3">
+                    <p className="font-ui text-xs text-bone/50">
+                      {c.author.displayName || c.author.discordTag} ·{" "}
+                      {new Date(c.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    <p className="font-ui text-sm text-bone whitespace-pre-line">{c.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
+            {isStaff ? (
+              <div className="flex gap-2">
+                <input
+                  value={sharedDraft}
+                  onChange={(e) => setSharedDraft(e.target.value)}
+                  placeholder="Message au candidat..."
+                  className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+                />
+                <button
+                  onClick={() => postComment("PARTAGE", sharedDraft)}
+                  disabled={sending}
+                  className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
+                >
+                  Envoyer
+                </button>
+              </div>
+            ) : (
+              <p className="font-ui text-xs text-bone/40">Seuls les officiers peuvent répondre ici.</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

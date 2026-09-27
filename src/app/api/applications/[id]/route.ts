@@ -60,6 +60,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   });
 
+  // Une candidature acceptée n'a plus besoin d'échange : on supprime les
+  // deux espaces de commentaires (INTERNE et PARTAGE).
+  if (status === "ACCEPTEE" && status !== existing.status) {
+    await prisma.applicationComment.deleteMany({ where: { applicationId: id } });
+  }
+
   // Le statut Apply bascule immédiatement le rôle site du candidat en
   // APPLY (peut alors s'inscrire aux raids comme un Member/Social, badge
   // "A" en composition, voir RankBadge), sans attendre le job quotidien —
