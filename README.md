@@ -50,10 +50,10 @@ schéma est appliqué avec `prisma db push`, en local comme en production.
 ### Variables d'environnement
 
 Voir `.env.example`. Les noms de rôles Discord (`DISCORD_ROLE_OFFICIER`,
-`DISCORD_ROLE_GUILD_LEADER`, `DISCORD_ROLE_MEMBER`, `DISCORD_ROLE_SOCIAL`)
-sont sensibles à la casse et doivent correspondre exactement aux rôles du
-serveur Discord de la guilde. Officier est accordé par l'un OU l'autre des
-deux rôles Discord Officier/Guild Leader.
+`DISCORD_ROLE_MEMBER`, `DISCORD_ROLE_APPLY`, `DISCORD_ROLE_SOCIAL`) sont
+sensibles à la casse et doivent correspondre exactement aux rôles du
+serveur Discord de la guilde. Les Guild Master(s) ont aussi le rôle Discord
+Officier (pas de rôle "Guild Leader" séparé à configurer).
 
 `CRON_SECRET` protège la route `POST /api/cron/sync-roles` appelée chaque
 jour par `.github/workflows/sync-roles.yml` (même valeur que le secret
@@ -157,9 +157,10 @@ Note : les images ajoutées depuis le site (Hall of Fame) sont écrites dans
   son espace de candidature
 - **Social** : peut créer ses personnages et s'inscrire aux raids ouverts,
   comme un Member — affiché avec un badge "S" en composition de raid
-- **Apply** : posé manuellement par un Officier quand une candidature passe
-  au statut "Apply" (le candidat est testé en raid) ; mêmes droits d'
-  inscription que Member/Social, badge "A" en composition
+- **Apply** : posé immédiatement par un Officier quand une candidature passe
+  au statut "Apply" (le candidat est testé en raid), puis maintenu par le
+  rôle Discord dédié assigné à la main par l'Officier ; mêmes droits
+  d'inscription que Member/Social, badge "A" en composition
 - **Member** : peut créer ses personnages et s'inscrire aux raids ouverts
 - **Officier** : peut en plus configurer les raids, gérer les compositions,
   traiter les candidatures (dont le statut Apply) et consulter
@@ -168,12 +169,14 @@ Note : les images ajoutées depuis le site (Hall of Fame) sont écrites dans
 
 N'importe quel compte Discord peut se connecter, mais il reste Candidat tant
 qu'il n'a pas l'un des rôles Discord reconnus (voir `.env.example`). Le rôle
-site suit le rôle Discord le plus élevé détecté (Officier > Member >
+site suit le rôle Discord le plus élevé détecté (Officier > Member > Apply >
 Social) à la création du compte, puis chaque jour via le job de
 resynchronisation (`.github/workflows/sync-roles.yml` ->
 `POST /api/cron/sync-roles`) — il reste aussi modifiable manuellement depuis
-la page d'administration. Le rôle Apply n'est jamais dérivé de Discord :
-c'est uniquement une action manuelle d'un Officier sur une candidature.
+la page d'administration. Le rôle Apply n'est jamais posé par le site sur
+Discord (aucune écriture, uniquement de la lecture) : c'est à l'Officier
+d'assigner le rôle Discord correspondant en parallèle de l'action sur la
+candidature.
 
 ## Structure
 
