@@ -14,17 +14,21 @@ datasource db {
 // et src/lib/auth.ts pour les helpers de droits) :
 //   ADMINISTRATEUR — site uniquement, jamais dérivé de Discord ni du job
 //                    quotidien de resynchronisation
-//   OFFICIER       — rôle Discord DISCORD_ROLE_OFFICIER ou
-//                    DISCORD_ROLE_GUILD_LEADER
+//   OFFICIER       — rôle Discord DISCORD_ROLE_OFFICIER (les Guild
+//                    Master(s) l'ont aussi, pas de rôle Discord séparé)
 //   MEMBER         — rôle Discord DISCORD_ROLE_MEMBER (remplace l'ancien
 //                    RAIDEUR, mêmes droits)
+//   APPLY          — posé immédiatement par un Officier quand une
+//                    candidature passe au statut APPLY (voir
+//                    PATCH /api/applications/[id], pas d'écriture du rôle
+//                    Discord par le site) ; le rôle Discord
+//                    DISCORD_ROLE_APPLY est ensuite assigné à la main par
+//                    l'Officier, et lu par le job quotidien pour maintenir
+//                    ce rang. Mêmes droits d'inscription que Member/Social,
+//                    badge "A" en composition (voir RankBadge.tsx)
 //   SOCIAL         — rôle Discord DISCORD_ROLE_SOCIAL ; peut s'inscrire aux
 //                    raids comme un Member, affiché avec un badge "S" en
 //                    composition (voir src/components/RankBadge.tsx)
-//   APPLY          — jamais depuis Discord : posé manuellement par un
-//                    Officier quand une candidature passe au statut APPLY
-//                    (voir PATCH /api/applications/[id]) ; mêmes droits
-//                    d'inscription que Member/Social, badge "A"
 //   CANDIDAT       — par défaut à la première connexion, sans rôle Discord
 //                    reconnu ; cantonné à /candidature
 enum SiteRole {

@@ -61,28 +61,33 @@ export async function memberHasRole(member: DiscordMember, roleName: string): Pr
 export interface DiscordRoleFlags {
   isOfficier: boolean;
   isMember: boolean;
+  isApply: boolean;
   isSocial: boolean;
 }
 
-// Calcule les trois drapeaux de rôle Discord qui déterminent le rôle site
-// (voir resolveDiscordSiteRole dans src/lib/roleSync.ts) : utilisé à la
-// création de compte (src/lib/auth.ts) ET par le job quotidien de
-// resynchronisation (POST /api/cron/sync-roles). Officier est accordé par
-// l'un OU l'autre des deux rôles Discord configurés (ex: "Officiers" ou
-// "Guild Leader").
+// Calcule les drapeaux de rôle Discord qui déterminent le rôle site (voir
+// resolveDiscordSiteRole dans src/lib/roleSync.ts) : utilisé à la création
+// de compte (src/lib/auth.ts) ET par le job quotidien de resynchronisation
+// (POST /api/cron/sync-roles). Les Guild Master(s) ont aussi le rôle
+// Discord Officier (pas de rôle Discord "Guild Leader" séparé) : un seul
+// rôle Discord à vérifier pour OFFICIER. Le rôle Discord Apply est posé
+// manuellement par un Officier (pas par le site, voir
+// PATCH /api/applications/[id]) mais lu ici pour que le job quotidien
+// confirme/maintienne le rang site APPLY tant qu'il est présent.
 export async function fetchDiscordRoleFlags(member: DiscordMember | null): Promise<DiscordRoleFlags> {
-  if (!member) return { isOfficier: false, isMember: false, isSocial: false };
+  if (!member) return { isOfficier: false, isMember: false, isApply: false, isSocial: false };
 
-  const [isOfficierRole, isGuildLeader, isMemberRole, isSocialRole] = await Promise.all([
+  const [isOfficierRole, isMemberRole, isApplyRole, isSocialRole] = await Promise.all([
     memberHasRole(member, process.env.DISCORD_ROLE_OFFICIER || "Officier"),
-    memberHasRole(member, process.env.DISCORD_ROLE_GUILD_LEADER || "Guild Leader"),
     memberHasRole(member, process.env.DISCORD_ROLE_MEMBER || "Member"),
+    memberHasRole(member, process.env.DISCORD_ROLE_APPLY || "Apply"),
     memberHasRole(member, process.env.DISCORD_ROLE_SOCIAL || "Social / Casual")
   ]);
 
   return {
-    isOfficier: isOfficierRole || isGuildLeader,
+    isOfficier: isOfficierRole,
     isMember: isMemberRole,
+    isApply: isApplyRole,
     isSocial: isSocialRole
   };
 }

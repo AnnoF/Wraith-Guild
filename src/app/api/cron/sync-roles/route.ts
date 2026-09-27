@@ -5,12 +5,12 @@ import { resolveDiscordSiteRole } from "@/lib/roleSync";
 import type { SiteRole } from "@prisma/client";
 
 // Rôles dont l'origine est Discord et que ce job peut donc corriger :
-// OFFICIER/MEMBER/SOCIAL suivent le rôle Discord le plus élevé détecté, et
+// OFFICIER/MEMBER/APPLY/SOCIAL suivent le rôle Discord le plus élevé
+// détecté (le rôle Discord Apply est posé à la main par un Officier, voir
+// PATCH /api/applications/[id], mais lu ici pour être maintenu), et
 // CANDIDAT est réévalué au cas où la personne aurait rejoint la guilde
-// depuis. ADMINISTRATEUR (site uniquement) et APPLY (décidé par un
-// Officier sur une candidature, voir PATCH /api/applications/[id]) ne sont
-// jamais modifiés ici.
-const DISCORD_MANAGED_ROLES: SiteRole[] = ["CANDIDAT", "OFFICIER", "MEMBER", "SOCIAL"];
+// depuis. ADMINISTRATEUR (site uniquement) n'est jamais modifié ici.
+const DISCORD_MANAGED_ROLES: SiteRole[] = ["CANDIDAT", "OFFICIER", "MEMBER", "APPLY", "SOCIAL"];
 
 // POST : resynchronise le rôle site de chaque compte concerné avec ses
 // rôles Discord actuels. Appelé une fois par jour par

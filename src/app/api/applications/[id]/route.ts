@@ -66,14 +66,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await prisma.applicationComment.deleteMany({ where: { applicationId: id } });
   }
 
-  // Le statut Apply bascule le rôle site du candidat en APPLY (peut alors
-  // s'inscrire aux raids comme un Member/Social, badge "A" en composition,
-  // voir RankBadge) ; un retour en arrière (Refusée/En attente) le repasse
-  // en CANDIDAT. Accepter ne change pas le rôle automatiquement : ça reste
-  // une action manuelle d'un Administrateur une fois la personne invitée
-  // sur le Discord de guilde (voir /admin). Le job quotidien de
-  // resynchronisation Discord (POST /api/cron/sync-roles) ne touche jamais
-  // APPLY.
+  // Le statut Apply bascule immédiatement le rôle site du candidat en
+  // APPLY (peut alors s'inscrire aux raids comme un Member/Social, badge
+  // "A" en composition, voir RankBadge), sans attendre le job quotidien —
+  // l'Officier doit en parallèle assigner à la main le rôle Discord
+  // DISCORD_ROLE_APPLY (le site n'écrit jamais de rôle Discord), que le
+  // job quotidien (POST /api/cron/sync-roles) lira ensuite pour maintenir
+  // ce rang. Un retour en arrière (Refusée/En attente) repasse le compte
+  // en CANDIDAT immédiatement ; si le rôle Discord Apply n'a pas été
+  // retiré en même temps, le job quotidien le réattribuera au passage
+  // suivant — penser à retirer aussi le rôle Discord. Accepter ne change
+  // pas le rôle automatiquement : ça reste une action manuelle d'un
+  // Administrateur une fois la personne invitée sur le Discord de guilde
+  // (voir /admin).
   if (status !== existing.status) {
     if (status === "APPLY" && existing.user.siteRole === "CANDIDAT") {
       await prisma.$transaction([

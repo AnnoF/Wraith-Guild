@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     // Autorise la connexion de tout compte Discord : les membres de guilde
-    // (rôle Discord Officier/Guild Leader/Member/Social) obtiennent le rôle
+    // (rôle Discord Officier/Member/Social) obtiennent le rôle
     // site correspondant (voir resolveDiscordSiteRole), tous les autres
     // deviennent CANDIDAT (cantonné à /candidature par le garde-fou de
     // src/app/(app)/layout.tsx). Seule une vraie erreur d'appel à l'API
