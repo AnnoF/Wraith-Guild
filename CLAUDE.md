@@ -18,25 +18,27 @@ Domaine de production : https://wraith-guild.fr (VPS OVH)
   plus bas. `SOCIAL` et `APPLY` ont les mêmes droits qu'un `MEMBER`
   (personnages + inscription aux raids) mais sont affichés avec un badge
   "S"/"A" en gras devant le nom du personnage en composition de raid (voir
-  `src/components/RankBadge.tsx`). `APPLY` n'est jamais dérivé de Discord :
-  c'est une action manuelle d'un Officier sur une candidature (voir
-  [Candidatures](#candidatures--recrutement)). Ne pas oublier `CANDIDAT` :
-  il concerne tout compte qui vient de se connecter pour la première fois.
+  `src/components/RankBadge.tsx`). `APPLY` est posé immédiatement par une
+  action manuelle d'un Officier sur une candidature (voir
+  [Candidatures](#candidatures--recrutement)), et maintenu ensuite par le
+  rôle Discord `DISCORD_ROLE_APPLY` (assigné à la main par l'Officier — le
+  site n'écrit jamais de rôle Discord) lu par le job quotidien. Ne pas
+  oublier `CANDIDAT` : il concerne tout compte qui vient de se connecter
+  pour la première fois.
 - **Noms de rôles Discord actuels** : voir `.env.example` /
-  `DISCORD_ROLE_OFFICIER` / `DISCORD_ROLE_GUILD_LEADER` /
-  `DISCORD_ROLE_MEMBER` / `DISCORD_ROLE_SOCIAL`. `OFFICIER` est accordé par
-  l'un OU l'autre des deux rôles Discord Officier/Guild Leader (deux rôles
-  Discord distincts, un seul rôle site). Ne rien supposer — toujours
-  vérifier `.env` / `.env.example` plutôt que de deviner, ces noms peuvent
-  changer.
+  `DISCORD_ROLE_OFFICIER` / `DISCORD_ROLE_MEMBER` / `DISCORD_ROLE_APPLY` /
+  `DISCORD_ROLE_SOCIAL`. Un seul rôle Discord donne `OFFICIER` : les Guild
+  Master(s) ont aussi le rôle Discord Officier, pas de rôle "Guild Leader"
+  séparé à vérifier. Ne rien supposer — toujours vérifier `.env` /
+  `.env.example` plutôt que de deviner, ces noms peuvent changer.
 - **Job quotidien de resynchronisation des rôles** :
   `.github/workflows/sync-roles.yml` (cron GitHub Actions, pas de dépendance
   à un push) appelle chaque jour `POST /api/cron/sync-roles` (protégée par
   le secret `CRON_SECRET`, pas par une session) pour réaligner
-  `OFFICIER`/`MEMBER`/`SOCIAL`/`CANDIDAT` sur les rôles Discord actuels —
-  voir `src/lib/roleSync.ts` (`resolveDiscordSiteRole`, fonction pure,
-  testée) et `src/lib/discord.ts` (`fetchDiscordRoleFlags`). Ce job ne
-  touche jamais `ADMINISTRATEUR` (site uniquement) ni `APPLY` (candidature).
+  `OFFICIER`/`MEMBER`/`APPLY`/`SOCIAL`/`CANDIDAT` sur les rôles Discord
+  actuels — voir `src/lib/roleSync.ts` (`resolveDiscordSiteRole`, fonction
+  pure, testée) et `src/lib/discord.ts` (`fetchDiscordRoleFlags`). Ce job ne
+  touche jamais `ADMINISTRATEUR` (site uniquement).
 - **Toujours vérifier les droits dans les routes API et les pages
   serveur**, avec les helpers de `src/lib/auth.ts` :
   `canConfigureRaids(role)` (Officier+), `canManageRoles(role)`
@@ -75,18 +77,18 @@ Domaine de production : https://wraith-guild.fr (VPS OVH)
 |---|---|---|
 | `CANDIDAT` | cantonné à `/candidature` (garde-fou dans `src/app/(app)/layout.tsx`) | par défaut, aucun rôle Discord reconnu |
 | `SOCIAL` | créer des personnages, s'inscrire aux raids ouverts ; badge "S" en gras devant le nom du personnage en composition | rôle Discord `DISCORD_ROLE_SOCIAL` |
-| `APPLY` | identique à `SOCIAL`/`MEMBER` ; badge "A" en gras en composition | manuel, par un Officier sur une candidature (voir plus bas) |
+| `APPLY` | identique à `SOCIAL`/`MEMBER` ; badge "A" en gras en composition | manuel (candidature), puis maintenu par le rôle Discord `DISCORD_ROLE_APPLY` (voir plus bas) |
 | `MEMBER` | créer des personnages, s'inscrire aux raids ouverts (ex-`RAIDEUR`, mêmes droits) | rôle Discord `DISCORD_ROLE_MEMBER` |
-| `OFFICIER` | + configurer les raids, gérer les compositions, `/candidatures`, `/membres`, `/presence`, `/guide`, `/hall-of-fame` | rôle Discord `DISCORD_ROLE_OFFICIER` ou `DISCORD_ROLE_GUILD_LEADER` |
+| `OFFICIER` | + configurer les raids, gérer les compositions, `/candidatures`, `/membres`, `/presence`, `/guide`, `/hall-of-fame` | rôle Discord `DISCORD_ROLE_OFFICIER` (les Guild Master(s) l'ont aussi) |
 | `ADMINISTRATEUR` | + attribuer/changer les rôles des autres utilisateurs (`/admin`) | manuel uniquement, jamais depuis Discord |
 
 Ces rôles sont stockés en base (`User.siteRole`), déterminés à la création
 du compte depuis les rôles Discord (voir plus bas), puis réévalués chaque
-jour par le job de resynchronisation (`OFFICIER`/`MEMBER`/`SOCIAL`/
-`CANDIDAT` uniquement — jamais `ADMINISTRATEUR` ni `APPLY`), et modifiables
-à tout moment depuis `/admin`. La priorité de résolution depuis Discord est
-`OFFICIER` > `MEMBER` > `SOCIAL` > `CANDIDAT` (voir
-`resolveDiscordSiteRole` dans `src/lib/roleSync.ts`). L'historique des
+jour par le job de resynchronisation (`OFFICIER`/`MEMBER`/`APPLY`/`SOCIAL`/
+`CANDIDAT` — jamais `ADMINISTRATEUR`), et modifiables à tout moment depuis
+`/admin`. La priorité de résolution depuis Discord est `OFFICIER` >
+`MEMBER` > `APPLY` > `SOCIAL` > `CANDIDAT` (voir `resolveDiscordSiteRole`
+dans `src/lib/roleSync.ts`). L'historique des
 changements de rôle est tracé dans le modèle `RoleAudit` (`grantedById` est
 nullable : le job quotidien journalise aussi ses changements, sans auteur
 humain).
@@ -507,8 +509,8 @@ DISCORD_CLIENT_SECRET
 DISCORD_BOT_TOKEN
 DISCORD_GUILD_ID
 DISCORD_ROLE_OFFICIER=Officier
-DISCORD_ROLE_GUILD_LEADER=Guild Leader
 DISCORD_ROLE_MEMBER=Member
+DISCORD_ROLE_APPLY=Apply
 DISCORD_ROLE_SOCIAL=Social / Casual
 CRON_SECRET                        # protège POST /api/cron/sync-roles, même valeur que le secret GitHub CRON_SECRET
 DISCORD_APPLICATIONS_WEBHOOK_URL   # optionnel : alertes salon Discord sur les candidatures
