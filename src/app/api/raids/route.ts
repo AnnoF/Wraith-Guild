@@ -9,8 +9,8 @@ import { autoAbsentForVacationingUsers } from "@/lib/vacation";
 // GET : liste des raids.
 // ?statut=OUVERT|FERME|TERMINE|ANNULE (optionnel, filtre sur le statut brut)
 // ?when=upcoming|past (optionnel, filtre sur la date/heure du raid — un
-//   raid reste "à venir" tant que sa date n'est pas passée, même si les
-//   inscriptions sont fermées entre-temps)
+//   raid reste "à venir" tant que sa soirée n'est pas terminée, même si
+//   les inscriptions sont fermées entre-temps)
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -25,10 +25,14 @@ export async function GET(req: Request) {
   const raids = await prisma.raid.findMany({
     where: {
       status: statut ? (statut as any) : undefined,
-      date: when === "upcoming" ? { gte: new Date() } : when === "past" ? { lt: new Date() } : undefined
+      endTime: when === "upcoming" ? { gte: new Date() } : when === "past" ? { lt: new Date() } : undefined
     },
     orderBy: { date: when === "past" ? "desc" : "asc" },
     include: {
+      phases: {
+        orderBy: { order: "asc" },
+        include: { runs: { orderBy: { order: "asc" } } }
+      },
       _count: { select: { signups: { where: { status: "INSCRIT" } } } }
     }
   });
@@ -36,11 +40,10 @@ export async function GET(req: Request) {
 }
 
 // POST : création d'un événement de raid (Officier / Administrateur
-// uniquement). Plusieurs instances peuvent être sélectionnées pour un même
-// soir, à condition qu'elles partagent la même taille — un seul événement
-// est créé, avec une seule liste d'inscrits et une seule composition,
-// jamais un par instance. Les instances sélectionnées doivent toutes avoir
-// la même taille (la guilde ne mélange jamais deux tailles le même soir).
+// uniquement). Une soirée se découpe en phases successives (`phases`,
+// dans l'ordre du tableau) ; chaque phase peut programmer une ou
+// plusieurs instances concurrentes, à condition qu'elles partagent la
+// même taille (la guilde ne mélange jamais deux tailles en même temps).
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
@@ -49,19 +52,31 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { titles, date, signupDeadline, notes, recurrenceCount } = body;
+  const { name, date, endTime, signupDeadline, notes, recurrenceCount, phases } = body;
 
-  if (!Array.isArray(titles) || titles.length === 0 || !date) {
+  if (typeof name !== "string" || !name.trim() || !date || !endTime) {
     return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
   }
-  if (titles.some((title: string) => !RAID_INSTANCES.includes(title))) {
-    return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
+  if (new Date(endTime) <= new Date(date)) {
+    return NextResponse.json({ error: "L'heure de fin doit être après l'heure de début" }, { status: 400 });
   }
-  if (!instancesShareSize(titles)) {
-    return NextResponse.json(
-      { error: "Les instances sélectionnées doivent toutes avoir la même taille" },
-      { status: 400 }
-    );
+  if (!Array.isArray(phases) || phases.length === 0) {
+    return NextResponse.json({ error: "Programmez au moins une phase" }, { status: 400 });
+  }
+  for (const phase of phases) {
+    const titles = phase?.titles;
+    if (!Array.isArray(titles) || titles.length === 0) {
+      return NextResponse.json({ error: "Chaque phase doit contenir au moins une instance" }, { status: 400 });
+    }
+    if (titles.some((title: string) => !RAID_INSTANCES.includes(title))) {
+      return NextResponse.json({ error: "Champs invalides" }, { status: 400 });
+    }
+    if (!instancesShareSize(titles)) {
+      return NextResponse.json(
+        { error: "Les instances d'une même phase doivent toutes avoir la même taille" },
+        { status: 400 }
+      );
+    }
   }
 
   // Récurrence hebdomadaire (même jour/heure chaque semaine) : bornée à 52
@@ -70,24 +85,39 @@ export async function POST(req: Request) {
     Number.isInteger(recurrenceCount) && recurrenceCount > 1 ? Math.min(recurrenceCount, 52) : 1;
 
   const baseDate = new Date(date);
+  const baseEndTime = new Date(endTime);
   const baseDeadline = signupDeadline ? new Date(signupDeadline) : null;
 
-  // La taille est fixée par l'instance, jamais par le client, pour éviter
-  // toute incohérence (voir RAID_INSTANCE_SIZES).
+  // La taille de chaque run est fixée par l'instance, jamais par le
+  // client, pour éviter toute incohérence (voir RAID_INSTANCE_SIZES).
   const raids = await prisma.$transaction(
     Array.from({ length: count }, (_, i) => {
       const raidDate = new Date(baseDate);
       raidDate.setDate(raidDate.getDate() + 7 * i);
+      const raidEndTime = new Date(baseEndTime);
+      raidEndTime.setDate(raidEndTime.getDate() + 7 * i);
       const deadline = baseDeadline ? new Date(baseDeadline) : null;
       if (deadline) deadline.setDate(deadline.getDate() + 7 * i);
       return prisma.raid.create({
         data: {
-          titles,
+          name: name.trim(),
           date: raidDate,
-          size: RAID_INSTANCE_SIZES[titles[0]],
+          endTime: raidEndTime,
           signupDeadline: deadline,
           notes: notes || null,
-          createdById: session.user.id
+          createdById: session.user.id,
+          phases: {
+            create: phases.map((phase: { titles: string[] }, phaseIndex: number) => ({
+              order: phaseIndex,
+              runs: {
+                create: phase.titles.map((title: string, runIndex: number) => ({
+                  title,
+                  size: RAID_INSTANCE_SIZES[title],
+                  order: runIndex
+                }))
+              }
+            }))
+          }
         }
       });
     })

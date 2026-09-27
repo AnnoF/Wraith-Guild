@@ -116,29 +116,42 @@ se déclare capable de RL ce perso). Les personnages ne sont jamais supprimés
 en dur, seulement archivés (`isActive: false`) pour ne pas casser
 l'historique des raids passés.
 
-### Raids
-Un événement de raid regroupe une ou plusieurs **instances** figées dans
-`src/lib/raidInstances.ts` (`RAID_INSTANCE_SIZES` — Barrow Deeps = 10,
-Hyjal Summit = 20, Onyxia's Lair = 40). La taille n'est plus un champ libre : plusieurs instances
-peuvent être programmées le même soir (`Raid.titles: String[]`) mais
-uniquement si elles partagent la même taille (`instancesShareSize`). Une
-seule composition/liste d'inscrits sert pour tout l'événement. Statuts :
-`OUVERT`, `FERME`, `TERMINE`, `ANNULE`. Un raid `OUVERT` dont la
-`signupDeadline` est dépassée s'affiche comme `FERME`, et un raid dont la
-`date` est passée s'affiche comme `TERMINE`, sans qu'un Officier ait besoin
-de changer le statut en base — c'est calculé à l'affichage
-(`effectiveRaidStatus` dans `src/lib/raidStatus.ts`), le statut réel en base
-ne change que sur action explicite d'un Officier. Le "mode avancé" de la
-composition permet d'assigner un rôle par boss (ex: Off Tank 2 sur Garr),
-défini par titre de raid dans `src/lib/bossRoles.ts` (`RAID_BOSS_ROLES`) ;
-un raid sans entrée dans ce fichier n'a pas de mode avancé disponible.
+### Raids — programme de soirée en phases
+Un `Raid` est une **soirée** (nom, heure de début `date`, heure de fin
+`endTime`), découpée en `RaidPhase` successives et ordonnées (`order`).
+Chaque phase programme une ou plusieurs `RaidRun` — une instance concrète
+tirée de `src/lib/raidInstances.ts` (`RAID_INSTANCE_SIZES` — Barrow
+Deeps = 10, Hyjal Summit = 20, Onyxia's Lair = 40). Plusieurs runs dans
+une même phase tournent **en même temps** (ex: deux Hyjal Summit
+concurrents) et doivent partager la même taille (`instancesShareSize`,
+vérifié par phase) ; deux phases différentes, elles, se déroulent l'une
+après l'autre, donc un joueur peut être placé dans l'une puis dans
+l'autre. Le statut (`OUVERT`, `FERME`, `TERMINE`, `ANNULE`) reste unique
+pour toute la soirée, pas par phase. Un raid `OUVERT` dont la
+`signupDeadline` est dépassée s'affiche comme `FERME`, et un raid dont
+`endTime` est passé s'affiche comme `TERMINE`, sans qu'un Officier ait
+besoin de changer le statut en base — c'est calculé à l'affichage
+(`effectiveRaidStatus` dans `src/lib/raidStatus.ts`), le statut réel en
+base ne change que sur action explicite d'un Officier. Le "mode avancé"
+de la composition permet d'assigner un rôle par boss (ex: Off Tank 2 sur
+Garr) à une `RaidRun` précise, défini par titre d'instance dans
+`src/lib/bossRoles.ts` (`RAID_BOSS_ROLES`) ; une instance sans entrée dans
+ce fichier n'a pas de mode avancé disponible.
 
-### Inscriptions
-Un joueur s'inscrit lui-même (disponibilité) ; le personnage n'est assigné
-qu'ensuite par un Officier dans le constructeur de composition
-(`/officier/raids/[id]/composition`). Statuts possibles : `INSCRIT`,
-`RESERVE` (bench), `ABSENT`, `DESISTE`. Une fois placé, `RaidSignup.slot`
-donne la position dans la grille (0 à size-1).
+### Inscriptions et placements
+Un joueur s'inscrit lui-même **pour toute la soirée** (`RaidSignup`,
+disponibilité globale, pas par phase) ; c'est un Officier qui place
+ensuite chaque inscrit dans une instance précise d'une phase, depuis le
+constructeur de composition (`/officier/raids/[id]/composition`) — ce
+placement (personnage + position dans la grille) est une ligne
+`RaidPlacement` séparée, liée à la fois au `RaidSignup` et à la
+`RaidRun`. Statuts de `RaidSignup` : `INSCRIT`, `RESERVE` (bench),
+`ABSENT`, `DESISTE` — passer à un statut autre que `INSCRIT` retire
+automatiquement tous les placements du joueur (voir
+`PATCH /api/raids/[id]/signup`). Un même `RaidSignup` peut avoir **au
+plus un placement par phase** (jamais deux dans des runs concurrentes de
+la même phase, contrainte vérifiée côté application) mais un par phase
+différente.
 
 ### Présence et mode vacances
 - `/presence` (Officier+) calcule un taux de présence par membre sur tous
@@ -249,9 +262,12 @@ playwright.config.ts   config Playwright (série, webServer `npm run dev`, lit .
 | `User` | compte, `siteRole`, archivage, dates de vacances |
 | `Character` | personnage d'un `User`, classe/spé, métiers, `canRaidLead` |
 | `CharacterProfession` | métier d'un personnage (max 2, appliqué côté app) |
-| `Raid` | événement de raid (une ou plusieurs instances de même taille) |
-| `RaidSignup` | inscription d'un `User` (+ personnage + slot une fois placé) |
-| `BossRoleAssignment` | assignation mode avancé (perso → rôle sur un boss) |
+| `Raid` | soirée de raid (nom, créneau début/fin, statut) |
+| `RaidPhase` | bloc ordonné du déroulement d'une soirée |
+| `RaidRun` | instance programmée dans une phase (titre, taille) ; plusieurs runs d'une même phase tournent en même temps |
+| `RaidSignup` | disponibilité d'un `User` pour toute la soirée |
+| `RaidPlacement` | placement d'un personnage précis dans une `RaidRun`, à un slot (au plus un par phase et par `RaidSignup`) |
+| `BossRoleAssignment` | assignation mode avancé (perso → rôle sur un boss d'une `RaidRun`) |
 | `Application` | candidature de recrutement d'un `User` |
 | `ApplicationComment` | échange sur une candidature (`INTERNE`/`PARTAGE`) |
 | `GuideEntry` | entrée du guide de raid (un boss = une entrée) |

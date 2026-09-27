@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { raidTitleLabel } from "@/lib/raidInstances";
+import { programSummary } from "@/lib/raidInstances";
 
 export interface RaidData {
   id: string;
-  titles: string[];
+  name: string;
   date: string;
-  size: number;
+  endTime: string;
   status: "OUVERT" | "FERME" | "TERMINE" | "ANNULE";
   signupDeadline?: string | null;
+  phases: { runs: { title: string }[] }[];
   _count?: { signups: number };
 }
 
@@ -37,12 +38,14 @@ function timeUntilSignupsClose(target: Date): string {
 export default function RaidCard({ raid, href }: { raid: RaidData; href?: string }) {
   const status = STATUS_STYLE[raid.status];
   const date = new Date(raid.date);
+  const endTime = new Date(raid.endTime);
   const dateLabel = date.toLocaleDateString("fr-FR", {
     weekday: "short",
     day: "numeric",
     month: "long"
   });
   const timeLabel = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  const endTimeLabel = endTime.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   const signupsCloseLabel =
     raid.status === "OUVERT"
       ? timeUntilSignupsClose(raid.signupDeadline ? new Date(raid.signupDeadline) : date)
@@ -51,14 +54,15 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
   return (
     <Link href={href ?? `/raids/${raid.id}`} className="gilt-frame rounded-sm bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
       <div className="flex justify-between items-start mb-2">
-        <span className="font-display text-sm text-bone">{raidTitleLabel(raid.titles)}</span>
+        <span className="font-display text-sm text-bone">{raid.name}</span>
         <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
           {status.label}
         </span>
       </div>
-      <p className="font-ui text-xs text-bone/55 mb-1">{dateLabel}, {timeLabel}</p>
+      <p className="font-ui text-xs text-bone/55 mb-1">{dateLabel}, {timeLabel}–{endTimeLabel}</p>
+      <p className="font-ui text-xs text-bone/50 mb-1">{programSummary(raid.phases)}</p>
       <p className="font-ui text-xs text-bone/55">
-        {raid._count?.signups ?? 0} / {raid.size} inscrits
+        {raid._count?.signups ?? 0} inscrit{(raid._count?.signups ?? 0) > 1 ? "s" : ""}
       </p>
       {signupsCloseLabel && (
         <p className="font-ui text-[11px] text-amber mt-1">{signupsCloseLabel}</p>

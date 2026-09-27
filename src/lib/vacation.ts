@@ -15,15 +15,16 @@ export async function autoAbsentForVacationingUsers(raidId: string, raidDate: Da
   });
   if (vacationingUsers.length === 0) return;
 
-  await prisma.$transaction(
-    vacationingUsers.map((u) =>
-      prisma.raidSignup.upsert({
+  await prisma.$transaction(async (tx) => {
+    for (const u of vacationingUsers) {
+      const signup = await tx.raidSignup.upsert({
         where: { raidId_userId: { raidId, userId: u.id } },
-        update: { status: "ABSENT", characterId: null, slot: null },
+        update: { status: "ABSENT" },
         create: { raidId, userId: u.id, status: "ABSENT" }
-      })
-    )
-  );
+      });
+      await tx.raidPlacement.deleteMany({ where: { signupId: signup.id } });
+    }
+  });
 }
 
 export async function autoAbsentForUserVacation(userId: string, start: Date, end: Date) {
@@ -37,13 +38,14 @@ export async function autoAbsentForUserVacation(userId: string, start: Date, end
   });
   if (raids.length === 0) return;
 
-  await prisma.$transaction(
-    raids.map((r) =>
-      prisma.raidSignup.upsert({
+  await prisma.$transaction(async (tx) => {
+    for (const r of raids) {
+      const signup = await tx.raidSignup.upsert({
         where: { raidId_userId: { raidId: r.id, userId } },
-        update: { status: "ABSENT", characterId: null, slot: null },
+        update: { status: "ABSENT" },
         create: { raidId: r.id, userId, status: "ABSENT" }
-      })
-    )
-  );
+      });
+      await tx.raidPlacement.deleteMany({ where: { signupId: signup.id } });
+    }
+  });
 }

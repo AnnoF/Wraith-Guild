@@ -18,40 +18,40 @@ afterEach(() => {
 });
 
 describe("effectiveRaidStatus", () => {
-  it("ANNULE l'emporte même si la date du raid est passée", () => {
-    const raid: RaidLike = { status: "ANNULE", date: PAST, signupDeadline: null };
+  it("ANNULE l'emporte même si la soirée est terminée", () => {
+    const raid: RaidLike = { status: "ANNULE", endTime: PAST, signupDeadline: null };
     expect(effectiveRaidStatus(raid)).toBe("ANNULE");
   });
 
-  it("une date de raid passée devient TERMINE, même pour un statut OUVERT ou FERME", () => {
-    expect(effectiveRaidStatus({ status: "OUVERT", date: PAST, signupDeadline: null })).toBe(
+  it("une heure de fin de soirée passée devient TERMINE, même pour un statut OUVERT ou FERME", () => {
+    expect(effectiveRaidStatus({ status: "OUVERT", endTime: PAST, signupDeadline: null })).toBe(
       "TERMINE"
     );
-    expect(effectiveRaidStatus({ status: "FERME", date: PAST, signupDeadline: null })).toBe(
+    expect(effectiveRaidStatus({ status: "FERME", endTime: PAST, signupDeadline: null })).toBe(
       "TERMINE"
     );
   });
 
   it("OUVERT avec une deadline d'inscription dépassée devient FERME", () => {
-    const raid: RaidLike = { status: "OUVERT", date: FUTURE, signupDeadline: PAST };
+    const raid: RaidLike = { status: "OUVERT", endTime: FUTURE, signupDeadline: PAST };
     expect(effectiveRaidStatus(raid)).toBe("FERME");
   });
 
   it("OUVERT avec une deadline future reste OUVERT", () => {
-    const raid: RaidLike = { status: "OUVERT", date: FUTURE, signupDeadline: FUTURE };
+    const raid: RaidLike = { status: "OUVERT", endTime: FUTURE, signupDeadline: FUTURE };
     expect(effectiveRaidStatus(raid)).toBe("OUVERT");
   });
 
-  it("OUVERT sans deadline définie reste OUVERT tant que la date n'est pas passée", () => {
-    const raid: RaidLike = { status: "OUVERT", date: FUTURE, signupDeadline: null };
+  it("OUVERT sans deadline définie reste OUVERT tant que la soirée n'est pas terminée", () => {
+    const raid: RaidLike = { status: "OUVERT", endTime: FUTURE, signupDeadline: null };
     expect(effectiveRaidStatus(raid)).toBe("OUVERT");
   });
 
-  it("un statut FERME/TERMINE avec une date future passe tel quel", () => {
-    expect(effectiveRaidStatus({ status: "FERME", date: FUTURE, signupDeadline: null })).toBe(
+  it("un statut FERME/TERMINE avec une fin de soirée future passe tel quel", () => {
+    expect(effectiveRaidStatus({ status: "FERME", endTime: FUTURE, signupDeadline: null })).toBe(
       "FERME"
     );
-    expect(effectiveRaidStatus({ status: "TERMINE", date: FUTURE, signupDeadline: null })).toBe(
+    expect(effectiveRaidStatus({ status: "TERMINE", endTime: FUTURE, signupDeadline: null })).toBe(
       "TERMINE"
     );
   });
