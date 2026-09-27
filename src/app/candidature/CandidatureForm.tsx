@@ -480,40 +480,42 @@ function ApplicationStatus({
         )}
       </div>
 
-      <div className="gilt-frame rounded-sm bg-char p-6">
-        <p className="font-display text-sm text-bone mb-3">Échange avec les officiers</p>
-        <div className="space-y-3 mb-4">
-          {application.comments.length === 0 ? (
-            <p className="font-ui text-xs text-bone/40">Aucun message pour le moment.</p>
-          ) : (
-            application.comments.map((c) => (
-              <div key={c.id} className="border-l-2 border-bone/15 pl-3">
-                <p className="font-ui text-xs text-bone/50">
-                  {c.author.displayName || c.author.discordTag} ·{" "}
-                  {new Date(c.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                </p>
-                <p className="font-ui text-sm text-bone whitespace-pre-line">{c.body}</p>
-              </div>
-            ))
-          )}
+      {application.status !== "ACCEPTEE" && (
+        <div className="gilt-frame rounded-sm bg-char p-6">
+          <p className="font-display text-sm text-bone mb-3">Échange avec les officiers</p>
+          <div className="space-y-3 mb-4">
+            {application.comments.length === 0 ? (
+              <p className="font-ui text-xs text-bone/40">Aucun message pour le moment.</p>
+            ) : (
+              application.comments.map((c) => (
+                <div key={c.id} className="border-l-2 border-bone/15 pl-3">
+                  <p className="font-ui text-xs text-bone/50">
+                    {c.author.displayName || c.author.discordTag} ·{" "}
+                    {new Date(c.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  <p className="font-ui text-sm text-bone whitespace-pre-line">{c.body}</p>
+                </div>
+              ))
+            )}
+          </div>
+          {replyError && <p className="font-ui text-xs text-garnet mb-2">{replyError}</p>}
+          <form onSubmit={handleReply} className="flex gap-2">
+            <input
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              placeholder="Votre message..."
+              className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            />
+            <button
+              type="submit"
+              disabled={sending}
+              className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
+            >
+              Envoyer
+            </button>
+          </form>
         </div>
-        {replyError && <p className="font-ui text-xs text-garnet mb-2">{replyError}</p>}
-        <form onSubmit={handleReply} className="flex gap-2">
-          <input
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            placeholder="Votre message..."
-            className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
-          />
-          <button
-            type="submit"
-            disabled={sending}
-            className="font-display text-xs bg-gold text-void font-medium rounded-full px-4 py-2 disabled:opacity-50 focus-ring"
-          >
-            Envoyer
-          </button>
-        </form>
-      </div>
+      )}
     </div>
   );
 }
