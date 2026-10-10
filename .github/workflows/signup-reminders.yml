@@ -1,0 +1,29 @@
+name: Rappels d'inscription aux raids
+
+# Toutes les 30 min, appelle POST /api/cron/signup-reminders : 12 h avant la
+# date limite d'inscription d'un raid, le bot Discord envoie aux Officiers la
+# liste des membres sans réponse et relance ces membres par DM. Un seul
+# rappel par raid (champ Raid.signupReminderSentAt).
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  signup-reminders:
+    name: Appeler /api/cron/signup-reminders
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appel de la route de rappel
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          status=$(curl -sS -o /tmp/signup-reminders-response.json -w "%{http_code}" -X POST \
+            "https://wraith-guild.fr/api/cron/signup-reminders" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "Réponse HTTP $status :"
+          cat /tmp/signup-reminders-response.json
+          if [ "$status" -ge 300 ]; then
+            echo "L'envoi des rappels a échoué (HTTP $status)"
+            exit 1
+          fi
