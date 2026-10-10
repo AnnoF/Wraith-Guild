@@ -177,6 +177,7 @@ model Raid {
   status         RaidStatus @default(OUVERT)
   notes          String?
   signupDeadline DateTime?  // au-delà, les inscriptions sont closes même si status reste OUVERT
+  signupReminderSentAt DateTime? // rappel "pas encore inscrit" envoyé 12 h avant signupDeadline (voir /api/cron/signup-reminders)
   createdAt      DateTime   @default(now())
 
   createdById   String
