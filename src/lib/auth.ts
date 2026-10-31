@@ -9,7 +9,10 @@ export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET!
+      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      // Discord renvoie désormais `iss` au retour OAuth (RFC 9207) ; sans issuer
+      // déclaré, NextAuth v4 rejette la connexion ("issuer must be configured").
+      issuer: "https://discord.com"
     })
   ],
   session: { strategy: "jwt" },
