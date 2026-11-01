@@ -17,7 +17,7 @@ import { CornerFlourish, GoldRule } from "./Ornaments";
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h2 className="font-display text-sm gold-gradient-text tracking-widest mb-2">{children}</h2>
+      <h2 className="font-display text-2xl gold-gradient-text tracking-widest mb-2">{children}</h2>
       <GoldRule />
     </div>
   );
@@ -68,7 +68,7 @@ export default async function GuildShowcase() {
       <FullBleedBand image="/vitrine/recrutement-bg.jpg">
         <section id="recrutement" className="scroll-mt-20 pt-16 pb-16">
           <SectionTitle>État du recrutement</SectionTitle>
-          <p className="font-ui text-sm text-bone/65 mb-6 max-w-3xl">
+          <p className="font-ui text-lg text-bone/65 mb-6 max-w-3xl">
             Nous restons ouverts à toutes les candidatures de qualité. Le
             tableau ci-dessous reflète simplement nos besoins actuels par
             rôle : certaines spécialisations sont activement recherchées,
@@ -80,7 +80,7 @@ export default async function GuildShowcase() {
 
         <section id="candidature" className="scroll-mt-20 pb-16 max-w-3xl">
           <SectionTitle>Candidature</SectionTitle>
-          <p className="font-ui text-sm text-bone/85 mb-4">
+          <p className="font-ui text-lg text-bone/85 mb-4">
             Intéressé·e pour rejoindre Wraith ? Découvrez nos objectifs, le
             profil recherché et déposez votre candidature.
           </p>
@@ -98,7 +98,7 @@ export default async function GuildShowcase() {
           <div id="raids" className="scroll-mt-20">
             <SectionTitle>Raids à venir</SectionTitle>
             {raids.length === 0 ? (
-              <p className="font-ui text-sm text-bone/50">Aucun raid à venir pour le moment.</p>
+              <p className="font-ui text-lg text-bone/50">Aucun raid à venir pour le moment.</p>
             ) : (
               <div className="flex flex-col gap-px bg-bone/10">
                 {raids.map((r) => {

@@ -53,9 +53,9 @@ export default function HeroBanner() {
 
       <section id="qui-sommes-nous" className="scroll-mt-20 relative z-10 px-6 md:px-12 pb-16">
         <CornerFlourish className="absolute -top-2 left-4 opacity-60" />
-        <h2 className="font-display text-sm gold-gradient-text tracking-widest mb-2">Qui sommes-nous ?</h2>
+        <h2 className="font-display text-2xl gold-gradient-text tracking-widest mb-2">Qui sommes-nous ?</h2>
         <GoldRule className="mb-4" />
-        <p className="max-w-3xl font-ui text-bone/85 leading-relaxed whitespace-pre-line">
+        <p className="max-w-3xl font-ui text-lg text-bone/85 leading-relaxed whitespace-pre-line">
           {QUI_SOMMES_NOUS}
         </p>
       </section>
