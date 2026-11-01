@@ -515,8 +515,11 @@ anguleux — cette direction dorée/ornementée est désormais celle à conserve
   utilisateur dédié `wraithguild_user`
 - **Reverse proxy** : Nginx (`/etc/nginx/sites-available/wraith-guild`) vers
   `localhost:3000`, avec certificat SSL Certbot (Let's Encrypt)
-- **Process manager** : PM2, process nommé `wraith-guild`
-- **Code déployé dans** : `/var/www/Wraith-Guild` sur le VPS
+- **Process manager** : PM2, process nommé `wraith-guild`, lancé par
+  l'utilisateur système dédié **`wraith`** (pas root) avec son propre service
+  `pm2-wraith` ; ne jamais lancer `pm2 update`
+- **Code déployé dans** : `/var/www/Wraith-Guild` sur le VPS, propriété de
+  `wraith` (`.env` en 600)
 - **Accès SSH** : sécurisé par clé (mot de passe désactivé pour root),
   pare-feu UFW actif (SSH, 80, 443 uniquement)
 
@@ -584,8 +587,9 @@ jobs :
   `deploy-production` pour éviter deux déploiements simultanés).
 
 La clé SSH de déploiement est **restreinte côté serveur** : dans
-`authorized_keys`, une directive `command=` force l'exécution de
-`/var/www/Wraith-Guild/deploy.sh` et ignore la commande envoyée par le
+`authorized_keys` de l'utilisateur `wraith` (secret `DEPLOY_USER=wraith`), une directive `command=` force l'exécution de
+`/usr/local/bin/wraith-deploy.sh` (propriété de root, pour que l'utilisateur de
+l'app ne puisse pas le modifier) et ignore la commande envoyée par le
 workflow. Ce script n'est pas versionné dans le dépôt (il vit sur le VPS) et
 enchaîne `git pull`, `npm ci`, `prisma generate`, `prisma db push`,
 `npm run build`, `pm2 restart wraith-guild`.
@@ -594,10 +598,10 @@ Conséquences pratiques :
 - **Un merge sur `main` part en prod tout seul**, migration de schéma
   comprise (`db push` est dans le script). Ne pas merger un changement de
   schéma sans être prêt à le voir appliqué en production.
-- Modifier les étapes du déploiement demande d'éditer `deploy.sh` **sur le
+- Modifier les étapes du déploiement demande d'éditer `/usr/local/bin/wraith-deploy.sh` **sur le
   VPS**, pas le workflow — le workflow ne fait qu'ouvrir la connexion.
 - Le déploiement manuel reste possible en secours (se connecter au VPS et
-  lancer `deploy.sh`), mais ce n'est plus le chemin normal.
+  lancer `wraith-deploy.sh` en tant que `wraith`), mais ce n'est plus le chemin normal.
 
 Un second workflow, `.github/workflows/sync-roles.yml`, tourne chaque jour
 sur un cron GitHub Actions (indépendant de tout push/déploiement) et appelle
