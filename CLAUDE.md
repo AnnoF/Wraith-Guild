@@ -51,10 +51,13 @@ Domaine de production : https://wraith-guild.fr (VPS OVH)
   PM2 en prod.
 - **Prisma 7** : l'URL de la base vit dans `prisma.config.ts` (pas dans
   `schema.prisma`) et la connexion de l'app passe par l'adaptateur pg
-  (`src/lib/prisma.ts`, `connectionTimeoutMillis: 5000`). Le générateur reste
-  `prisma-client-js` (déprécié, toujours supporté) : le migrer vers
-  `prisma-client` imposerait un `output` et la réécriture des imports
-  `@prisma/client`. `prisma.config.ts` n'utilise volontairement pas
+  (`src/lib/prisma.ts`, `connectionTimeoutMillis: 5000`). Le générateur est
+  `prisma-client` (sortie dans `src/generated/prisma`, **gitignorée**,
+  `moduleFormat = "cjs"` indispensable : Playwright charge les specs en
+  CommonJS et le client ESM plante sur `import.meta`). Les types/le client
+  s'importent donc depuis `@/generated/prisma/client`, jamais `@prisma/client`.
+  Le dossier n'existe qu'après `npx prisma generate` (déjà dans la CI, le
+  déploiement et à lancer après un `npm install` en local). `prisma.config.ts` n'utilise volontairement pas
   `env("DATABASE_URL")` (il lève une erreur si la variable manque, ce qui
   casserait `prisma generate` en CI). `db push` ne génère plus le client :
   toujours enchaîner `prisma generate` avant. Les agents IA ne peuvent pas
@@ -465,7 +468,7 @@ anguleux — cette direction dorée/ornementée est désormais celle à conserve
   `--gold-dark`).
 - Typographie : classe utilitaire `.font-display` (**Cinzel**, serif
   capitale gravée) pour les titres/UI forte, `.font-ui` (**EB Garamond**,
-  serif de lecture) pour le texte courant — chargées via `next/font/google`
+  serif de lecture) pour le texte courant — chargées via `next/font/local` (woff2 dans `src/app/fonts/`, plus de dépendance à Google Fonts)
   dans `src/app/layout.tsx` (remplace Rajdhani/Barlow Condensed).
 - Coins arrondis plutôt qu'angulaires (inversion du précédent "formes
   anguleuses") : boutons/CTA et badges de statut/rôle en pilule

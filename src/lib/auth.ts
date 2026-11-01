@@ -3,7 +3,7 @@ import DiscordProvider from "next-auth/providers/discord";
 import { prisma } from "./prisma";
 import { fetchGuildMember, fetchDiscordRoleFlags } from "./discord";
 import { resolveDiscordSiteRole } from "./roleSync";
-import type { SiteRole } from "@prisma/client";
+import type { SiteRole } from "@/generated/prisma/client";
 
 export const authOptions: NextAuthOptions = {
   providers: [

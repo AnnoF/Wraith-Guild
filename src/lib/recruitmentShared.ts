@@ -1,4 +1,4 @@
-import type { RecruitmentPriority } from "@prisma/client";
+import type { RecruitmentPriority } from "@/generated/prisma/client";
 import { CLASS_SPECS, WOW_CLASSES, type WowClass } from "./classes";
 
 // Partie « pure » du recrutement (aucun accès base) : importable depuis un

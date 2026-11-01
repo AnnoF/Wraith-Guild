@@ -1,4 +1,4 @@
-import type { Raid } from "@prisma/client";
+import type { Raid } from "@/generated/prisma/client";
 
 // Une fois la date limite d'inscription dépassée, un raid encore marqué
 // OUVERT en base est traité comme FERME sans qu'un Officier ait besoin de

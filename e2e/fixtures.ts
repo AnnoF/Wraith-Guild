@@ -1,5 +1,5 @@
 import { test as base, expect } from "@playwright/test";
-import type { SiteRole, User } from "@prisma/client";
+import type { SiteRole, User } from "@/generated/prisma/client";
 import { createUser, prisma } from "./helpers/db";
 import { signInAs as mintSessionCookie } from "./helpers/session";
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { allSpecs, groupByColumn, RECRUITMENT_PRIORITIES, specKey } from "./recruitment";
-import type { RecruitmentPriority } from "@prisma/client";
+import type { RecruitmentPriority } from "@/generated/prisma/client";
 
 describe("groupByColumn", () => {
   it("chaque spécialisation apparaît exactement une fois, dans la bonne colonne", () => {
