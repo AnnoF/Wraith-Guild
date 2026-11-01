@@ -112,7 +112,7 @@ function EntryCard({
         <div>
           <p className="font-display text-sm text-bone">{entry.title}</p>
           {entry.eventDate && (
-            <p className="font-ui text-[10px] text-amber uppercase tracking-wide mt-0.5">
+            <p className="font-ui text-xs text-amber uppercase tracking-wide mt-0.5">
               {new Date(entry.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
             </p>
           )}
@@ -260,7 +260,7 @@ function EntryForm({
           className="w-full font-ui text-xs text-bone/70"
         />
         {existing?.imageUrl && !imageFile && (
-          <p className="font-ui text-[10px] text-bone/40 mt-1">Une image est déjà associée à ce souvenir ; en choisir une nouvelle la remplacera.</p>
+          <p className="font-ui text-xs text-bone/40 mt-1">Une image est déjà associée à ce souvenir ; en choisir une nouvelle la remplacera.</p>
         )}
       </div>
       <button

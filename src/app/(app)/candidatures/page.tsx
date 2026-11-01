@@ -33,7 +33,7 @@ function ApplicationGrid({ applications }: { applications: ApplicationListItem[]
           >
             <div className="flex justify-between items-start mb-2">
               <span className="font-display text-sm text-bone">{a.characterName}</span>
-              <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
+              <span className={`font-ui text-xs uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
                 {status.label}
               </span>
             </div>

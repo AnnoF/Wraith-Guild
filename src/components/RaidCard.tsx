@@ -55,7 +55,7 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
     <Link href={href ?? `/raids/${raid.id}`} className="gilt-frame rounded-xs bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
       <div className="flex justify-between items-start mb-2">
         <span className="font-display text-sm text-bone">{raid.name}</span>
-        <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
+        <span className={`font-ui text-xs uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
           {status.label}
         </span>
       </div>
@@ -65,7 +65,7 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
         {raid._count?.signups ?? 0} inscrit{(raid._count?.signups ?? 0) > 1 ? "s" : ""}
       </p>
       {signupsCloseLabel && (
-        <p className="font-ui text-[11px] text-amber mt-1">{signupsCloseLabel}</p>
+        <p className="font-ui text-xs text-amber mt-1">{signupsCloseLabel}</p>
       )}
     </Link>
   );

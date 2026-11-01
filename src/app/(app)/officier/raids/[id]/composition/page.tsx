@@ -477,7 +477,7 @@ export default function CompositionPage() {
                   <button
                     onClick={() => updateSignup(s.user.id, { status: "RESERVE" })}
                     title="Mettre en réserve (bench)"
-                    className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
+                    className="font-ui text-xs text-bone/30 hover:text-amber focus-ring shrink-0"
                   >
                     Bench
                   </button>
@@ -522,7 +522,7 @@ export default function CompositionPage() {
                 (voir .bench-strike) pour repérer la préférence en un
                 coup d'œil. */}
             {filteredUnplacedWantBench.length > 0 && (
-              <p className="col-span-4 lg:col-span-2 font-ui text-[10px] uppercase tracking-wide text-bone/40 mt-2">
+              <p className="col-span-4 lg:col-span-2 font-ui text-xs uppercase tracking-wide text-bone/40 mt-2">
                 Préférence bench
               </p>
             )}
@@ -533,7 +533,7 @@ export default function CompositionPage() {
                   <button
                     onClick={() => updateSignup(s.user.id, { status: "RESERVE" })}
                     title="Confirmer la mise en réserve (bench)"
-                    className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
+                    className="font-ui text-xs text-bone/30 hover:text-amber focus-ring shrink-0"
                   >
                     Bench
                   </button>
@@ -577,7 +577,7 @@ export default function CompositionPage() {
                 .bench-strike) — ils restent glissables si un Officier veut
                 les placer. */}
             {benched.length > 0 && (
-              <p className="col-span-4 lg:col-span-2 font-ui text-[10px] uppercase tracking-wide text-bone/40 mt-2">
+              <p className="col-span-4 lg:col-span-2 font-ui text-xs uppercase tracking-wide text-bone/40 mt-2">
                 Réserve
               </p>
             )}
@@ -591,7 +591,7 @@ export default function CompositionPage() {
                   <button
                     onClick={() => updateSignup(s.user.id, { status: "INSCRIT" })}
                     title="Retirer de la réserve"
-                    className="font-ui text-[10px] text-bone/30 hover:text-moss focus-ring shrink-0"
+                    className="font-ui text-xs text-bone/30 hover:text-moss focus-ring shrink-0"
                   >
                     Réinscrire
                   </button>
@@ -732,13 +732,13 @@ export default function CompositionPage() {
                     <button
                       onClick={() => updateSignup(s.user.id, { status: "RESERVE" })}
                       title="Mettre en réserve (bench)"
-                      className="font-ui text-[10px] text-bone/30 hover:text-amber focus-ring shrink-0"
+                      className="font-ui text-xs text-bone/30 hover:text-amber focus-ring shrink-0"
                     >
                       Bench
                     </button>
                   </div>
                   {phase && phase.runs.length > 1 && (
-                    <p className="font-ui text-[10px] text-bone/40 mt-0.5">{run.title}</p>
+                    <p className="font-ui text-xs text-bone/40 mt-0.5">{run.title}</p>
                   )}
                   <div className="mt-1.5 space-y-1">
                     <div
@@ -797,7 +797,7 @@ export default function CompositionPage() {
                       <button
                         onClick={() => updateSignup(s.user.id, { status: "INSCRIT" })}
                         title="Réinscrire"
-                        className="font-ui text-[10px] text-bone/40 hover:text-moss focus-ring shrink-0"
+                        className="font-ui text-xs text-bone/40 hover:text-moss focus-ring shrink-0"
                       >
                         Réinscrire
                       </button>
@@ -854,7 +854,7 @@ export default function CompositionPage() {
                     className="w-full gilt-frame rounded-xs bg-char px-4 py-2.5 flex items-center justify-between gap-3 text-left focus-ring"
                   >
                     <span className="font-ui text-xs text-bone/50 truncate">{names.join(", ")}</span>
-                    <span className="font-ui text-[10px] uppercase tracking-wide text-bone/40 shrink-0">
+                    <span className="font-ui text-xs uppercase tracking-wide text-bone/40 shrink-0">
                       {names.length} boss — Afficher ▸
                     </span>
                   </button>
@@ -870,7 +870,7 @@ export default function CompositionPage() {
                     className="flex items-center justify-between w-full font-display text-sm text-bone focus-ring"
                   >
                     <span>{boss}</span>
-                    <span className="font-ui text-[10px] uppercase tracking-wide text-bone/40">
+                    <span className="font-ui text-xs uppercase tracking-wide text-bone/40">
                       {isCollapsed ? "Afficher ▸" : "Réduire ▾"}
                     </span>
                   </button>
