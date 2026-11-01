@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import type { RecruitmentPriority } from "@prisma/client";
+import type { RecruitmentPriority } from "@/generated/prisma/client";
 import { authOptions, canConfigureRaids } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { allSpecs, getRecruitmentStatus, RECRUITMENT_PRIORITIES, specKey } from "@/lib/recruitment";

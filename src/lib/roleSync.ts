@@ -1,4 +1,4 @@
-import type { SiteRole } from "@prisma/client";
+import type { SiteRole } from "@/generated/prisma/client";
 import type { DiscordRoleFlags } from "./discord";
 
 // Résolution du rôle site dérivé des rôles Discord, par priorité

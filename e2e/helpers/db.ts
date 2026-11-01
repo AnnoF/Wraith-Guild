@@ -1,4 +1,4 @@
-import { PrismaClient, type SiteRole, type User } from "@prisma/client";
+import { PrismaClient, type SiteRole, type User } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 // Prisma 7 : connexion via l'adaptateur pg (DATABASE_URL vient de .env.test)

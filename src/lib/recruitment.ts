@@ -1,4 +1,4 @@
-import type { RecruitmentPriority } from "@prisma/client";
+import type { RecruitmentPriority } from "@/generated/prisma/client";
 import type { WowClass } from "./classes";
 import { prisma } from "./prisma";
 import { allSpecs, specKey } from "./recruitmentShared";

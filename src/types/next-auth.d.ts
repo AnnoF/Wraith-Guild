@@ -1,4 +1,4 @@
-import type { SiteRole } from "@prisma/client";
+import type { SiteRole } from "@/generated/prisma/client";
 import type { DefaultSession } from "next-auth";
 
 // Étend les types NextAuth pour inclure notre id utilisateur interne et le rôle du site

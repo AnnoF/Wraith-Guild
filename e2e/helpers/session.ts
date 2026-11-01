@@ -1,6 +1,6 @@
 import { encode } from "next-auth/jwt";
 import type { BrowserContext } from "@playwright/test";
-import type { User } from "@prisma/client";
+import type { User } from "@/generated/prisma/client";
 
 // Contourne le flux OAuth Discord réel (impossible à automatiser dans un
 // test) en signant directement un cookie de session NextAuth valide, avec

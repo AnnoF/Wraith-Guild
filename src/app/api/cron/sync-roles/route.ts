@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fetchGuildMember, fetchDiscordRoleFlags } from "@/lib/discord";
 import { resolveDiscordSiteRole } from "@/lib/roleSync";
-import type { SiteRole } from "@prisma/client";
+import type { SiteRole } from "@/generated/prisma/client";
 
 // Rôles dont l'origine est Discord et que ce job peut donc corriger :
 // OFFICIER/MEMBER/APPLY/SOCIAL suivent le rôle Discord le plus élevé
