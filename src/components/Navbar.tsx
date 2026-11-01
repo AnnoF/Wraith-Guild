@@ -137,7 +137,7 @@ export default function Navbar({
                 onChange={(e) => setNameInput(e.target.value)}
                 maxLength={32}
                 autoFocus
-                className="bg-void border border-bone/15 rounded-sm focus-ring px-2 py-1 font-ui text-xs text-bone w-28"
+                className="bg-void border border-bone/15 rounded-xs focus-ring px-2 py-1 font-ui text-xs text-bone w-28"
               />
               <button
                 type="submit"

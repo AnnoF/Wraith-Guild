@@ -17,7 +17,7 @@ import { CornerFlourish, GoldRule } from "./Ornaments";
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h2 className="font-display text-sm gold-gradient-text tracking-[0.1em] mb-2">{children}</h2>
+      <h2 className="font-display text-sm gold-gradient-text tracking-widest mb-2">{children}</h2>
       <GoldRule />
     </div>
   );
@@ -151,7 +151,7 @@ export default async function GuildShowcase() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <TwitchClips clips={previewClips} />
               {previewScreenshots.map((src) => (
-                <LightboxImage key={src} src={src} className="w-full aspect-[16/10] object-cover" />
+                <LightboxImage key={src} src={src} className="w-full aspect-16/10 object-cover" />
               ))}
             </div>
           )}

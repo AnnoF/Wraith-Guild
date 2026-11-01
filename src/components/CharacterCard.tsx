@@ -106,7 +106,7 @@ export default function CharacterCard({
 
   if (editing) {
     return (
-      <div className="gilt-frame rounded-sm bg-char p-4 space-y-3">
+      <div className="gilt-frame rounded-xs bg-char p-4 space-y-3">
         {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
         <div className="flex gap-3">
@@ -118,7 +118,7 @@ export default function CharacterCard({
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={24}
-              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
           <div className="flex-1">
@@ -129,7 +129,7 @@ export default function CharacterCard({
               value={secondaryName}
               onChange={(e) => setSecondaryName(e.target.value)}
               maxLength={24}
-              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function CharacterCard({
           <select
             value={spec}
             onChange={(e) => setSpec(e.target.value)}
-            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
           >
             {availableSpecs.map((s) => (
               <option key={s} value={s} className="bg-void text-bone">
@@ -236,7 +236,7 @@ export default function CharacterCard({
   }
 
   return (
-    <div className={`gilt-frame rounded-sm bg-char p-4 flex items-center justify-between ${!character.isActive ? "opacity-50" : ""}`}>
+    <div className={`gilt-frame rounded-xs bg-char p-4 flex items-center justify-between ${!character.isActive ? "opacity-50" : ""}`}>
       <div>
         <p className="font-display text-sm text-bone">
           {character.name}

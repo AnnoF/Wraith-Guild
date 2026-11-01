@@ -29,7 +29,7 @@ function ApplicationGrid({ applications }: { applications: ApplicationListItem[]
           <Link
             key={a.id}
             href={`/candidatures/${a.id}`}
-            className="gilt-frame rounded-sm bg-char p-4 block hover:bg-char/70 transition-colors focus-ring"
+            className="gilt-frame rounded-xs bg-char p-4 block hover:bg-char/70 transition-colors focus-ring"
           >
             <div className="flex justify-between items-start mb-2">
               <span className="font-display text-sm text-bone">{a.characterName}</span>

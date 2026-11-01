@@ -117,7 +117,7 @@ export default function CandidatureDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="gilt-frame rounded-sm bg-char p-6">
+      <div className="gilt-frame rounded-xs bg-char p-6">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <ClassSpecIcon wowClass={application.wowClass} spec={application.spec} size="h-7 w-7" />
@@ -216,7 +216,7 @@ export default function CandidatureDetailPage() {
         </p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="gilt-frame rounded-sm bg-char p-5">
+          <div className="gilt-frame rounded-xs bg-char p-5">
             <p className="font-display text-sm text-bone mb-3">Notes internes</p>
             <p className="font-ui text-[10px] text-bone/40 mb-3">Jamais visible du candidat.</p>
             <div className="space-y-3 mb-4">
@@ -239,7 +239,7 @@ export default function CandidatureDetailPage() {
                 value={internalDraft}
                 onChange={(e) => setInternalDraft(e.target.value)}
                 placeholder="Note interne..."
-                className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+                className="flex-1 bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
               />
               <button
                 onClick={() => postComment("INTERNE", internalDraft)}
@@ -251,7 +251,7 @@ export default function CandidatureDetailPage() {
             </div>
           </div>
 
-          <div className="gilt-frame rounded-sm bg-char p-5">
+          <div className="gilt-frame rounded-xs bg-char p-5">
             <p className="font-display text-sm text-bone mb-3">Échange avec le candidat</p>
             <p className="font-ui text-[10px] text-bone/40 mb-3">Visible et modifiable par le candidat.</p>
             <div className="space-y-3 mb-4">
@@ -275,7 +275,7 @@ export default function CandidatureDetailPage() {
                   value={sharedDraft}
                   onChange={(e) => setSharedDraft(e.target.value)}
                   placeholder="Message au candidat..."
-                  className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+                  className="flex-1 bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
                 />
                 <button
                   onClick={() => postComment("PARTAGE", sharedDraft)}

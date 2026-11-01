@@ -107,7 +107,7 @@ function EntryCard({
   }
 
   return (
-    <div className="gilt-frame rounded-sm bg-char p-4">
+    <div className="gilt-frame rounded-xs bg-char p-4">
       <div className="flex items-center justify-between mb-2 gap-2">
         <div>
           <p className="font-display text-sm text-bone">{entry.title}</p>
@@ -222,32 +222,32 @@ function EntryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-4 space-y-2">
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-xs bg-char p-4 space-y-2">
       {error && <p className="font-ui text-xs text-garnet">{error}</p>}
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Titre (ex: Premier down Ragnaros)"
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <input
         type="date"
         value={eventDate}
         onChange={(e) => setEventDate(e.target.value)}
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Texte explicatif (optionnel)"
         rows={3}
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <input
         value={videoUrl}
         onChange={(e) => setVideoUrl(e.target.value)}
         placeholder="Lien vidéo (optionnel)"
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <div>
         <label className="block font-ui text-xs text-bone/50 mb-1">

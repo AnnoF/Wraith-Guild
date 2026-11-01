@@ -79,7 +79,7 @@ export default function CandidatureForm({
 
   if (!loggedIn) {
     return (
-      <div className="gilt-frame rounded-sm bg-char p-6 text-center">
+      <div className="gilt-frame rounded-xs bg-char p-6 text-center">
         <p className="font-ui text-sm text-bone/70 mb-4">
           Connectez-vous avec Discord pour déposer votre candidature.
         </p>
@@ -104,7 +104,7 @@ export default function CandidatureForm({
 
   if (!isGuildMember) {
     return (
-      <div className="gilt-frame rounded-sm bg-char p-6 text-center">
+      <div className="gilt-frame rounded-xs bg-char p-6 text-center">
         <p className="font-ui text-sm text-bone/70 mb-4">
           Il faut d'abord rejoindre notre Discord pour pouvoir postuler (c'est
           par là que les officiers vous répondront).
@@ -219,11 +219,11 @@ function ApplicationFormFields({
     onSubmitted(data);
   }
 
-  const inputClass = "w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone";
+  const inputClass = "w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone";
   const labelClass = "font-ui text-xs uppercase tracking-wide text-bone/60 block mb-1";
 
   return (
-    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-6 space-y-5">
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-xs bg-char p-6 space-y-5">
       <p className="font-display text-lg text-bone">Formulaire de candidature</p>
       {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
@@ -429,7 +429,7 @@ function ApplicationStatus({
 
   return (
     <div className="space-y-6">
-      <div className="gilt-frame rounded-sm bg-char p-6">
+      <div className="gilt-frame rounded-xs bg-char p-6">
         <div className="flex items-center justify-between mb-4">
           <p className="font-display text-lg text-bone">Votre candidature</p>
           <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
@@ -481,7 +481,7 @@ function ApplicationStatus({
       </div>
 
       {application.status !== "ACCEPTEE" && (
-        <div className="gilt-frame rounded-sm bg-char p-6">
+        <div className="gilt-frame rounded-xs bg-char p-6">
           <p className="font-display text-sm text-bone mb-3">Échange avec les officiers</p>
           <div className="space-y-3 mb-4">
             {application.comments.length === 0 ? (
@@ -504,7 +504,7 @@ function ApplicationStatus({
               value={reply}
               onChange={(e) => setReply(e.target.value)}
               placeholder="Votre message..."
-              className="flex-1 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="flex-1 bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
             <button
               type="submit"
