@@ -129,7 +129,7 @@ export default function CandidatureDetailPage() {
               </p>
             </div>
           </div>
-          <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
+          <span className={`font-ui text-xs uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
             {status.label}
           </span>
         </div>
@@ -218,7 +218,7 @@ export default function CandidatureDetailPage() {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="gilt-frame rounded-xs bg-char p-5">
             <p className="font-display text-sm text-bone mb-3">Notes internes</p>
-            <p className="font-ui text-[10px] text-bone/40 mb-3">Jamais visible du candidat.</p>
+            <p className="font-ui text-xs text-bone/40 mb-3">Jamais visible du candidat.</p>
             <div className="space-y-3 mb-4">
               {internalComments.length === 0 ? (
                 <p className="font-ui text-xs text-bone/40">Aucune note pour le moment.</p>
@@ -253,7 +253,7 @@ export default function CandidatureDetailPage() {
 
           <div className="gilt-frame rounded-xs bg-char p-5">
             <p className="font-display text-sm text-bone mb-3">Échange avec le candidat</p>
-            <p className="font-ui text-[10px] text-bone/40 mb-3">Visible et modifiable par le candidat.</p>
+            <p className="font-ui text-xs text-bone/40 mb-3">Visible et modifiable par le candidat.</p>
             <div className="space-y-3 mb-4">
               {sharedComments.length === 0 ? (
                 <p className="font-ui text-xs text-bone/40">Aucun message pour le moment.</p>

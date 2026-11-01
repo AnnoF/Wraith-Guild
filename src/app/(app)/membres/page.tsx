@@ -105,7 +105,7 @@ export default function MembresPage() {
                 </div>
                 <button
                   onClick={() => toggleArchive(m)}
-                  className={`font-ui text-[10px] shrink-0 focus-ring ${
+                  className={`font-ui text-xs shrink-0 focus-ring ${
                     m.isArchived ? "text-moss hover:text-bone" : "text-bone/30 hover:text-garnet"
                   }`}
                 >

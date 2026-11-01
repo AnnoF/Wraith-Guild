@@ -125,7 +125,7 @@ export default function Navbar({
 
           <span
             title={ROLE_LABELS[role]}
-            className="hidden sm:inline font-display text-[10px] text-void bg-gold rounded-full px-3 py-0.5"
+            className="hidden sm:inline font-display text-xs text-void bg-gold rounded-full px-3 py-0.5"
           >
             {ROLE_LABELS[role]}
           </span>
@@ -159,7 +159,7 @@ export default function Navbar({
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
-              {error && <span className="font-ui text-[10px] text-garnet">{error}</span>}
+              {error && <span className="font-ui text-xs text-garnet">{error}</span>}
             </form>
           ) : (
             <span className="flex items-center gap-1.5">

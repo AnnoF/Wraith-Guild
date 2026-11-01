@@ -285,11 +285,11 @@ function NouveauRaidForm() {
                 className="font-ui text-xs px-3 py-2 text-left border rounded-xs transition-colors focus-ring border-bone/15 text-bone/70 hover:border-gold hover:text-bone cursor-grab active:cursor-grabbing"
               >
                 {r}
-                <span className="block text-[10px] opacity-70">{RAID_INSTANCE_SIZES[r]} joueurs</span>
+                <span className="block text-xs opacity-70">{RAID_INSTANCE_SIZES[r]} joueurs</span>
               </button>
             ))}
           </div>
-          <p className="font-ui text-[11px] text-bone/40 mt-1.5">
+          <p className="font-ui text-xs text-bone/40 mt-1.5">
             Clic sur une carte : ajoute une nouvelle phase. Le "+" sur une
             phase (ou un glisser-déposer) : programme une instance
             concurrente sur cette phase (même taille uniquement).
@@ -315,7 +315,7 @@ function NouveauRaidForm() {
                       type="button"
                       disabled={phaseIndex === 0}
                       onClick={() => movePhase(phaseIndex, -1)}
-                      className="font-ui text-[10px] text-bone/40 hover:text-bone disabled:opacity-20 focus-ring"
+                      className="font-ui text-xs text-bone/40 hover:text-bone disabled:opacity-20 focus-ring"
                       title="Monter"
                     >
                       ▲
@@ -324,13 +324,13 @@ function NouveauRaidForm() {
                       type="button"
                       disabled={phaseIndex === phases.length - 1}
                       onClick={() => movePhase(phaseIndex, 1)}
-                      className="font-ui text-[10px] text-bone/40 hover:text-bone disabled:opacity-20 focus-ring"
+                      className="font-ui text-xs text-bone/40 hover:text-bone disabled:opacity-20 focus-ring"
                       title="Descendre"
                     >
                       ▼
                     </button>
                   </div>
-                  <p className="font-ui text-[10px] uppercase tracking-wide text-bone/40 shrink-0">
+                  <p className="font-ui text-xs uppercase tracking-wide text-bone/40 shrink-0">
                     Phase {phaseIndex + 1}
                   </p>
                   <div className="flex flex-wrap gap-1.5 flex-1">
@@ -352,7 +352,7 @@ function NouveauRaidForm() {
                       </span>
                     ))}
                   </div>
-                  <span className="font-ui text-[10px] text-bone/40 shrink-0">{selectedSizes[phaseIndex]} joueurs</span>
+                  <span className="font-ui text-xs text-bone/40 shrink-0">{selectedSizes[phaseIndex]} joueurs</span>
                   {(() => {
                     // Seules les instances de même taille sont proposables sur
                     // cette phase. S'il n'y en a qu'une (le cas courant, vu que

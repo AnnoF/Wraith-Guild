@@ -432,7 +432,7 @@ function ApplicationStatus({
       <div className="gilt-frame rounded-xs bg-char p-6">
         <div className="flex items-center justify-between mb-4">
           <p className="font-display text-lg text-bone">Votre candidature</p>
-          <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
+          <span className={`font-ui text-xs uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>
             {status.label}
           </span>
         </div>
