@@ -132,7 +132,7 @@ function GuideEntryCard({
   }
 
   return (
-    <div className="gilt-frame rounded-sm bg-char p-4">
+    <div className="gilt-frame rounded-xs bg-char p-4">
       <div className="flex items-center justify-between mb-2">
         <p className="font-display text-sm text-bone">{entry.bossName}</p>
         {isStaff && (
@@ -213,26 +213,26 @@ function GuideEntryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-4 space-y-2 mb-4">
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-xs bg-char p-4 space-y-2 mb-4">
       {error && <p className="font-ui text-xs text-garnet">{error}</p>}
       <input
         value={bossName}
         onChange={(e) => setBossName(e.target.value)}
         placeholder="Nom du boss"
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <input
         value={videoUrl}
         onChange={(e) => setVideoUrl(e.target.value)}
         placeholder="Lien vidéo (optionnel)"
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <textarea
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Notes (optionnel)"
         rows={2}
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <button
         type="submit"

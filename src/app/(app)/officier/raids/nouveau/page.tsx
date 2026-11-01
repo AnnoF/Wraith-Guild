@@ -208,7 +208,7 @@ function NouveauRaidForm() {
     <div className="max-w-lg space-y-6">
       <p className="font-display text-lg text-bone">Configurer un nouveau raid</p>
 
-      <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-5 space-y-4">
+      <form onSubmit={handleSubmit} className="gilt-frame rounded-xs bg-char p-5 space-y-4">
         {error && <p className="font-ui text-xs text-garnet">{error}</p>}
 
         <div>
@@ -219,7 +219,7 @@ function NouveauRaidForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex. Soirée raid du mercredi"
-            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
         </div>
 
@@ -232,7 +232,7 @@ function NouveauRaidForm() {
               type="datetime-local"
               value={date}
               onChange={(e) => handleDateChange(e.target.value)}
-              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
           <div>
@@ -246,7 +246,7 @@ function NouveauRaidForm() {
                 setEndTimeTouched(true);
                 setEndTime(e.target.value);
               }}
-              className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
         </div>
@@ -262,7 +262,7 @@ function NouveauRaidForm() {
               setDeadlineTouched(true);
               setSignupDeadline(e.target.value);
             }}
-            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
           <p className="font-ui text-xs text-bone/40 mt-1">
             Passé cette date, les inscriptions se ferment automatiquement. Par
@@ -282,7 +282,7 @@ function NouveauRaidForm() {
                 draggable
                 onDragStart={(e) => handleDragStart(e, { title: r, fromPhase: null })}
                 onClick={() => addPhase(r)}
-                className="font-ui text-xs px-3 py-2 text-left border rounded-sm transition-colors focus-ring border-bone/15 text-bone/70 hover:border-gold hover:text-bone cursor-grab active:cursor-grabbing"
+                className="font-ui text-xs px-3 py-2 text-left border rounded-xs transition-colors focus-ring border-bone/15 text-bone/70 hover:border-gold hover:text-bone cursor-grab active:cursor-grabbing"
               >
                 {r}
                 <span className="block text-[10px] opacity-70">{RAID_INSTANCE_SIZES[r]} joueurs</span>
@@ -306,7 +306,7 @@ function NouveauRaidForm() {
                   }}
                   onDragLeave={() => setDragOverPhase((cur) => (cur === phaseIndex ? null : cur))}
                   onDrop={(e) => handleDropOnPhase(e, phaseIndex)}
-                  className={`gilt-frame rounded-sm bg-void/40 p-2.5 flex items-center gap-2 ${
+                  className={`gilt-frame rounded-xs bg-void/40 p-2.5 flex items-center gap-2 ${
                     dragOverPhase === phaseIndex ? "border-gold" : ""
                   }`}
                 >
@@ -371,12 +371,12 @@ function NouveauRaidForm() {
                             setOpenPicker((cur) => (cur === phaseIndex ? null : phaseIndex));
                           }}
                           title="Ajouter une instance concurrente à cette phase"
-                          className="font-ui text-sm w-5 h-5 flex items-center justify-center border border-bone/20 text-bone/50 hover:border-gold hover:text-gold rounded-sm focus-ring"
+                          className="font-ui text-sm w-5 h-5 flex items-center justify-center border border-bone/20 text-bone/50 hover:border-gold hover:text-gold rounded-xs focus-ring"
                         >
                           +
                         </button>
                         {openPicker === phaseIndex && compatible.length > 1 && (
-                          <div className="absolute right-0 top-full mt-1 z-10 gilt-frame rounded-sm bg-char p-1.5 flex flex-col gap-0.5 w-44">
+                          <div className="absolute right-0 top-full mt-1 z-10 gilt-frame rounded-xs bg-char p-1.5 flex flex-col gap-0.5 w-44">
                             {compatible.map((r) => (
                               <button
                                 key={r}
@@ -385,7 +385,7 @@ function NouveauRaidForm() {
                                   addInstanceToPhase(phaseIndex, r, null);
                                   setOpenPicker(null);
                                 }}
-                                className="font-ui text-xs px-2 py-1 text-left rounded-sm focus-ring text-bone/80 hover:bg-gold/10 hover:text-bone"
+                                className="font-ui text-xs px-2 py-1 text-left rounded-xs focus-ring text-bone/80 hover:bg-gold/10 hover:text-bone"
                               >
                                 {r}
                               </button>
@@ -401,7 +401,7 @@ function NouveauRaidForm() {
           )}
         </div>
 
-        <div className="gilt-frame rounded-sm bg-void/40 p-3 space-y-2">
+        <div className="gilt-frame rounded-xs bg-void/40 p-3 space-y-2">
           <label className="flex items-center gap-2 font-ui text-xs text-bone/80 cursor-pointer">
             <input
               type="checkbox"
@@ -422,7 +422,7 @@ function NouveauRaidForm() {
                 max={52}
                 value={occurrences}
                 onChange={(e) => setOccurrences(Number(e.target.value))}
-                className="w-24 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+                className="w-24 bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
               />
               <p className="font-ui text-xs text-bone/40 mt-1">
                 Crée {occurrences} raids, un chaque semaine à partir de la date ci-dessus. La date
@@ -440,7 +440,7 @@ function NouveauRaidForm() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+            className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
           />
         </div>
 

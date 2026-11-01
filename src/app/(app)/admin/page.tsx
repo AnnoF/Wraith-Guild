@@ -58,7 +58,7 @@ export default function AdminPage() {
 
       <div className="space-y-2">
         {users.map((u) => (
-          <div key={u.id} className="gilt-frame rounded-sm bg-char px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+          <div key={u.id} className="gilt-frame rounded-xs bg-char px-4 py-3 flex items-center justify-between flex-wrap gap-2">
             <span className="font-ui text-sm text-bone">{u.discordTag}</span>
             <div className="flex gap-1">
               {ROLES.map((r) => (

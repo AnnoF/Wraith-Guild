@@ -23,7 +23,7 @@ export default function ClassSpecIcon({
       alt={`${CLASS_LABELS[wowClass]} - ${spec}`}
       title={`${CLASS_LABELS[wowClass]} - ${spec}`}
       onError={() => setFailed(true)}
-      className={`${size} shrink-0 rounded-sm ${className}`}
+      className={`${size} shrink-0 rounded-xs ${className}`}
     />
   );
 }

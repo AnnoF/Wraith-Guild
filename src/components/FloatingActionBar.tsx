@@ -18,7 +18,7 @@ export default function FloatingActionBar() {
     <>
       <div style={{ height: BAR_HEIGHT[state] }} className="transition-[height] duration-200" />
       <div
-        className="fixed inset-x-0 bottom-0 z-30 bg-void/95 backdrop-blur border-t border-gold/30"
+        className="fixed inset-x-0 bottom-0 z-30 bg-void/95 backdrop-blur-sm border-t border-gold/30"
         style={{ display: state === "closed" ? "none" : "block" }}
       >
         {state === "collapsed" && (

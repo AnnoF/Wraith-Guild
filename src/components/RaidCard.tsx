@@ -52,7 +52,7 @@ export default function RaidCard({ raid, href }: { raid: RaidData; href?: string
       : null;
 
   return (
-    <Link href={href ?? `/raids/${raid.id}`} className="gilt-frame rounded-sm bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
+    <Link href={href ?? `/raids/${raid.id}`} className="gilt-frame rounded-xs bg-char p-4 block hover:bg-char/70 transition-colors focus-ring">
       <div className="flex justify-between items-start mb-2">
         <span className="font-display text-sm text-bone">{raid.name}</span>
         <span className={`font-ui text-[10px] uppercase tracking-wide px-2 py-1 ${status.bg} ${status.text}`}>

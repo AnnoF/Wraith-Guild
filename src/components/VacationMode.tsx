@@ -62,7 +62,7 @@ export default function VacationMode() {
   if (!profile) return null;
 
   return (
-    <div className="gilt-frame rounded-sm bg-char p-5">
+    <div className="gilt-frame rounded-xs bg-char p-5">
       <p className="font-display text-sm text-bone mb-2">Mode vacances</p>
       {isActive ? (
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -92,7 +92,7 @@ export default function VacationMode() {
               type="date"
               value={start}
               onChange={(e) => setStart(e.target.value)}
-              className="bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
           <div>
@@ -101,7 +101,7 @@ export default function VacationMode() {
               type="date"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
-              className="bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+              className="bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
             />
           </div>
           <button

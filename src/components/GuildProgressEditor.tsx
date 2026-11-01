@@ -84,7 +84,7 @@ function ProgressCard({
   }
 
   return (
-    <div className="bg-char border border-bone/10 rounded-sm p-4">
+    <div className="bg-char border border-bone/10 rounded-xs p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="font-display text-sm text-bone">{entry.instance}</p>
         {isAdmin && (
@@ -163,13 +163,13 @@ function ProgressForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="gilt-frame rounded-sm bg-char p-4 space-y-2">
+    <form onSubmit={handleSubmit} className="gilt-frame rounded-xs bg-char p-4 space-y-2">
       {error && <p className="font-ui text-xs text-garnet">{error}</p>}
       <input
         value={instance}
         onChange={(e) => setInstance(e.target.value)}
         placeholder="Instance (ex: Molten Core)"
-        className="w-full bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+        className="w-full bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
       />
       <div className="flex gap-2">
         <input
@@ -178,7 +178,7 @@ function ProgressForm({
           value={killed}
           onChange={(e) => setKilled(e.target.value)}
           placeholder="Tués"
-          className="w-1/2 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+          className="w-1/2 bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
         />
         <input
           type="number"
@@ -186,7 +186,7 @@ function ProgressForm({
           value={total}
           onChange={(e) => setTotal(e.target.value)}
           placeholder="Total"
-          className="w-1/2 bg-void border border-bone/15 rounded-sm focus-ring px-3 py-2 font-ui text-sm text-bone"
+          className="w-1/2 bg-void border border-bone/15 rounded-xs focus-ring px-3 py-2 font-ui text-sm text-bone"
         />
       </div>
       <div className="flex gap-3">

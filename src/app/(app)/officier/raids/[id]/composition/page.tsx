@@ -398,7 +398,7 @@ export default function CompositionPage() {
       </div>
 
       {error && (
-        <p className="font-ui text-xs text-garnet gilt-frame rounded-sm bg-char px-4 py-2.5">{error}</p>
+        <p className="font-ui text-xs text-garnet gilt-frame rounded-xs bg-char px-4 py-2.5">{error}</p>
       )}
 
       <div className="space-y-2">
@@ -407,7 +407,7 @@ export default function CompositionPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un joueur ou un personnage..."
-            className="bg-void border border-bone/15 rounded-sm focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
+            className="bg-void border border-bone/15 rounded-xs focus-ring px-3 py-1.5 font-ui text-xs text-bone w-64"
           />
           <div className="flex gap-1">
             {ROLE_TAGS.map((r) => (
@@ -471,7 +471,7 @@ export default function CompositionPage() {
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
             )}
             {filteredUnplaced.map((s) => (
-              <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
+              <div key={s.id} className="gilt-frame rounded-xs bg-char px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                   <button
@@ -527,7 +527,7 @@ export default function CompositionPage() {
               </p>
             )}
             {filteredUnplacedWantBench.map((s) => (
-              <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
+              <div key={s.id} className="gilt-frame rounded-xs bg-char px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                   <button
@@ -585,7 +585,7 @@ export default function CompositionPage() {
               <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
             )}
             {filteredBenched.map((s) => (
-              <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
+              <div key={s.id} className="gilt-frame rounded-xs bg-char px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-ui text-sm text-bone/80">{s.user.discordTag}</p>
                   <button
@@ -639,7 +639,7 @@ export default function CompositionPage() {
                   {groupRows(run.size, numGroups).map((row, rowIdx) => (
                     <div key={rowIdx} className={`grid ${GRID_COLS[row.length] ?? "grid-cols-4"} gap-3`}>
                       {row.map((groupIndex) => (
-                        <div key={groupIndex} className="gilt-frame rounded-sm bg-char p-3 min-w-0">
+                        <div key={groupIndex} className="gilt-frame rounded-xs bg-char p-3 min-w-0">
                           <p className="font-display text-xs text-bone/60 mb-2">Groupe {groupIndex + 1}</p>
                           <div className="space-y-1">
                             {Array.from({ length: GROUP_SIZE }, (_, i) => {
@@ -726,7 +726,7 @@ export default function CompositionPage() {
               const { run, placement } = placementBySignup.get(s.id)!;
               const otherCharacters = s.user.characters.filter((c) => c.id !== placement.characterId);
               return (
-                <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5">
+                <div key={s.id} className="gilt-frame rounded-xs bg-char px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                     <button
@@ -791,7 +791,7 @@ export default function CompositionPage() {
                   <p className="col-span-4 lg:col-span-2 font-ui text-sm text-bone/50">Aucun résultat pour ces filtres.</p>
                 )}
                 {filteredAbsent.map((s) => (
-                  <div key={s.id} className="gilt-frame rounded-sm bg-char px-3 py-2.5 opacity-40">
+                  <div key={s.id} className="gilt-frame rounded-xs bg-char px-3 py-2.5 opacity-40">
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-ui text-sm text-bone">{s.user.discordTag}</p>
                       <button
@@ -851,7 +851,7 @@ export default function CompositionPage() {
                   <button
                     key={`group-${groupIdx}`}
                     onClick={() => expandBosses(names)}
-                    className="w-full gilt-frame rounded-sm bg-char px-4 py-2.5 flex items-center justify-between gap-3 text-left focus-ring"
+                    className="w-full gilt-frame rounded-xs bg-char px-4 py-2.5 flex items-center justify-between gap-3 text-left focus-ring"
                   >
                     <span className="font-ui text-xs text-bone/50 truncate">{names.join(", ")}</span>
                     <span className="font-ui text-[10px] uppercase tracking-wide text-bone/40 shrink-0">
@@ -864,7 +864,7 @@ export default function CompositionPage() {
               const { boss, roles } = group[0];
               const isCollapsed = collapsedBosses.has(boss);
               return (
-                <div key={boss} className="gilt-frame rounded-sm bg-char p-4">
+                <div key={boss} className="gilt-frame rounded-xs bg-char p-4">
                   <button
                     onClick={() => toggleBossCollapsed(boss)}
                     className="flex items-center justify-between w-full font-display text-sm text-bone focus-ring"
