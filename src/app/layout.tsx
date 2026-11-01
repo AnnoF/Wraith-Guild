@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
-import { Cinzel, EB_Garamond } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "./providers";
 
-const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", weight: ["500", "600", "700"] });
-const ebGaramond = EB_Garamond({ subsets: ["latin"], variable: "--font-eb-garamond", weight: ["400", "500", "600", "700"] });
+// Polices auto-hébergées (variables, sous-ensemble latin, licence SIL OFL, voir
+// src/app/fonts/LICENSE-*.txt) : le build ne dépend plus de Google Fonts.
+const cinzel = localFont({
+  src: "./fonts/cinzel-latin-wght-normal.woff2",
+  variable: "--font-cinzel",
+  weight: "400 900",
+  display: "swap"
+});
+const ebGaramond = localFont({
+  src: "./fonts/eb-garamond-latin-wght-normal.woff2",
+  variable: "--font-eb-garamond",
+  weight: "400 800",
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   title: "Wraith",
