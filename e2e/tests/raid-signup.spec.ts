@@ -23,6 +23,8 @@ test("un MEMBER s'inscrit à un raid ouvert", async ({ page, signInAs }) => {
   await signInAs("MEMBER");
   await page.goto(`/raids/${raid.id}`);
 
+  // La disponibilité (raid / bench) est obligatoire : « S'inscrire » reste désactivé sans choix.
+  await page.getByRole("radio", { name: "Je veux raid" }).click();
   await page.getByPlaceholder("Ex. dispo après 21h").fill("Dispo dès 20h");
   await page.getByRole("button", { name: "S'inscrire" }).click();
 

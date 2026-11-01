@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Hiérarchie (voir src/lib/roleSync.ts pour la résolution depuis Discord,

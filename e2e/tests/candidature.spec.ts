@@ -47,5 +47,6 @@ test("le candidat échange avec les officiers, qui traitent la candidature", asy
   await expect(page.getByText("Hâte d'avoir des nouvelles !")).toBeVisible();
 
   await page.getByRole("button", { name: "Accepter" }).click();
-  await expect(page.getByText("Acceptée")).toBeVisible();
+  // exact : une phrase d'aide contient aussi « acceptée » (strict mode sinon)
+  await expect(page.getByText("Acceptée", { exact: true })).toBeVisible();
 });

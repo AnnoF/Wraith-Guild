@@ -44,10 +44,27 @@ Domaine de production : https://wraith-guild.fr (VPS OVH)
   `canConfigureRaids(role)` (Officier+), `canManageRoles(role)`
   (Administrateur), `isMember(role)` (connecté et pas Candidat). Ne jamais
   réimplémenter cette logique inline — voir [Recettes](#recettes-courantes).
-- **Versions réelles** (toujours vérifier `package.json`) : Next.js
-  `^16.2.12` (App Router), React `^19.2.8`, NextAuth `^4.24.15`, Prisma
-  `^5.20.0`, TypeScript `^5.5.3`, Vitest `^4.1.10`, Playwright `^1.62.1`,
+- **Versions réelles** (toujours vérifier `package.json`) : Node.js 22 (CI
+  et VPS), Next.js `^16.4.3` (App Router), React `^19.3.1`, NextAuth
+  `^4.24.15`, Prisma `^7.10.1` (adaptateur `@prisma/adapter-pg`), TypeScript
+  `^7.0.2`, Tailwind CSS `^4.3.3`, Vitest `^4.1.12`, Playwright `^1.64.1`,
   PM2 en prod.
+- **Prisma 7** : l'URL de la base vit dans `prisma.config.ts` (pas dans
+  `schema.prisma`) et la connexion de l'app passe par l'adaptateur pg
+  (`src/lib/prisma.ts`, `connectionTimeoutMillis: 5000`). Le générateur reste
+  `prisma-client-js` (déprécié, toujours supporté) : le migrer vers
+  `prisma-client` imposerait un `output` et la réécriture des imports
+  `@prisma/client`. `prisma.config.ts` n'utilise volontairement pas
+  `env("DATABASE_URL")` (il lève une erreur si la variable manque, ce qui
+  casserait `prisma generate` en CI). `db push` ne génère plus le client :
+  toujours enchaîner `prisma generate` avant. Les agents IA ne peuvent pas
+  lancer `db push --accept-data-loss` sans le consentement explicite de
+  l'utilisateur (garde-fou de Prisma 7).
+- **Jamais de code serveur importé depuis un composant `"use client"`** :
+  `src/lib/prisma.ts` embarque le pilote `pg` (modules Node `net`, `tls`,
+  `fs`), le build échoue sinon. D'où la séparation
+  `src/lib/recruitmentShared.ts` (pur, importable côté client) /
+  `src/lib/recruitment.ts` (accès base, serveur uniquement).
 - **Avant de conclure une modification de code** : lancer
   `npm run type-check` puis `npm test` (rapide, sans base de données). Ce
   sont les deux commandes que la CI fait tourner sur chaque PR. **Il n'y a
@@ -275,7 +292,8 @@ src/
     raidStatus.ts         statut affiché calculé (deadline / date dépassée)
     vacation.ts            bascule auto en ABSENT pendant les vacances
     wowWeek.ts             calcul de la semaine WoW (reset mercredi)
-    recruitment.ts         lecture/amorçage de l'état du recrutement par spécialisation (RecruitmentStatus), éditable par Officier+ depuis GuildShowcase
+    recruitment.ts         lecture/amorçage de l'état du recrutement par spécialisation (RecruitmentStatus), éditable par Officier+ depuis GuildShowcase — serveur uniquement
+    recruitmentShared.ts   partie pure du recrutement (niveaux, libellés, regroupement), importable par un composant client
     applicationInfo.ts     texte de présentation de la page /candidature
     aboutInfo.ts             texte "Qui sommes-nous ?" affiché dans HeroBanner
     guildInfo.ts            contenu éditorial vitrine (lien Discord)
@@ -433,8 +451,8 @@ biseautées, camp de guerre), qui avait lui-même remplacé un tout premier
 essai parchemin/or abandonné. Ne pas "corriger" vers le style sombre/
 anguleux — cette direction dorée/ornementée est désormais celle à conserver.
 
-- Palette (variables CSS dans `src/app/globals.css`, dupliquées dans
-  `tailwind.config.ts`) : `--void #0B1E22` (fond, bleu-teal profond),
+- Palette (variables CSS dans `src/app/globals.css`, dupliquées dans le bloc
+  `@theme` du même fichier — Tailwind 4, plus de `tailwind.config.ts`) : `--void #0B1E22` (fond, bleu-teal profond),
   `--char #122A2E` (cartes), `--gold #D4AF37` (accent principal — anciennement
   `--blood`, renommé car ce n'est plus une couleur rouge), `--bone #F1E6C9`
   (texte, crème chaud), `--amber #B8863B` (accent secondaire / statut
