@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { RecruitmentPriority } from "@prisma/client";
 import { CLASS_LABELS, CLASS_SPECS, WOW_CLASSES } from "@/lib/classes";
-import { RECRUITMENT_COLUMN_META, RECRUITMENT_PRIORITIES, groupByColumn, specKey } from "@/lib/recruitment";
+import { RECRUITMENT_COLUMN_META, RECRUITMENT_PRIORITIES, groupByColumn, specKey } from "@/lib/recruitmentShared";
 import ClassSpecIcon from "./ClassSpecIcon";
 
 type RecruitmentStatus = Record<string, RecruitmentPriority>;

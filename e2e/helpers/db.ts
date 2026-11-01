@@ -1,6 +1,10 @@
 import { PrismaClient, type SiteRole, type User } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-export const prisma = new PrismaClient();
+// Prisma 7 : connexion via l'adaptateur pg (DATABASE_URL vient de .env.test)
+export const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+});
 
 // Ordre sans importance pour TRUNCATE ... CASCADE, mais explicite pour
 // documenter les tables couvertes par le reset E2E.
