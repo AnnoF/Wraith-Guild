@@ -8,6 +8,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) redirect("/");
   // Un compte CANDIDAT (connecté mais sans rôle Member/Officers sur le
   // Discord de guilde) reste cantonné à son espace de candidature.
+  if (session.user.banned) redirect("/");
   if (session.user.siteRole === "CANDIDAT") redirect("/candidature");
 
   return (

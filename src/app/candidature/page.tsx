@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { APPLICATION_INFO_SECTIONS } from "@/lib/applicationInfo";
@@ -6,6 +7,7 @@ import CandidatureForm from "./CandidatureForm";
 
 export default async function CandidaturePage() {
   const session = await getServerSession(authOptions);
+  if (session?.user.banned) redirect("/");
 
   return (
     <main className="min-h-screen">

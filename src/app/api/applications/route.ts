@@ -28,6 +28,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non connecté" }, { status: 401 });
+  if (session.user.banned) return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
 
   // Il faut avoir rejoint le Discord de guilde pour pouvoir postuler, sinon
   // le bot ne pourrait pas transmettre les réponses des officiers en DM

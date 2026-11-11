@@ -38,6 +38,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Les inscriptions ne sont pas ouvertes pour ce raid" }, { status: 409 });
   }
 
+  // Il faut au moins un personnage actif pour que l'Officier puisse placer
+  // le joueur ; se signaler absent reste possible sans personnage.
+  if (status === "INSCRIT") {
+    const activeCharacters = await prisma.character.count({
+      where: { userId: session.user.id, isActive: true }
+    });
+    if (activeCharacters === 0) {
+      return NextResponse.json(
+        { error: "Crée au moins un personnage actif avant de t'inscrire à un raid" },
+        { status: 409 }
+      );
+    }
+  }
+
   const signup = await prisma.raidSignup.upsert({
     where: { raidId_userId: { raidId: id, userId: session.user.id } },
     update: { status, comment, wantsBench },

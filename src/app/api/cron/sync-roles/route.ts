@@ -25,7 +25,9 @@ export async function POST(req: Request) {
   }
 
   const users = await prisma.user.findMany({
-    where: { siteRole: { in: DISCORD_MANAGED_ROLES } },
+    // Les comptes dont les droits ont été retirés à la main (ou bannis)
+    // restent tels quels jusqu'à ce qu'un Administrateur les rétablisse.
+    where: { siteRole: { in: DISCORD_MANAGED_ROLES }, rolesLocked: false },
     select: { id: true, discordId: true, siteRole: true }
   });
 
