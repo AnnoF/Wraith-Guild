@@ -1,9 +1,8 @@
 // Alerte Discord quand un Officier ferme les inscriptions d'un raid (la
 // composition est considérée figée à ce moment). Envoyée via un webhook
-// de canal dédié (DISCORD_RAID_WEBHOOK_URL) avec un ping des rôles
-// Member/Officier configurés. N'échoue jamais bruyamment : une panne ne
-// doit pas empêcher le changement de statut d'être enregistré.
-import { getRoleIdByName } from "./discord";
+// de canal dédié (DISCORD_RAID_WEBHOOK_URL) avec un ping @everyone.
+// N'échoue jamais bruyamment : une panne ne doit pas empêcher le
+// changement de statut d'être enregistré.
 
 function raidUrl(id: string) {
   const base = process.env.NEXTAUTH_URL || "";
@@ -14,19 +13,6 @@ export async function notifyRaidLocked(raid: { id: string; name: string; date: D
   const url = process.env.DISCORD_RAID_WEBHOOK_URL;
   if (!url) return;
 
-  const roleIds: string[] = [];
-  try {
-    const [memberId, officierId] = await Promise.all([
-      getRoleIdByName(process.env.DISCORD_ROLE_MEMBER || "Member"),
-      getRoleIdByName(process.env.DISCORD_ROLE_OFFICIER || "Officier")
-    ]);
-    if (memberId) roleIds.push(memberId);
-    if (officierId) roleIds.push(officierId);
-  } catch (err) {
-    console.error("Erreur résolution rôles Discord (alerte raid) :", err);
-  }
-
-  const mentions = roleIds.map((id) => `<@&${id}>`).join(" ");
   const dateLabel = new Date(raid.date).toLocaleDateString("fr-FR", {
     weekday: "long",
     day: "numeric",
@@ -36,7 +22,7 @@ export async function notifyRaidLocked(raid: { id: string; name: string; date: D
     timeZone: "Europe/Paris"
   });
 
-  const content = `🔒 ${mentions ? mentions + " — " : ""}Les inscriptions pour **${raid.name}** (${dateLabel}) sont closes, la composition est prête.\n${raidUrl(raid.id)}`;
+  const content = `🔒 @everyone — Les inscriptions pour **${raid.name}** (${dateLabel}) sont closes, la composition est prête.\n${raidUrl(raid.id)}`;
 
   try {
     await fetch(url, {
@@ -44,9 +30,9 @@ export async function notifyRaidLocked(raid: { id: string; name: string; date: D
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content,
-        // Liste blanche explicite : seuls ces rôles peuvent être pingés,
-        // rien d'autre n'est interprété dans le message.
-        allowed_mentions: { roles: roleIds }
+        // Liste blanche explicite : seul @everyone peut être pingé, rien
+        // d'autre n'est interprété dans le message.
+        allowed_mentions: { parse: ["everyone"] }
       })
     });
   } catch (err) {

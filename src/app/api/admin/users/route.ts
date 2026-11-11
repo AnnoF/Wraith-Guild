@@ -13,7 +13,7 @@ export async function GET() {
 
   const users = await prisma.user.findMany({
     orderBy: { discordTag: "asc" },
-    select: { id: true, discordTag: true, avatarUrl: true, siteRole: true, createdAt: true }
+    select: { id: true, discordTag: true, avatarUrl: true, siteRole: true, isBanned: true, createdAt: true }
   });
   return NextResponse.json(users);
 }

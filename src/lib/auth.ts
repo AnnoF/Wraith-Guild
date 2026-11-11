@@ -54,6 +54,8 @@ export const authOptions: NextAuthOptions = {
       const existing = await prisma.user.findUnique({
         where: { discordId: account.providerAccountId }
       });
+      // Compte banni par un Administrateur : connexion refusée.
+      if (existing?.isBanned) return "/?error=banned";
 
       await prisma.user.upsert({
         where: { discordId: account.providerAccountId },
@@ -92,7 +94,10 @@ export const authOptions: NextAuthOptions = {
         // un changement de rôle par un Administrateur ou de nom d'affichage.
         const dbUser = await prisma.user.findUnique({ where: { id: token.userId as string } });
         if (dbUser) {
-          session.user.siteRole = dbUser.siteRole;
+          // Un banni encore connecté perd immédiatement ses droits : toutes
+          // les routes se fient à siteRole, CANDIDAT est le plus restrictif.
+          session.user.banned = dbUser.isBanned;
+          session.user.siteRole = dbUser.isBanned ? "CANDIDAT" : dbUser.siteRole;
           session.user.name = dbUser.displayName || dbUser.discordTag;
         }
       }

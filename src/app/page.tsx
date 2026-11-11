@@ -20,12 +20,13 @@ export default async function HomePage({
 
   return (
     <main className="min-h-screen">
-      <PublicNavbar isCandidateLoggedIn={session?.user.siteRole === "CANDIDAT"} />
+      <PublicNavbar isCandidateLoggedIn={session?.user.siteRole === "CANDIDAT" && !session.user.banned} />
 
       {error && (
         <p className="font-ui text-sm text-garnet text-center gilt-frame rounded-xs px-4 py-3 bg-char max-w-md mx-auto mt-6">
-          Connexion refusée : une erreur est survenue lors de la vérification
-          de votre compte Discord. Réessayez dans un instant.
+          {error === "banned"
+            ? "Connexion refusée : ce compte a été banni du site."
+            : "Connexion refusée : une erreur est survenue lors de la vérification de votre compte Discord. Réessayez dans un instant."}
         </p>
       )}
 

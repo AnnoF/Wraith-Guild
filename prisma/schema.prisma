@@ -118,6 +118,8 @@ model User {
   displayName   String?  // surnom personnalisé sur le site ; prioritaire sur discordTag si défini
   avatarUrl     String?
   siteRole      SiteRole @default(CANDIDAT)
+  isBanned      Boolean  @default(false) // banni du site par un Administrateur : connexion refusée
+  rolesLocked   Boolean  @default(false) // droits retirés à la main : ignoré par la resynchro Discord quotidienne
   isArchived    Boolean  @default(false) // personne partie de la guilde ; masquée de /membres, historique conservé
   vacationStart DateTime? // mode vacances : inscrit auto en ABSENT sur les raids dans cette période
   vacationEnd   DateTime?
