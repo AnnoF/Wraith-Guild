@@ -153,7 +153,10 @@ model Character {
   professions   CharacterProfession[]
   bossRoleAssignments BossRoleAssignment[]
 
-  @@unique([userId, name])
+  // Le pseudo = couple (nom primaire, nom secondaire). Postgres considère les
+  // NULL comme distincts : le cas "sans nom secondaire" est vérifié côté
+  // application (voir /api/characters).
+  @@unique([userId, name, secondaryName])
 }
 
 // Max 2 métiers par personnage, appliqué côté application (voir POST /api/characters)

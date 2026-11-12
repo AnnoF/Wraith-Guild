@@ -115,6 +115,23 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     };
   }
 
+  const finalName = (data.name as string | undefined) ?? character.name;
+  const finalSecondary =
+    data.secondaryName !== undefined ? (data.secondaryName as string | null) : character.secondaryName;
+  if (finalSecondary === null && (data.name !== undefined || data.secondaryName !== undefined)) {
+    // NULL est toujours distinct en base : on vérifie ce cas à la main
+    const dup = await prisma.character.findFirst({
+      where: { userId: session.user.id, name: finalName, secondaryName: null, id: { not: id } },
+      select: { id: true }
+    });
+    if (dup) {
+      return NextResponse.json(
+        { error: "Vous avez déjà un personnage avec ce nom" },
+        { status: 409 }
+      );
+    }
+  }
+
   try {
     const updated = await prisma.character.update({
       where: { id },
