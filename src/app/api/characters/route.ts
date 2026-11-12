@@ -88,11 +88,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Métier en double" }, { status: 400 });
   }
 
+  const cleanName = name.trim();
+  const cleanSecondary = secondaryName && secondaryName.trim() ? secondaryName.trim() : null;
+  if (cleanSecondary === null) {
+    // NULL est toujours distinct en base : on vérifie ce cas à la main
+    const dup = await prisma.character.findFirst({
+      where: { userId: session.user.id, name: cleanName, secondaryName: null },
+      select: { id: true }
+    });
+    if (dup) {
+      return NextResponse.json(
+        { error: "Vous avez déjà un personnage avec ce nom" },
+        { status: 409 }
+      );
+    }
+  }
+
   try {
     const character = await prisma.character.create({
       data: {
-        name: name.trim(),
-        secondaryName: secondaryName && secondaryName.trim() ? secondaryName.trim() : null,
+        name: cleanName,
+        secondaryName: cleanSecondary,
         class: wowClass,
         spec,
         canRaidLead: Boolean(canRaidLead),
