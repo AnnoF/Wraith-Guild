@@ -4,6 +4,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { APPLICATION_INFO_SECTIONS } from "@/lib/applicationInfo";
 import CandidatureForm from "./CandidatureForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Candidature",
+  description: "Rejoins la guilde Wraith pour World of Warcraft Forever : dépose ta candidature en ligne.",
+  alternates: { canonical: "/candidature" }
+};
 
 export default async function CandidaturePage() {
   const session = await getServerSession(authOptions);
