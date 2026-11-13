@@ -19,8 +19,21 @@ const ebGaramond = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Wraith",
-  description: "Inscriptions, personnages et compositions de raid de la guilde"
+  metadataBase: new URL("https://wraith-guild.fr"),
+  title: {
+    default: "Wraith — Guilde World of Warcraft Forever, recrutement et raids",
+    template: "%s | Wraith"
+  },
+  description:
+    "Wraith est une guilde francophone qui prépare World of Warcraft Forever : recrutement ouvert, raids, progression et streams.",
+  openGraph: {
+    type: "website",
+    siteName: "Wraith",
+    locale: "fr_FR",
+    title: "Wraith — Guilde World of Warcraft Forever",
+    description: "Guilde francophone : recrutement ouvert, raids, progression et streams.",
+    images: [{ url: "/logo_net.png" }]
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

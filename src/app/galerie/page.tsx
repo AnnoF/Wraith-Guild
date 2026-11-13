@@ -3,6 +3,13 @@ import { GALLERY_IMAGES } from "@/lib/gallery";
 import { TWITCH_CLIPS } from "@/lib/twitchClips";
 import TwitchClips from "@/components/TwitchClips";
 import LightboxImage from "@/components/LightboxImage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Galerie",
+  description: "Captures d'écran et clips Twitch de la guilde Wraith.",
+  alternates: { canonical: "/galerie" }
+};
 
 export default function GaleriePage() {
   return (
