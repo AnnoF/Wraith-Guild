@@ -9,6 +9,7 @@ import { DISCORD_INVITE_URL } from "@/lib/guildInfo";
 
 const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
   EN_ATTENTE: { label: "En attente", bg: "bg-amber", text: "text-void" },
+  APPLY: { label: "Apply", bg: "bg-gold", text: "text-void" },
   ACCEPTEE: { label: "Acceptée", bg: "bg-moss", text: "text-void" },
   REFUSEE: { label: "Refusée", bg: "bg-garnet/30", text: "text-bone/70" }
 };
