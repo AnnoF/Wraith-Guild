@@ -35,7 +35,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const isStaff = canConfigureRaids(session.user.siteRole);
   const isMember = session.user.siteRole !== "CANDIDAT";
 
-  if (visibility === "INTERNE" && !isMember) {
+  // Le propriétaire n'a aucun accès aux notes internes de sa candidature.
+  if (visibility === "INTERNE" && (!isMember || isOwner)) {
     return NextResponse.json({ error: "Droits insuffisants" }, { status: 403 });
   }
   if (visibility === "PARTAGE" && !isStaff && !isOwner) {

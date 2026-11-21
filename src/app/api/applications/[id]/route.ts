@@ -27,6 +27,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   });
   if (!application) return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
 
+  // Le propriétaire d'une candidature ne voit jamais les notes INTERNE de
+  // la sienne, quel que soit son rôle (Candidat, Apply, Member…).
+  if (application.userId === session.user.id) {
+    return NextResponse.json({
+      ...application,
+      comments: application.comments.filter((c) => c.visibility === "PARTAGE")
+    });
+  }
+
   return NextResponse.json(application);
 }
 
