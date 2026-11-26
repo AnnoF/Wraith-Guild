@@ -8,7 +8,7 @@ type BarState = "expanded" | "collapsed" | "closed";
 const BAR_HEIGHT: Record<BarState, number> = { expanded: 70, collapsed: 44, closed: 0 };
 
 // Barre d'actions persistante en bas de la vitrine (rejoindre le Discord /
-// candidater), réductible ou masquable. Le spacer ci-dessous réserve la
+// postuler), réductible ou masquable. Le spacer ci-dessous réserve la
 // place correspondante dans le flux de la page pour ne pas recouvrir le
 // footer.
 export default function FloatingActionBar() {
@@ -29,7 +29,7 @@ export default function FloatingActionBar() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo_net.png" alt="" className="h-5 w-5" style={{ clipPath: "circle(47%)" }} />
-            <span className="font-ui text-sm text-bone font-medium">Wraith — Rejoindre / Candidater</span>
+            <span className="font-ui text-sm text-bone font-medium">Wraith — Rejoindre / Postuler</span>
             <span className="text-bone/50 text-base absolute right-6">▲</span>
           </button>
         )}
@@ -55,7 +55,7 @@ export default function FloatingActionBar() {
                 href="/candidature"
                 className="font-display text-xs border border-bone/25 hover:border-amber text-bone rounded-full px-5 py-2.5 transition-colors focus-ring"
               >
-                Candidater
+                Postuler
               </Link>
             </div>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">

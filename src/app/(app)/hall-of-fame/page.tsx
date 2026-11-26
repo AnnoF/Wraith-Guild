@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { youtubeEmbedUrl } from "@/lib/youtube";
-import LightboxImage from "@/components/LightboxImage";
+import HallOfFameBand from "@/components/HallOfFameBand";
+import { GoldRule } from "@/components/Ornaments";
 
 interface HallOfFameEntry {
   id: string;
@@ -39,8 +39,9 @@ export default function HallOfFamePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-lg text-bone">Hall of Fame</p>
-          <p className="font-ui text-xs text-bone/50 mt-1">
+          <h1 className="font-display text-2xl gold-gradient-text tracking-widest mb-2">Hall of Fame</h1>
+          <GoldRule />
+          <p className="font-ui text-sm text-bone/65 mt-2">
             Premiers down, équipements légendaires, remerciements... les moments qui marquent l&apos;histoire de la guilde.
           </p>
         </div>
@@ -66,7 +67,7 @@ export default function HallOfFamePage() {
       {entries.length === 0 && !adding ? (
         <p className="font-ui text-sm text-bone/40">Pas encore de souvenir enregistré.</p>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div>
           {entries.map((entry) => (
             <EntryCard key={entry.id} entry={entry} isStaff={isStaff} onChange={load} />
           ))}
@@ -86,7 +87,6 @@ function EntryCard({
   onChange: () => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const embedUrl = entry.videoUrl ? youtubeEmbedUrl(entry.videoUrl) : null;
 
   async function handleDelete() {
     if (!confirm(`Retirer "${entry.title}" du Hall of Fame ?`)) return;
@@ -107,18 +107,15 @@ function EntryCard({
   }
 
   return (
-    <div className="gilt-frame rounded-xs bg-char p-4">
-      <div className="flex items-center justify-between mb-2 gap-2">
-        <div>
-          <p className="font-display text-sm text-bone">{entry.title}</p>
-          {entry.eventDate && (
-            <p className="font-ui text-xs text-amber uppercase tracking-wide mt-0.5">
-              {new Date(entry.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-            </p>
-          )}
-        </div>
-        {isStaff && (
-          <div className="flex gap-2 shrink-0">
+    <HallOfFameBand
+      title={entry.title}
+      description={entry.description}
+      imageUrl={entry.imageUrl}
+      videoUrl={entry.videoUrl}
+      eventDate={entry.eventDate}
+      actions={
+        isStaff && (
+          <div className="flex gap-4">
             <button onClick={() => setEditing(true)} className="font-ui text-xs text-bone/50 hover:text-bone focus-ring">
               Éditer
             </button>
@@ -126,32 +123,9 @@ function EntryCard({
               Retirer
             </button>
           </div>
-        )}
-      </div>
-
-      {entry.imageUrl && (
-        <LightboxImage src={entry.imageUrl} className="w-full h-48 object-cover mb-2" />
-      )}
-
-      {embedUrl ? (
-        <div className="aspect-video mb-2">
-          <iframe src={embedUrl} allowFullScreen className="h-full w-full" />
-        </div>
-      ) : (
-        entry.videoUrl && (
-          <a
-            href={entry.videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-ui text-xs text-bone/70 underline break-all block mb-2"
-          >
-            {entry.videoUrl}
-          </a>
         )
-      )}
-
-      {entry.description && <p className="font-ui text-xs text-bone/60 whitespace-pre-line">{entry.description}</p>}
-    </div>
+      }
+    />
   );
 }
 
