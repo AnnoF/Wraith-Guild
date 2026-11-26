@@ -1,6 +1,6 @@
 import { youtubeEmbedUrl } from "@/lib/youtube";
 import LightboxImage from "./LightboxImage";
-import { CornerFlourish, GoldRule } from "./Ornaments";
+import { GoldRule } from "./Ornaments";
 
 interface Props {
   title: string;
@@ -8,6 +8,8 @@ interface Props {
   imageUrl: string | null;
   videoUrl: string | null;
   eventDate: string | null;
+  // true : texte à droite et photo à gauche (un souvenir sur deux)
+  reverse?: boolean;
   actions?: React.ReactNode;
 }
 
@@ -17,54 +19,43 @@ function defaultImage(title: string) {
   return title.trim().toLowerCase().startsWith("le rush 60") ? "/vitrine/rush-60.webp" : null;
 }
 
-// Un souvenir présenté en bande plein écran, comme les sections de la page
-// d'accueil. La photo est rognée en haut et en bas (format 20/7, centré) et
-// le texte passe dessous pour ne pas masquer le sujet de la capture.
-//
-// Le débordement du conteneur utilise des marges et non `translate` : un
-// ancêtre translaté enfermerait l'overlay `fixed` de LightboxImage.
-export default function HallOfFameBand({ title, description, imageUrl, videoUrl, eventDate, actions }: Props) {
+// Un souvenir : texte d'un côté, photo décalée de l'autre, le texte mordant
+// sur le bord fondu de la photo. Sur petit écran, la photo passe au-dessus du
+// texte pour que celui-ci ne masque pas le sujet de la capture.
+export default function HallOfFameBand({ title, description, imageUrl, videoUrl, eventDate, reverse, actions }: Props) {
   const image = imageUrl || defaultImage(title);
   const embedUrl = videoUrl ? youtubeEmbedUrl(videoUrl) : null;
 
-  const heading = (
-    <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
-      <h2 className="font-display text-2xl gold-gradient-text tracking-widest mb-2">{title}</h2>
-      <GoldRule />
-      {eventDate && (
-        <p className="font-ui text-sm text-bone uppercase tracking-wide mt-2">
-          {new Date(eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-        </p>
-      )}
-    </div>
-  );
-
   return (
-    <article className="relative mx-[calc(50%-50vw)]">
-      {image ? (
-        <div className="relative w-full aspect-20/7 min-h-[380px]">
+    <article className="relative flex flex-col justify-center py-6 md:min-h-[340px]">
+      {image && (
+        // Pas de z-index ni de transform ici : ils enfermeraient l'overlay
+        // `fixed` de LightboxImage.
+        <div className={`relative h-56 md:absolute md:inset-y-0 md:h-auto md:w-[78%] ${reverse ? "md:left-0" : "md:right-0"}`}>
           <div className="absolute inset-0">
-            <LightboxImage src={image} className="h-full w-full object-cover object-center" />
-          </div>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-2/5 bg-linear-to-b from-void to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/5 bg-linear-to-t from-void to-transparent" />
-          <CornerFlourish className="pointer-events-none absolute top-4 left-4 opacity-50" />
-          <CornerFlourish className="pointer-events-none absolute top-4 right-4 opacity-50 scale-x-[-1]" />
-          <div className="pointer-events-none absolute inset-x-0 top-0">
-            <div className="max-w-6xl mx-auto px-6 md:px-12 pt-8">{heading}</div>
+            <LightboxImage
+              src={image}
+              className={`h-full w-full object-cover object-center hof-photo ${reverse ? "hof-photo-reverse" : ""}`}
+            />
           </div>
         </div>
-      ) : (
-        <div className="max-w-6xl mx-auto px-6 md:px-12 pt-8">{heading}</div>
       )}
 
-      <div className="max-w-6xl mx-auto px-6 md:px-12 pt-4 pb-12 space-y-4">
-        {description && (
-          <p className="font-ui text-lg text-bone/85 whitespace-pre-line max-w-3xl">{description}</p>
-        )}
+      <div className={`relative pt-3 md:py-4 md:w-[42%] space-y-3 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] ${reverse ? "md:self-end" : "md:self-start"}`}>
+        <div>
+          <h2 className="font-display text-xl gold-gradient-text tracking-widest mb-1">{title}</h2>
+          <GoldRule />
+          {eventDate && (
+            <p className="font-ui text-xs text-amber uppercase tracking-wide mt-1">
+              {new Date(eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+          )}
+        </div>
+
+        {description && <p className="font-ui text-sm text-bone whitespace-pre-line">{description}</p>}
 
         {embedUrl ? (
-          <div className="aspect-video max-w-3xl">
+          <div className="aspect-video">
             <iframe src={embedUrl} title={title} allowFullScreen className="h-full w-full" />
           </div>
         ) : (
@@ -73,7 +64,7 @@ export default function HallOfFameBand({ title, description, imageUrl, videoUrl,
               href={videoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-ui text-sm text-bone/70 underline break-all block"
+              className="font-ui text-xs text-bone/70 underline break-all block"
             >
               {videoUrl}
             </a>

@@ -101,6 +101,27 @@ body {
   color: transparent;
 }
 
+/* Photo d'un souvenir du Hall of Fame : bords fondus dans le fond, plus
+   largement du côté du texte (à gauche, ou à droite en version inversée).
+   Le masque est posé sur l'image seule, pas sur un parent de la lightbox. */
+.hof-photo {
+  --hof-side: to right;
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 85%, transparent);
+}
+
+@media (min-width: 768px) {
+  .hof-photo {
+    mask-image:
+      linear-gradient(var(--hof-side), transparent, rgba(0,0,0,0.35) 20%, #000 45%, #000 92%, transparent),
+      linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+    mask-composite: intersect;
+  }
+}
+
+.hof-photo-reverse {
+  --hof-side: to left;
+}
+
 /* Cadre doré utilisé sur les cartes (personnages, raids) : bordure fine +
    liseré supérieur marqué + petits coins ornementaux en pseudo-éléments */
 .gilt-frame {
