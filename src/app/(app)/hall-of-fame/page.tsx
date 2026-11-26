@@ -68,8 +68,8 @@ export default function HallOfFamePage() {
         <p className="font-ui text-sm text-bone/40">Pas encore de souvenir enregistré.</p>
       ) : (
         <div>
-          {entries.map((entry) => (
-            <EntryCard key={entry.id} entry={entry} isStaff={isStaff} onChange={load} />
+          {entries.map((entry, index) => (
+            <EntryCard key={entry.id} reverse={index % 2 === 1} entry={entry} isStaff={isStaff} onChange={load} />
           ))}
         </div>
       )}
@@ -79,10 +79,12 @@ export default function HallOfFamePage() {
 
 function EntryCard({
   entry,
+  reverse,
   isStaff,
   onChange
 }: {
   entry: HallOfFameEntry;
+  reverse: boolean;
   isStaff: boolean;
   onChange: () => void;
 }) {
@@ -113,6 +115,7 @@ function EntryCard({
       imageUrl={entry.imageUrl}
       videoUrl={entry.videoUrl}
       eventDate={entry.eventDate}
+      reverse={reverse}
       actions={
         isStaff && (
           <div className="flex gap-4">
